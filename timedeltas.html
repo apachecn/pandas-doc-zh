@@ -1,0 +1,680 @@
+
+<span id="timedeltas-timedeltas"></span><span id="timedeltas"></span><h1><span class="yiyi-st" id="yiyi-59">Time Deltas</span></h1>
+        <blockquote>
+        <p>原文：<a href="http://pandas.pydata.org/pandas-docs/stable/timedeltas.html">http://pandas.pydata.org/pandas-docs/stable/timedeltas.html</a></p>
+        <p>译者：<a href="https://github.com/wizardforcel">飞龙</a> <a href="http://usyiyi.cn/">UsyiyiCN</a></p>
+        <p>校对：（虚位以待）</p>
+        </blockquote>
+    
+<div class="admonition note">
+<p class="first admonition-title"><span class="yiyi-st" id="yiyi-60">注意</span></p>
+<p class="last"><span class="yiyi-st" id="yiyi-61">从v0.15.0开始，我们引入了一个新的标量类型<code class="docutils literal"><span class="pre">Timedelta</span></code>，它是<code class="docutils literal"><span class="pre">datetime.timedelta</span></code>的子类，并且行为类似，但允许与<code class="docutils literal"><span class="pre">np.timedelta64</span></code>类型以及主机的自定义表示，解析和属性。</span></p>
+</div>
+<p><span class="yiyi-st" id="yiyi-62">Timedeltas是时间差，以差单位表示，例如。天，小时，分钟，秒。</span><span class="yiyi-st" id="yiyi-63">他们可以是积极的和消极的。</span></p>
+<div class="section" id="parsing">
+<h2><span class="yiyi-st" id="yiyi-64">Parsing</span></h2>
+<p><span class="yiyi-st" id="yiyi-65">您可以通过各种参数构造<code class="docutils literal"><span class="pre">Timedelta</span></code>标量：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="c"># strings</span>
+<span class="gp">In [1]: </span><span class="n">Timedelta</span><span class="p">(</span><span class="s1">&apos;1 days&apos;</span><span class="p">)</span>
+<span class="gr">Out[1]: </span><span class="n">Timedelta</span><span class="p">(</span><span class="s1">&apos;1 days 00:00:00&apos;</span><span class="p">)</span>
+
+<span class="gp">In [2]: </span><span class="n">Timedelta</span><span class="p">(</span><span class="s1">&apos;1 days 00:00:00&apos;</span><span class="p">)</span>
+<span class="gr">Out[2]: </span><span class="n">Timedelta</span><span class="p">(</span><span class="s1">&apos;1 days 00:00:00&apos;</span><span class="p">)</span>
+
+<span class="gp">In [3]: </span><span class="n">Timedelta</span><span class="p">(</span><span class="s1">&apos;1 days 2 hours&apos;</span><span class="p">)</span>
+<span class="gr">Out[3]: </span><span class="n">Timedelta</span><span class="p">(</span><span class="s1">&apos;1 days 02:00:00&apos;</span><span class="p">)</span>
+
+<span class="gp">In [4]: </span><span class="n">Timedelta</span><span class="p">(</span><span class="s1">&apos;-1 days 2 min 3us&apos;</span><span class="p">)</span>
+<span class="gr">Out[4]: </span><span class="n">Timedelta</span><span class="p">(</span><span class="s1">&apos;-2 days +23:57:59.999997&apos;</span><span class="p">)</span>
+
+<span class="c"># like datetime.timedelta</span>
+<span class="c"># note: these MUST be specified as keyword arguments</span>
+<span class="gp">In [5]: </span><span class="n">Timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">seconds</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="gr">Out[5]: </span><span class="n">Timedelta</span><span class="p">(</span><span class="s1">&apos;1 days 00:00:01&apos;</span><span class="p">)</span>
+
+<span class="c"># integers with a unit</span>
+<span class="gp">In [6]: </span><span class="n">Timedelta</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="s1">&apos;d&apos;</span><span class="p">)</span>
+<span class="gr">Out[6]: </span><span class="n">Timedelta</span><span class="p">(</span><span class="s1">&apos;1 days 00:00:00&apos;</span><span class="p">)</span>
+
+<span class="c"># from a timedelta/np.timedelta64</span>
+<span class="gp">In [7]: </span><span class="n">Timedelta</span><span class="p">(</span><span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">seconds</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+<span class="gr">Out[7]: </span><span class="n">Timedelta</span><span class="p">(</span><span class="s1">&apos;1 days 00:00:01&apos;</span><span class="p">)</span>
+
+<span class="gp">In [8]: </span><span class="n">Timedelta</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">timedelta64</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="s1">&apos;ms&apos;</span><span class="p">))</span>
+<span class="gr">Out[8]: </span><span class="n">Timedelta</span><span class="p">(</span><span class="s1">&apos;0 days 00:00:00.001000&apos;</span><span class="p">)</span>
+
+<span class="c"># negative Timedeltas have this string repr</span>
+<span class="c"># to be more consistent with datetime.timedelta conventions</span>
+<span class="gp">In [9]: </span><span class="n">Timedelta</span><span class="p">(</span><span class="s1">&apos;-1us&apos;</span><span class="p">)</span>
+<span class="gr">Out[9]: </span><span class="n">Timedelta</span><span class="p">(</span><span class="s1">&apos;-1 days +23:59:59.999999&apos;</span><span class="p">)</span>
+
+<span class="c"># a NaT</span>
+<span class="gp">In [10]: </span><span class="n">Timedelta</span><span class="p">(</span><span class="s1">&apos;nan&apos;</span><span class="p">)</span>
+<span class="gr">Out[10]: </span><span class="n">NaT</span>
+
+<span class="gp">In [11]: </span><span class="n">Timedelta</span><span class="p">(</span><span class="s1">&apos;nat&apos;</span><span class="p">)</span>
+<span class="gr">Out[11]: </span><span class="n">NaT</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-66"><a class="reference internal" href="timeseries.html#timeseries-offsets"><span class="std std-ref">DateOffsets</span></a>（<code class="docutils literal"><span class="pre">日，</span> <span class="pre">小时，</span> <span class="pre">分钟，</span> <span class="pre">第二，</span> <span class="pre"> Milli，</span> <span class="pre">Micro，</span> <span class="pre">Nano</span></code>）也可用于建筑。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [12]: </span><span class="n">Timedelta</span><span class="p">(</span><span class="n">Second</span><span class="p">(</span><span class="mi">2</span><span class="p">))</span>
+<span class="gr">Out[12]: </span><span class="n">Timedelta</span><span class="p">(</span><span class="s1">&apos;0 days 00:00:02&apos;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-67">此外，标量中的操作产生另一个标量<code class="docutils literal"><span class="pre">Timedelta</span></code>。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [13]: </span><span class="n">Timedelta</span><span class="p">(</span><span class="n">Day</span><span class="p">(</span><span class="mi">2</span><span class="p">))</span> <span class="o">+</span> <span class="n">Timedelta</span><span class="p">(</span><span class="n">Second</span><span class="p">(</span><span class="mi">2</span><span class="p">))</span> <span class="o">+</span> <span class="n">Timedelta</span><span class="p">(</span><span class="s1">&apos;00:00:00.000123&apos;</span><span class="p">)</span>
+<span class="gr">Out[13]: </span><span class="n">Timedelta</span><span class="p">(</span><span class="s1">&apos;2 days 00:00:02.000123&apos;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="section" id="to-timedelta">
+<h3><span class="yiyi-st" id="yiyi-68">to_timedelta</span></h3>
+<div class="admonition warning">
+<p class="first admonition-title"><span class="yiyi-st" id="yiyi-69">警告</span></p>
+<p><span class="yiyi-st" id="yiyi-70">在0.15.0 <code class="docutils literal"><span class="pre">pd.to_timedelta</span></code>之前，将为标量输入返回<code class="docutils literal"><span class="pre">Series</span></code>，对于标量输入返回<code class="docutils literal"><span class="pre">np.timedelta64</span></code>。</span><span class="yiyi-st" id="yiyi-71">现在，对于类列输入，将返回<code class="docutils literal"><span class="pre">TimedeltaIndex</span></code>，对于系列输入，返回<code class="docutils literal"><span class="pre">Series</span></code>，对于标量输入，返回<code class="docutils literal"><span class="pre">Timedelta</span></code>。</span></p>
+<p class="last"><span class="yiyi-st" id="yiyi-72"><code class="docutils literal"><span class="pre">pd.to_timedelta</span></code>的参数现在为<code class="docutils literal"><span class="pre">（arg，</span> <span class="pre">unit =&apos;ns&apos;，</span> <span class="pre">box = True） t5&gt;</span></code>，之前是<code class="docutils literal"><span class="pre">（arg，</span> <span class="pre">box = True，</span> <span class="pre">unit =&apos;ns&apos;）</span>因为这些更合乎逻辑。</code></span></p>
+</div>
+<p><span class="yiyi-st" id="yiyi-73">使用顶层<code class="docutils literal"><span class="pre">pd.to_timedelta</span></code>，您可以将标量，数组，列表或系列从已识别的timedelta格式/值转换为<code class="docutils literal"><span class="pre">Timedelta</span></code>类型。</span><span class="yiyi-st" id="yiyi-74">如果输入是一个系列，它将构造系列，如果输入是类标量，则构造系列，否则输出<code class="docutils literal"><span class="pre">TimedeltaIndex</span></code>。</span></p>
+<p><span class="yiyi-st" id="yiyi-75">您可以将单个字符串解析为Timedelta：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [14]: </span><span class="n">to_timedelta</span><span class="p">(</span><span class="s1">&apos;1 days 06:05:01.00003&apos;</span><span class="p">)</span>
+<span class="gr">Out[14]: </span><span class="n">Timedelta</span><span class="p">(</span><span class="s1">&apos;1 days 06:05:01.000030&apos;</span><span class="p">)</span>
+
+<span class="gp">In [15]: </span><span class="n">to_timedelta</span><span class="p">(</span><span class="s1">&apos;15.5us&apos;</span><span class="p">)</span>
+<span class="gr">Out[15]: </span><span class="n">Timedelta</span><span class="p">(</span><span class="s1">&apos;0 days 00:00:00.000015&apos;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-76">或字符串的列表/数组：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [16]: </span><span class="n">to_timedelta</span><span class="p">([</span><span class="s1">&apos;1 days 06:05:01.00003&apos;</span><span class="p">,</span> <span class="s1">&apos;15.5us&apos;</span><span class="p">,</span> <span class="s1">&apos;nan&apos;</span><span class="p">])</span>
+<span class="gr">Out[16]: </span><span class="n">TimedeltaIndex</span><span class="p">([</span><span class="s1">&apos;1 days 06:05:01.000030&apos;</span><span class="p">,</span> <span class="s1">&apos;0 days 00:00:00.000015&apos;</span><span class="p">,</span> <span class="n">NaT</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&apos;timedelta64[ns]&apos;</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-77"><code class="docutils literal"><span class="pre">unit</span></code>关键字参数指定Timedelta的单位：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [17]: </span><span class="n">to_timedelta</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">5</span><span class="p">),</span> <span class="n">unit</span><span class="o">=</span><span class="s1">&apos;s&apos;</span><span class="p">)</span>
+<span class="gr">Out[17]: </span><span class="n">TimedeltaIndex</span><span class="p">([</span><span class="s1">&apos;00:00:00&apos;</span><span class="p">,</span> <span class="s1">&apos;00:00:01&apos;</span><span class="p">,</span> <span class="s1">&apos;00:00:02&apos;</span><span class="p">,</span> <span class="s1">&apos;00:00:03&apos;</span><span class="p">,</span> <span class="s1">&apos;00:00:04&apos;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&apos;timedelta64[ns]&apos;</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
+
+<span class="gp">In [18]: </span><span class="n">to_timedelta</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">5</span><span class="p">),</span> <span class="n">unit</span><span class="o">=</span><span class="s1">&apos;d&apos;</span><span class="p">)</span>
+<span class="gr">Out[18]: </span><span class="n">TimedeltaIndex</span><span class="p">([</span><span class="s1">&apos;0 days&apos;</span><span class="p">,</span> <span class="s1">&apos;1 days&apos;</span><span class="p">,</span> <span class="s1">&apos;2 days&apos;</span><span class="p">,</span> <span class="s1">&apos;3 days&apos;</span><span class="p">,</span> <span class="s1">&apos;4 days&apos;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&apos;timedelta64[ns]&apos;</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="timedelta-limitations">
+<span id="timedeltas-limitations"></span><h3><span class="yiyi-st" id="yiyi-78">Timedelta limitations</span></h3>
+<p><span class="yiyi-st" id="yiyi-79">Pandas表示使用64位整数的纳秒分辨率的<code class="docutils literal"><span class="pre">Timedeltas</span></code>。</span><span class="yiyi-st" id="yiyi-80">因此，64位整数限制确定<code class="docutils literal"><span class="pre">Timedelta</span></code>限制。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [19]: </span><span class="n">pd</span><span class="o">.</span><span class="n">Timedelta</span><span class="o">.</span><span class="n">min</span>
+<span class="gr">Out[19]: </span><span class="n">Timedelta</span><span class="p">(</span><span class="s1">&apos;-106752 days +00:12:43.145224&apos;</span><span class="p">)</span>
+
+<span class="gp">In [20]: </span><span class="n">pd</span><span class="o">.</span><span class="n">Timedelta</span><span class="o">.</span><span class="n">max</span>
+<span class="gr">Out[20]: </span><span class="n">Timedelta</span><span class="p">(</span><span class="s1">&apos;106751 days 23:47:16.854775&apos;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="operations">
+<span id="timedeltas-operations"></span><h2><span class="yiyi-st" id="yiyi-81">Operations</span></h2>
+<p><span class="yiyi-st" id="yiyi-82">您可以操作系列/数据帧，并通过在<code class="docutils literal"><span class="pre">datetime64[ns]</span></code>系列或<code class="docutils literal"><span class="pre">Timestamps</span></code>上的减法运算构造<code class="docutils literal"><span class="pre">timedelta64[ns]</span></code></span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [21]: </span><span class="n">s</span> <span class="o">=</span> <span class="n">Series</span><span class="p">(</span><span class="n">date_range</span><span class="p">(</span><span class="s1">&apos;2012-1-1&apos;</span><span class="p">,</span> <span class="n">periods</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="s1">&apos;D&apos;</span><span class="p">))</span>
+
+<span class="gp">In [22]: </span><span class="n">td</span> <span class="o">=</span> <span class="n">Series</span><span class="p">([</span> <span class="n">Timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span> <span class="p">])</span>
+
+<span class="gp">In [23]: </span><span class="n">df</span> <span class="o">=</span> <span class="n">DataFrame</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="n">A</span> <span class="o">=</span> <span class="n">s</span><span class="p">,</span> <span class="n">B</span> <span class="o">=</span> <span class="n">td</span><span class="p">))</span>
+
+<span class="gp">In [24]: </span><span class="n">df</span>
+<span class="gr">Out[24]: </span>
+<span class="go">           A      B</span>
+<span class="go">0 2012-01-01 0 days</span>
+<span class="go">1 2012-01-02 1 days</span>
+<span class="go">2 2012-01-03 2 days</span>
+
+<span class="gp">In [25]: </span><span class="n">df</span><span class="p">[</span><span class="s1">&apos;C&apos;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s1">&apos;A&apos;</span><span class="p">]</span> <span class="o">+</span> <span class="n">df</span><span class="p">[</span><span class="s1">&apos;B&apos;</span><span class="p">]</span>
+
+<span class="gp">In [26]: </span><span class="n">df</span>
+<span class="gr">Out[26]: </span>
+<span class="go">           A      B          C</span>
+<span class="go">0 2012-01-01 0 days 2012-01-01</span>
+<span class="go">1 2012-01-02 1 days 2012-01-03</span>
+<span class="go">2 2012-01-03 2 days 2012-01-05</span>
+
+<span class="gp">In [27]: </span><span class="n">df</span><span class="o">.</span><span class="n">dtypes</span>
+<span class="gr">Out[27]: </span>
+<span class="go">A     datetime64[ns]</span>
+<span class="go">B    timedelta64[ns]</span>
+<span class="go">C     datetime64[ns]</span>
+<span class="go">dtype: object</span>
+
+<span class="gp">In [28]: </span><span class="n">s</span> <span class="o">-</span> <span class="n">s</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+<span class="gr">Out[28]: </span>
+<span class="go">0   -2 days</span>
+<span class="go">1   -1 days</span>
+<span class="go">2    0 days</span>
+<span class="go">dtype: timedelta64[ns]</span>
+
+<span class="gp">In [29]: </span><span class="n">s</span> <span class="o">-</span> <span class="n">datetime</span><span class="p">(</span><span class="mi">2011</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+<span class="gr">Out[29]: </span>
+<span class="go">0   364 days 20:55:00</span>
+<span class="go">1   365 days 20:55:00</span>
+<span class="go">2   366 days 20:55:00</span>
+<span class="go">dtype: timedelta64[ns]</span>
+
+<span class="gp">In [30]: </span><span class="n">s</span> <span class="o">+</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">minutes</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+<span class="gr">Out[30]: </span>
+<span class="go">0   2012-01-01 00:05:00</span>
+<span class="go">1   2012-01-02 00:05:00</span>
+<span class="go">2   2012-01-03 00:05:00</span>
+<span class="go">dtype: datetime64[ns]</span>
+
+<span class="gp">In [31]: </span><span class="n">s</span> <span class="o">+</span> <span class="n">Minute</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+<span class="gr">Out[31]: </span>
+<span class="go">0   2012-01-01 00:05:00</span>
+<span class="go">1   2012-01-02 00:05:00</span>
+<span class="go">2   2012-01-03 00:05:00</span>
+<span class="go">dtype: datetime64[ns]</span>
+
+<span class="gp">In [32]: </span><span class="n">s</span> <span class="o">+</span> <span class="n">Minute</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span> <span class="o">+</span> <span class="n">Milli</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+<span class="gr">Out[32]: </span>
+<span class="go">0   2012-01-01 00:05:00.005</span>
+<span class="go">1   2012-01-02 00:05:00.005</span>
+<span class="go">2   2012-01-03 00:05:00.005</span>
+<span class="go">dtype: datetime64[ns]</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-83">使用<code class="docutils literal"><span class="pre">timedelta64[ns]</span></code>系列的标量操作：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [33]: </span><span class="n">y</span> <span class="o">=</span> <span class="n">s</span> <span class="o">-</span> <span class="n">s</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+<span class="gp">In [34]: </span><span class="n">y</span>
+<span class="gr">Out[34]: </span>
+<span class="go">0   0 days</span>
+<span class="go">1   1 days</span>
+<span class="go">2   2 days</span>
+<span class="go">dtype: timedelta64[ns]</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-84">支持具有<code class="docutils literal"><span class="pre">NaT</span></code>值的timedeltas系列：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [35]: </span><span class="n">y</span> <span class="o">=</span> <span class="n">s</span> <span class="o">-</span> <span class="n">s</span><span class="o">.</span><span class="n">shift</span><span class="p">()</span>
+
+<span class="gp">In [36]: </span><span class="n">y</span>
+<span class="gr">Out[36]: </span>
+<span class="go">0      NaT</span>
+<span class="go">1   1 days</span>
+<span class="go">2   1 days</span>
+<span class="go">dtype: timedelta64[ns]</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-85">可以使用<code class="docutils literal"><span class="pre">np.nan</span></code>将元素设置为<code class="docutils literal"><span class="pre">NaT</span></code>：类似于数据时间：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [37]: </span><span class="n">y</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+
+<span class="gp">In [38]: </span><span class="n">y</span>
+<span class="gr">Out[38]: </span>
+<span class="go">0      NaT</span>
+<span class="go">1      NaT</span>
+<span class="go">2   1 days</span>
+<span class="go">dtype: timedelta64[ns]</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-86">操作数也可以以相反的顺序出现（使用Series操作的单个对象）：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [39]: </span><span class="n">s</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">-</span> <span class="n">s</span>
+<span class="gr">Out[39]: </span>
+<span class="go">0   2 days</span>
+<span class="go">1   1 days</span>
+<span class="go">2   0 days</span>
+<span class="go">dtype: timedelta64[ns]</span>
+
+<span class="gp">In [40]: </span><span class="n">datetime</span><span class="p">(</span><span class="mi">2011</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span> <span class="o">-</span> <span class="n">s</span>
+<span class="gr">Out[40]: </span>
+<span class="go">0   -365 days +03:05:00</span>
+<span class="go">1   -366 days +03:05:00</span>
+<span class="go">2   -367 days +03:05:00</span>
+<span class="go">dtype: timedelta64[ns]</span>
+
+<span class="gp">In [41]: </span><span class="n">timedelta</span><span class="p">(</span><span class="n">minutes</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span> <span class="o">+</span> <span class="n">s</span>
+<span class="gr">Out[41]: </span>
+<span class="go">0   2012-01-01 00:05:00</span>
+<span class="go">1   2012-01-02 00:05:00</span>
+<span class="go">2   2012-01-03 00:05:00</span>
+<span class="go">dtype: datetime64[ns]</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-87"><code class="docutils literal"><span class="pre">min，</span> <span class="pre">max</span></code>和对应的<code class="docutils literal"><span class="pre">idxmin，</span> <span class="pre">idxmax</span>  t3 &gt;在帧上支持操作：</code></span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [42]: </span><span class="n">A</span> <span class="o">=</span> <span class="n">s</span> <span class="o">-</span> <span class="n">Timestamp</span><span class="p">(</span><span class="s1">&apos;20120101&apos;</span><span class="p">)</span> <span class="o">-</span> <span class="n">Timedelta</span><span class="p">(</span><span class="s1">&apos;00:05:05&apos;</span><span class="p">)</span>
+
+<span class="gp">In [43]: </span><span class="n">B</span> <span class="o">=</span> <span class="n">s</span> <span class="o">-</span> <span class="n">Series</span><span class="p">(</span><span class="n">date_range</span><span class="p">(</span><span class="s1">&apos;2012-1-2&apos;</span><span class="p">,</span> <span class="n">periods</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="s1">&apos;D&apos;</span><span class="p">))</span>
+
+<span class="gp">In [44]: </span><span class="n">df</span> <span class="o">=</span> <span class="n">DataFrame</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="n">A</span><span class="o">=</span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="o">=</span><span class="n">B</span><span class="p">))</span>
+
+<span class="gp">In [45]: </span><span class="n">df</span>
+<span class="gr">Out[45]: </span>
+<span class="go">                  A       B</span>
+<span class="go">0 -1 days +23:54:55 -1 days</span>
+<span class="go">1   0 days 23:54:55 -1 days</span>
+<span class="go">2   1 days 23:54:55 -1 days</span>
+
+<span class="gp">In [46]: </span><span class="n">df</span><span class="o">.</span><span class="n">min</span><span class="p">()</span>
+<span class="gr">Out[46]: </span>
+<span class="go">A   -1 days +23:54:55</span>
+<span class="go">B   -1 days +00:00:00</span>
+<span class="go">dtype: timedelta64[ns]</span>
+
+<span class="gp">In [47]: </span><span class="n">df</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="gr">Out[47]: </span>
+<span class="go">0   -1 days</span>
+<span class="go">1   -1 days</span>
+<span class="go">2   -1 days</span>
+<span class="go">dtype: timedelta64[ns]</span>
+
+<span class="gp">In [48]: </span><span class="n">df</span><span class="o">.</span><span class="n">idxmin</span><span class="p">()</span>
+<span class="gr">Out[48]: </span>
+<span class="go">A    0</span>
+<span class="go">B    0</span>
+<span class="go">dtype: int64</span>
+
+<span class="gp">In [49]: </span><span class="n">df</span><span class="o">.</span><span class="n">idxmax</span><span class="p">()</span>
+<span class="gr">Out[49]: </span>
+<span class="go">A    2</span>
+<span class="go">B    0</span>
+<span class="go">dtype: int64</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-88">在系列上也支持<code class="docutils literal"><span class="pre">min，</span> <span class="pre">max，</span> <span class="pre">idxmin，</span> <span class="pre">idxmax</span> </code></span><span class="yiyi-st" id="yiyi-89">标量结果将是<code class="docutils literal"><span class="pre">Timedelta</span></code>。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [50]: </span><span class="n">df</span><span class="o">.</span><span class="n">min</span><span class="p">()</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+<span class="gr">Out[50]: </span><span class="n">Timedelta</span><span class="p">(</span><span class="s1">&apos;-1 days +23:54:55&apos;</span><span class="p">)</span>
+
+<span class="gp">In [51]: </span><span class="n">df</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">min</span><span class="p">()</span>
+<span class="gr">Out[51]: </span><span class="n">Timedelta</span><span class="p">(</span><span class="s1">&apos;-1 days +00:00:00&apos;</span><span class="p">)</span>
+
+<span class="gp">In [52]: </span><span class="n">df</span><span class="o">.</span><span class="n">min</span><span class="p">()</span><span class="o">.</span><span class="n">idxmax</span><span class="p">()</span>
+<span class="gr">Out[52]: </span><span class="s1">&apos;A&apos;</span>
+
+<span class="gp">In [53]: </span><span class="n">df</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">idxmin</span><span class="p">()</span>
+<span class="gr">Out[53]: </span><span class="mi">0</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-90">你可以填写timedeltas。</span><span class="yiyi-st" id="yiyi-91">整数将被解释为秒。</span><span class="yiyi-st" id="yiyi-92">你可以传递timedelta来获得一个特定的值。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [54]: </span><span class="n">y</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="gr">Out[54]: </span>
+<span class="go">0   0 days</span>
+<span class="go">1   0 days</span>
+<span class="go">2   1 days</span>
+<span class="go">dtype: timedelta64[ns]</span>
+
+<span class="gp">In [55]: </span><span class="n">y</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+<span class="gr">Out[55]: </span>
+<span class="go">0   0 days 00:00:10</span>
+<span class="go">1   0 days 00:00:10</span>
+<span class="go">2   1 days 00:00:00</span>
+<span class="go">dtype: timedelta64[ns]</span>
+
+<span class="gp">In [56]: </span><span class="n">y</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="n">Timedelta</span><span class="p">(</span><span class="s1">&apos;-1 days, 00:00:05&apos;</span><span class="p">))</span>
+<span class="gr">Out[56]: </span>
+<span class="go">0   -1 days +00:00:05</span>
+<span class="go">1   -1 days +00:00:05</span>
+<span class="go">2     1 days 00:00:00</span>
+<span class="go">dtype: timedelta64[ns]</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-93">您还可以对<code class="docutils literal"><span class="pre">Timedeltas</span></code>进行否定，乘法和使用<code class="docutils literal"><span class="pre">abs</span></code>：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [57]: </span><span class="n">td1</span> <span class="o">=</span> <span class="n">Timedelta</span><span class="p">(</span><span class="s1">&apos;-1 days 2 hours 3 seconds&apos;</span><span class="p">)</span>
+
+<span class="gp">In [58]: </span><span class="n">td1</span>
+<span class="gr">Out[58]: </span><span class="n">Timedelta</span><span class="p">(</span><span class="s1">&apos;-2 days +21:59:57&apos;</span><span class="p">)</span>
+
+<span class="gp">In [59]: </span><span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">td1</span>
+<span class="gr">Out[59]: </span><span class="n">Timedelta</span><span class="p">(</span><span class="s1">&apos;1 days 02:00:03&apos;</span><span class="p">)</span>
+
+<span class="gp">In [60]: </span><span class="o">-</span> <span class="n">td1</span>
+<span class="gr">Out[60]: </span><span class="n">Timedelta</span><span class="p">(</span><span class="s1">&apos;1 days 02:00:03&apos;</span><span class="p">)</span>
+
+<span class="gp">In [61]: </span><span class="nb">abs</span><span class="p">(</span><span class="n">td1</span><span class="p">)</span>
+<span class="gr">Out[61]: </span><span class="n">Timedelta</span><span class="p">(</span><span class="s1">&apos;1 days 02:00:03&apos;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="reductions">
+<span id="timedeltas-timedeltas-reductions"></span><h2><span class="yiyi-st" id="yiyi-94">Reductions</span></h2>
+<p><span class="yiyi-st" id="yiyi-95">对<code class="docutils literal"><span class="pre">timedelta64[ns]</span></code>的数值缩减操作将返回<code class="docutils literal"><span class="pre">Timedelta</span></code>对象。</span><span class="yiyi-st" id="yiyi-96">像评估时一样，跳过<code class="docutils literal"><span class="pre">NaT</span></code>。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [62]: </span><span class="n">y2</span> <span class="o">=</span> <span class="n">Series</span><span class="p">(</span><span class="n">to_timedelta</span><span class="p">([</span><span class="s1">&apos;-1 days +00:00:05&apos;</span><span class="p">,</span> <span class="s1">&apos;nat&apos;</span><span class="p">,</span> <span class="s1">&apos;-1 days +00:00:05&apos;</span><span class="p">,</span> <span class="s1">&apos;1 days&apos;</span><span class="p">]))</span>
+
+<span class="gp">In [63]: </span><span class="n">y2</span>
+<span class="gr">Out[63]: </span>
+<span class="go">0   -1 days +00:00:05</span>
+<span class="go">1                 NaT</span>
+<span class="go">2   -1 days +00:00:05</span>
+<span class="go">3     1 days 00:00:00</span>
+<span class="go">dtype: timedelta64[ns]</span>
+
+<span class="gp">In [64]: </span><span class="n">y2</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+<span class="gr">Out[64]: </span><span class="n">Timedelta</span><span class="p">(</span><span class="s1">&apos;-1 days +16:00:03.333333&apos;</span><span class="p">)</span>
+
+<span class="gp">In [65]: </span><span class="n">y2</span><span class="o">.</span><span class="n">median</span><span class="p">()</span>
+<span class="gr">Out[65]: </span><span class="n">Timedelta</span><span class="p">(</span><span class="s1">&apos;-1 days +00:00:05&apos;</span><span class="p">)</span>
+
+<span class="gp">In [66]: </span><span class="n">y2</span><span class="o">.</span><span class="n">quantile</span><span class="p">(</span><span class="o">.</span><span class="mi">1</span><span class="p">)</span>
+<span class="gr">Out[66]: </span><span class="n">Timedelta</span><span class="p">(</span><span class="s1">&apos;-1 days +00:00:05&apos;</span><span class="p">)</span>
+
+<span class="gp">In [67]: </span><span class="n">y2</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+<span class="gr">Out[67]: </span><span class="n">Timedelta</span><span class="p">(</span><span class="s1">&apos;-1 days +00:00:10&apos;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="frequency-conversion">
+<span id="timedeltas-timedeltas-convert"></span><h2><span class="yiyi-st" id="yiyi-97">Frequency Conversion</span></h2>
+<div class="versionadded">
+<p><span class="yiyi-st" id="yiyi-98"><span class="versionmodified">版本0.13中的新功能。</span></span></p>
+</div>
+<p><span class="yiyi-st" id="yiyi-99">Timedelta系列，<code class="docutils literal"><span class="pre">TimedeltaIndex</span></code>和<code class="docutils literal"><span class="pre">Timedelta</span></code>标量可以通过除以另一个timedelta或由特定timedelta类型的astyping转换为其他“频率”。</span><span class="yiyi-st" id="yiyi-100">这些操作产生系列并传播<code class="docutils literal"><span class="pre">NaT</span></code>  - &gt; <code class="docutils literal"><span class="pre">nan</span></code>。</span><span class="yiyi-st" id="yiyi-101">注意，numpy标量除以真正除法，而astyping等效于floor除法。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [68]: </span><span class="n">td</span> <span class="o">=</span> <span class="n">Series</span><span class="p">(</span><span class="n">date_range</span><span class="p">(</span><span class="s1">&apos;20130101&apos;</span><span class="p">,</span> <span class="n">periods</span><span class="o">=</span><span class="mi">4</span><span class="p">))</span> <span class="o">-</span> \
+<span class="gp">   ....:</span>      <span class="n">Series</span><span class="p">(</span><span class="n">date_range</span><span class="p">(</span><span class="s1">&apos;20121201&apos;</span><span class="p">,</span> <span class="n">periods</span><span class="o">=</span><span class="mi">4</span><span class="p">))</span>
+<span class="gp">   ....:</span> 
+
+<span class="gp">In [69]: </span><span class="n">td</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">+=</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">minutes</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">seconds</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+
+<span class="gp">In [70]: </span><span class="n">td</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+
+<span class="gp">In [71]: </span><span class="n">td</span>
+<span class="gr">Out[71]: </span>
+<span class="go">0   31 days 00:00:00</span>
+<span class="go">1   31 days 00:00:00</span>
+<span class="go">2   31 days 00:05:03</span>
+<span class="go">3                NaT</span>
+<span class="go">dtype: timedelta64[ns]</span>
+
+<span class="c"># to days</span>
+<span class="gp">In [72]: </span><span class="n">td</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">timedelta64</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="s1">&apos;D&apos;</span><span class="p">)</span>
+<span class="gr">Out[72]: </span>
+<span class="go">0    31.000000</span>
+<span class="go">1    31.000000</span>
+<span class="go">2    31.003507</span>
+<span class="go">3          NaN</span>
+<span class="go">dtype: float64</span>
+
+<span class="gp">In [73]: </span><span class="n">td</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">&apos;timedelta64[D]&apos;</span><span class="p">)</span>
+<span class="gr">Out[73]: </span>
+<span class="go">0    31.0</span>
+<span class="go">1    31.0</span>
+<span class="go">2    31.0</span>
+<span class="go">3     NaN</span>
+<span class="go">dtype: float64</span>
+
+<span class="c"># to seconds</span>
+<span class="gp">In [74]: </span><span class="n">td</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">timedelta64</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="s1">&apos;s&apos;</span><span class="p">)</span>
+<span class="gr">Out[74]: </span>
+<span class="go">0    2678400.0</span>
+<span class="go">1    2678400.0</span>
+<span class="go">2    2678703.0</span>
+<span class="go">3          NaN</span>
+<span class="go">dtype: float64</span>
+
+<span class="gp">In [75]: </span><span class="n">td</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">&apos;timedelta64[s]&apos;</span><span class="p">)</span>
+<span class="gr">Out[75]: </span>
+<span class="go">0    2678400.0</span>
+<span class="go">1    2678400.0</span>
+<span class="go">2    2678703.0</span>
+<span class="go">3          NaN</span>
+<span class="go">dtype: float64</span>
+
+<span class="c"># to months (these are constant months)</span>
+<span class="gp">In [76]: </span><span class="n">td</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">timedelta64</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="s1">&apos;M&apos;</span><span class="p">)</span>
+<span class="gr">Out[76]: </span>
+<span class="go">0    1.018501</span>
+<span class="go">1    1.018501</span>
+<span class="go">2    1.018617</span>
+<span class="go">3         NaN</span>
+<span class="go">dtype: float64</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-102">将<code class="docutils literal"><span class="pre">timedelta64[ns]</span></code>系列除以整数或整数系列产生另一个<code class="docutils literal"><span class="pre">timedelta64[ns]</span></code> dtypes系列。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [77]: </span><span class="n">td</span> <span class="o">*</span> <span class="o">-</span><span class="mi">1</span>
+<span class="gr">Out[77]: </span>
+<span class="go">0   -31 days +00:00:00</span>
+<span class="go">1   -31 days +00:00:00</span>
+<span class="go">2   -32 days +23:54:57</span>
+<span class="go">3                  NaT</span>
+<span class="go">dtype: timedelta64[ns]</span>
+
+<span class="gp">In [78]: </span><span class="n">td</span> <span class="o">*</span> <span class="n">Series</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">])</span>
+<span class="gr">Out[78]: </span>
+<span class="go">0   31 days 00:00:00</span>
+<span class="go">1   62 days 00:00:00</span>
+<span class="go">2   93 days 00:15:09</span>
+<span class="go">3                NaT</span>
+<span class="go">dtype: timedelta64[ns]</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="attributes">
+<h2><span class="yiyi-st" id="yiyi-103">Attributes</span></h2>
+<p><span class="yiyi-st" id="yiyi-104">您可以使用属性<code class="docutils literal"><span class="pre">days,seconds,microseconds,nanoseconds</span></code>直接访问<code class="docutils literal"><span class="pre">Timedelta</span></code>或<code class="docutils literal"><span class="pre">TimedeltaIndex</span></code>的各种组件。</span><span class="yiyi-st" id="yiyi-105">这些与<code class="docutils literal"><span class="pre">datetime.timedelta</span></code>返回的值相同，例如，<code class="docutils literal"><span class="pre">.seconds</span></code>属性表示秒数&gt; = 0，</span><span class="yiyi-st" id="yiyi-106">这些是根据<code class="docutils literal"><span class="pre">Timedelta</span></code>是否有符号来签名的。</span></p>
+<p><span class="yiyi-st" id="yiyi-107">这些操作也可以通过<code class="docutils literal"><span class="pre">Series</span></code>的<code class="docutils literal"><span class="pre">.dt</span></code>属性直接访问。</span></p>
+<div class="admonition note">
+<p class="first admonition-title"><span class="yiyi-st" id="yiyi-108">注意</span></p>
+<p class="last"><span class="yiyi-st" id="yiyi-109">请注意，属性不是<code class="docutils literal"><span class="pre">Timedelta</span></code>的显示值。</span><span class="yiyi-st" id="yiyi-110">使用<code class="docutils literal"><span class="pre">.components</span></code>可检索显示的值。</span></p>
+</div>
+<p><span class="yiyi-st" id="yiyi-111">对于<code class="docutils literal"><span class="pre">Series</span></code>：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [79]: </span><span class="n">td</span><span class="o">.</span><span class="n">dt</span><span class="o">.</span><span class="n">days</span>
+<span class="gr">Out[79]: </span>
+<span class="go">0    31.0</span>
+<span class="go">1    31.0</span>
+<span class="go">2    31.0</span>
+<span class="go">3     NaN</span>
+<span class="go">dtype: float64</span>
+
+<span class="gp">In [80]: </span><span class="n">td</span><span class="o">.</span><span class="n">dt</span><span class="o">.</span><span class="n">seconds</span>
+<span class="gr">Out[80]: </span>
+<span class="go">0      0.0</span>
+<span class="go">1      0.0</span>
+<span class="go">2    303.0</span>
+<span class="go">3      NaN</span>
+<span class="go">dtype: float64</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-112">您可以直接访问标量<code class="docutils literal"><span class="pre">Timedelta</span></code>的字段值。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [81]: </span><span class="n">tds</span> <span class="o">=</span> <span class="n">Timedelta</span><span class="p">(</span><span class="s1">&apos;31 days 5 min 3 sec&apos;</span><span class="p">)</span>
+
+<span class="gp">In [82]: </span><span class="n">tds</span><span class="o">.</span><span class="n">days</span>
+<span class="gr">Out[82]: </span><span class="mi">31</span>
+
+<span class="gp">In [83]: </span><span class="n">tds</span><span class="o">.</span><span class="n">seconds</span>
+<span class="gr">Out[83]: </span><span class="mi">303</span>
+
+<span class="gp">In [84]: </span><span class="p">(</span><span class="o">-</span><span class="n">tds</span><span class="p">)</span><span class="o">.</span><span class="n">seconds</span>
+<span class="gr">Out[84]: </span><span class="mi">86097</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-113">您可以使用<code class="docutils literal"><span class="pre">.components</span></code>属性访问缩小形式的timedelta。</span><span class="yiyi-st" id="yiyi-114">这会返回类似于<code class="docutils literal"><span class="pre">Series</span></code>的<code class="docutils literal"><span class="pre">DataFrame</span></code>索引。</span><span class="yiyi-st" id="yiyi-115">这些是<code class="docutils literal"><span class="pre">Timedelta</span></code>的<em>显示的</em>值。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [85]: </span><span class="n">td</span><span class="o">.</span><span class="n">dt</span><span class="o">.</span><span class="n">components</span>
+<span class="gr">Out[85]: </span>
+<span class="go">   days  hours  minutes  seconds  milliseconds  microseconds  nanoseconds</span>
+<span class="go">0  31.0    0.0      0.0      0.0           0.0           0.0          0.0</span>
+<span class="go">1  31.0    0.0      0.0      0.0           0.0           0.0          0.0</span>
+<span class="go">2  31.0    0.0      5.0      3.0           0.0           0.0          0.0</span>
+<span class="go">3   NaN    NaN      NaN      NaN           NaN           NaN          NaN</span>
+
+<span class="gp">In [86]: </span><span class="n">td</span><span class="o">.</span><span class="n">dt</span><span class="o">.</span><span class="n">components</span><span class="o">.</span><span class="n">seconds</span>
+<span class="gr">Out[86]: </span>
+<span class="go">0    0.0</span>
+<span class="go">1    0.0</span>
+<span class="go">2    3.0</span>
+<span class="go">3    NaN</span>
+<span class="go">Name: seconds, dtype: float64</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="timedeltaindex">
+<span id="timedeltas-index"></span><h2><span class="yiyi-st" id="yiyi-116">TimedeltaIndex</span></h2>
+<div class="versionadded">
+<p><span class="yiyi-st" id="yiyi-117"><span class="versionmodified">版本0.15.0中的新功能。</span></span></p>
+</div>
+<p><span class="yiyi-st" id="yiyi-118">要生成具有时间delta的索引，可以使用<code class="docutils literal"><span class="pre">TimedeltaIndex</span></code>或<code class="docutils literal"><span class="pre">timedelta_range</span></code>构造函数。</span></p>
+<p><span class="yiyi-st" id="yiyi-119">使用<code class="docutils literal"><span class="pre">TimedeltaIndex</span></code>，您可以传递类似字符串，<code class="docutils literal"><span class="pre">Timedelta</span></code>，<code class="docutils literal"><span class="pre">timedelta</span></code>或<code class="docutils literal"><span class="pre">np.timedelta64</span></code>对象。</span><span class="yiyi-st" id="yiyi-120">传递<code class="docutils literal"><span class="pre">np.nan/pd.NaT/nat</span></code>将表示缺少的值。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [87]: </span><span class="n">TimedeltaIndex</span><span class="p">([</span><span class="s1">&apos;1 days&apos;</span><span class="p">,</span> <span class="s1">&apos;1 days, 00:00:05&apos;</span><span class="p">,</span>
+<span class="gp">   ....:</span>                 <span class="n">np</span><span class="o">.</span><span class="n">timedelta64</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="s1">&apos;D&apos;</span><span class="p">),</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span><span class="n">seconds</span><span class="o">=</span><span class="mi">2</span><span class="p">)])</span>
+<span class="gp">   ....:</span> 
+<span class="gr">Out[87]: </span>
+<span class="go">TimedeltaIndex([&apos;1 days 00:00:00&apos;, &apos;1 days 00:00:05&apos;, &apos;2 days 00:00:00&apos;,</span>
+<span class="go">                &apos;2 days 00:00:02&apos;],</span>
+<span class="go">               dtype=&apos;timedelta64[ns]&apos;, freq=None)</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-121">与<code class="docutils literal"><span class="pre">date_range</span></code>类似，您可以构建<code class="docutils literal"><span class="pre">TimedeltaIndex</span></code>的正常范围：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [88]: </span><span class="n">timedelta_range</span><span class="p">(</span><span class="n">start</span><span class="o">=</span><span class="s1">&apos;1 days&apos;</span><span class="p">,</span> <span class="n">periods</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="s1">&apos;D&apos;</span><span class="p">)</span>
+<span class="gr">Out[88]: </span><span class="n">TimedeltaIndex</span><span class="p">([</span><span class="s1">&apos;1 days&apos;</span><span class="p">,</span> <span class="s1">&apos;2 days&apos;</span><span class="p">,</span> <span class="s1">&apos;3 days&apos;</span><span class="p">,</span> <span class="s1">&apos;4 days&apos;</span><span class="p">,</span> <span class="s1">&apos;5 days&apos;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&apos;timedelta64[ns]&apos;</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="s1">&apos;D&apos;</span><span class="p">)</span>
+
+<span class="gp">In [89]: </span><span class="n">timedelta_range</span><span class="p">(</span><span class="n">start</span><span class="o">=</span><span class="s1">&apos;1 days&apos;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s1">&apos;2 days&apos;</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="s1">&apos;30T&apos;</span><span class="p">)</span>
+<span class="gr">Out[89]: </span>
+<span class="go">TimedeltaIndex([&apos;1 days 00:00:00&apos;, &apos;1 days 00:30:00&apos;, &apos;1 days 01:00:00&apos;,</span>
+<span class="go">                &apos;1 days 01:30:00&apos;, &apos;1 days 02:00:00&apos;, &apos;1 days 02:30:00&apos;,</span>
+<span class="go">                &apos;1 days 03:00:00&apos;, &apos;1 days 03:30:00&apos;, &apos;1 days 04:00:00&apos;,</span>
+<span class="go">                &apos;1 days 04:30:00&apos;, &apos;1 days 05:00:00&apos;, &apos;1 days 05:30:00&apos;,</span>
+<span class="go">                &apos;1 days 06:00:00&apos;, &apos;1 days 06:30:00&apos;, &apos;1 days 07:00:00&apos;,</span>
+<span class="go">                &apos;1 days 07:30:00&apos;, &apos;1 days 08:00:00&apos;, &apos;1 days 08:30:00&apos;,</span>
+<span class="go">                &apos;1 days 09:00:00&apos;, &apos;1 days 09:30:00&apos;, &apos;1 days 10:00:00&apos;,</span>
+<span class="go">                &apos;1 days 10:30:00&apos;, &apos;1 days 11:00:00&apos;, &apos;1 days 11:30:00&apos;,</span>
+<span class="go">                &apos;1 days 12:00:00&apos;, &apos;1 days 12:30:00&apos;, &apos;1 days 13:00:00&apos;,</span>
+<span class="go">                &apos;1 days 13:30:00&apos;, &apos;1 days 14:00:00&apos;, &apos;1 days 14:30:00&apos;,</span>
+<span class="go">                &apos;1 days 15:00:00&apos;, &apos;1 days 15:30:00&apos;, &apos;1 days 16:00:00&apos;,</span>
+<span class="go">                &apos;1 days 16:30:00&apos;, &apos;1 days 17:00:00&apos;, &apos;1 days 17:30:00&apos;,</span>
+<span class="go">                &apos;1 days 18:00:00&apos;, &apos;1 days 18:30:00&apos;, &apos;1 days 19:00:00&apos;,</span>
+<span class="go">                &apos;1 days 19:30:00&apos;, &apos;1 days 20:00:00&apos;, &apos;1 days 20:30:00&apos;,</span>
+<span class="go">                &apos;1 days 21:00:00&apos;, &apos;1 days 21:30:00&apos;, &apos;1 days 22:00:00&apos;,</span>
+<span class="go">                &apos;1 days 22:30:00&apos;, &apos;1 days 23:00:00&apos;, &apos;1 days 23:30:00&apos;,</span>
+<span class="go">                &apos;2 days 00:00:00&apos;],</span>
+<span class="go">               dtype=&apos;timedelta64[ns]&apos;, freq=&apos;30T&apos;)</span>
+</pre></div>
+</div>
+<div class="section" id="using-the-timedeltaindex">
+<h3><span class="yiyi-st" id="yiyi-122">Using the TimedeltaIndex</span></h3>
+<p><span class="yiyi-st" id="yiyi-123">类似于其他类datetime索引，<code class="docutils literal"><span class="pre">DatetimeIndex</span></code>和<code class="docutils literal"><span class="pre">PeriodIndex</span></code>，您可以使用<code class="docutils literal"><span class="pre">TimedeltaIndex</span></code>作为pandas对象的索引。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [90]: </span><span class="n">s</span> <span class="o">=</span> <span class="n">Series</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">100</span><span class="p">),</span>
+<span class="gp">   ....:</span>            <span class="n">index</span><span class="o">=</span><span class="n">timedelta_range</span><span class="p">(</span><span class="s1">&apos;1 days&apos;</span><span class="p">,</span> <span class="n">periods</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="s1">&apos;h&apos;</span><span class="p">))</span>
+<span class="gp">   ....:</span> 
+
+<span class="gp">In [91]: </span><span class="n">s</span>
+<span class="gr">Out[91]: </span>
+<span class="go">1 days 00:00:00     0</span>
+<span class="go">1 days 01:00:00     1</span>
+<span class="go">1 days 02:00:00     2</span>
+<span class="go">1 days 03:00:00     3</span>
+<span class="go">1 days 04:00:00     4</span>
+<span class="go">1 days 05:00:00     5</span>
+<span class="go">1 days 06:00:00     6</span>
+<span class="go">                   ..</span>
+<span class="go">4 days 21:00:00    93</span>
+<span class="go">4 days 22:00:00    94</span>
+<span class="go">4 days 23:00:00    95</span>
+<span class="go">5 days 00:00:00    96</span>
+<span class="go">5 days 01:00:00    97</span>
+<span class="go">5 days 02:00:00    98</span>
+<span class="go">5 days 03:00:00    99</span>
+<span class="go">Freq: H, dtype: int64</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-124">选择工作类似，强制在字符串喜欢和切片：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [92]: </span><span class="n">s</span><span class="p">[</span><span class="s1">&apos;1 day&apos;</span><span class="p">:</span><span class="s1">&apos;2 day&apos;</span><span class="p">]</span>
+<span class="gr">Out[92]: </span>
+<span class="go">1 days 00:00:00     0</span>
+<span class="go">1 days 01:00:00     1</span>
+<span class="go">1 days 02:00:00     2</span>
+<span class="go">1 days 03:00:00     3</span>
+<span class="go">1 days 04:00:00     4</span>
+<span class="go">1 days 05:00:00     5</span>
+<span class="go">1 days 06:00:00     6</span>
+<span class="go">                   ..</span>
+<span class="go">2 days 17:00:00    41</span>
+<span class="go">2 days 18:00:00    42</span>
+<span class="go">2 days 19:00:00    43</span>
+<span class="go">2 days 20:00:00    44</span>
+<span class="go">2 days 21:00:00    45</span>
+<span class="go">2 days 22:00:00    46</span>
+<span class="go">2 days 23:00:00    47</span>
+<span class="go">Freq: H, dtype: int64</span>
+
+<span class="gp">In [93]: </span><span class="n">s</span><span class="p">[</span><span class="s1">&apos;1 day 01:00:00&apos;</span><span class="p">]</span>
+<span class="gr">Out[93]: </span><span class="mi">1</span>
+
+<span class="gp">In [94]: </span><span class="n">s</span><span class="p">[</span><span class="n">Timedelta</span><span class="p">(</span><span class="s1">&apos;1 day 1h&apos;</span><span class="p">)]</span>
+<span class="gr">Out[94]: </span><span class="mi">1</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-125">此外，您可以使用部分字符串选择，范围将被推断：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [95]: </span><span class="n">s</span><span class="p">[</span><span class="s1">&apos;1 day&apos;</span><span class="p">:</span><span class="s1">&apos;1 day 5 hours&apos;</span><span class="p">]</span>
+<span class="gr">Out[95]: </span>
+<span class="go">1 days 00:00:00    0</span>
+<span class="go">1 days 01:00:00    1</span>
+<span class="go">1 days 02:00:00    2</span>
+<span class="go">1 days 03:00:00    3</span>
+<span class="go">1 days 04:00:00    4</span>
+<span class="go">1 days 05:00:00    5</span>
+<span class="go">Freq: H, dtype: int64</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="id1">
+<h3><span class="yiyi-st" id="yiyi-126">Operations</span></h3>
+<p><span class="yiyi-st" id="yiyi-127">最后，<code class="docutils literal"><span class="pre">TimedeltaIndex</span></code>与<code class="docutils literal"><span class="pre">DatetimeIndex</span></code>的组合允许某些NaT保留的组合操作：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [96]: </span><span class="n">tdi</span> <span class="o">=</span> <span class="n">TimedeltaIndex</span><span class="p">([</span><span class="s1">&apos;1 days&apos;</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">NaT</span><span class="p">,</span> <span class="s1">&apos;2 days&apos;</span><span class="p">])</span>
+
+<span class="gp">In [97]: </span><span class="n">tdi</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+<span class="gr">Out[97]: </span><span class="p">[</span><span class="n">Timedelta</span><span class="p">(</span><span class="s1">&apos;1 days 00:00:00&apos;</span><span class="p">),</span> <span class="n">NaT</span><span class="p">,</span> <span class="n">Timedelta</span><span class="p">(</span><span class="s1">&apos;2 days 00:00:00&apos;</span><span class="p">)]</span>
+
+<span class="gp">In [98]: </span><span class="n">dti</span> <span class="o">=</span> <span class="n">date_range</span><span class="p">(</span><span class="s1">&apos;20130101&apos;</span><span class="p">,</span> <span class="n">periods</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+
+<span class="gp">In [99]: </span><span class="n">dti</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+<span class="gr">Out[99]: </span>
+<span class="go">[Timestamp(&apos;2013-01-01 00:00:00&apos;, freq=&apos;D&apos;),</span>
+<span class="go"> Timestamp(&apos;2013-01-02 00:00:00&apos;, freq=&apos;D&apos;),</span>
+<span class="go"> Timestamp(&apos;2013-01-03 00:00:00&apos;, freq=&apos;D&apos;)]</span>
+
+<span class="gp">In [100]: </span><span class="p">(</span><span class="n">dti</span> <span class="o">+</span> <span class="n">tdi</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+<span class="gr">Out[100]: </span><span class="p">[</span><span class="n">Timestamp</span><span class="p">(</span><span class="s1">&apos;2013-01-02 00:00:00&apos;</span><span class="p">),</span> <span class="n">NaT</span><span class="p">,</span> <span class="n">Timestamp</span><span class="p">(</span><span class="s1">&apos;2013-01-05 00:00:00&apos;</span><span class="p">)]</span>
+
+<span class="gp">In [101]: </span><span class="p">(</span><span class="n">dti</span> <span class="o">-</span> <span class="n">tdi</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+<span class="gr">Out[101]: </span><span class="p">[</span><span class="n">Timestamp</span><span class="p">(</span><span class="s1">&apos;2012-12-31 00:00:00&apos;</span><span class="p">),</span> <span class="n">NaT</span><span class="p">,</span> <span class="n">Timestamp</span><span class="p">(</span><span class="s1">&apos;2013-01-01 00:00:00&apos;</span><span class="p">)]</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="conversions">
+<h3><span class="yiyi-st" id="yiyi-128">Conversions</span></h3>
+<p><span class="yiyi-st" id="yiyi-129">与上述<code class="docutils literal"><span class="pre">Series</span></code>上的频率转换类似，您可以转换这些索引以产生另一个索引。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [102]: </span><span class="n">tdi</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">timedelta64</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="s1">&apos;s&apos;</span><span class="p">)</span>
+<span class="gr">Out[102]: </span><span class="n">Float64Index</span><span class="p">([</span><span class="mf">86400.0</span><span class="p">,</span> <span class="n">nan</span><span class="p">,</span> <span class="mf">172800.0</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&apos;float64&apos;</span><span class="p">)</span>
+
+<span class="gp">In [103]: </span><span class="n">tdi</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">&apos;timedelta64[s]&apos;</span><span class="p">)</span>
+<span class="gr">Out[103]: </span><span class="n">Float64Index</span><span class="p">([</span><span class="mf">86400.0</span><span class="p">,</span> <span class="n">nan</span><span class="p">,</span> <span class="mf">172800.0</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&apos;float64&apos;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-130">标量类型ops也工作。</span><span class="yiyi-st" id="yiyi-131">这些可能会返回<em>不同的</em>类型的索引。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="c"># adding or timedelta and date -&gt; datelike</span>
+<span class="gp">In [104]: </span><span class="n">tdi</span> <span class="o">+</span> <span class="n">Timestamp</span><span class="p">(</span><span class="s1">&apos;20130101&apos;</span><span class="p">)</span>
+<span class="gr">Out[104]: </span><span class="n">DatetimeIndex</span><span class="p">([</span><span class="s1">&apos;2013-01-02&apos;</span><span class="p">,</span> <span class="s1">&apos;NaT&apos;</span><span class="p">,</span> <span class="s1">&apos;2013-01-03&apos;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&apos;datetime64[ns]&apos;</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
+
+<span class="c"># subtraction of a date and a timedelta -&gt; datelike</span>
+<span class="c"># note that trying to subtract a date from a Timedelta will raise an exception</span>
+<span class="gp">In [105]: </span><span class="p">(</span><span class="n">Timestamp</span><span class="p">(</span><span class="s1">&apos;20130101&apos;</span><span class="p">)</span> <span class="o">-</span> <span class="n">tdi</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+<span class="gr">Out[105]: </span><span class="p">[</span><span class="n">Timestamp</span><span class="p">(</span><span class="s1">&apos;2012-12-31 00:00:00&apos;</span><span class="p">),</span> <span class="n">NaT</span><span class="p">,</span> <span class="n">Timestamp</span><span class="p">(</span><span class="s1">&apos;2012-12-30 00:00:00&apos;</span><span class="p">)]</span>
+
+<span class="c"># timedelta + timedelta -&gt; timedelta</span>
+<span class="gp">In [106]: </span><span class="n">tdi</span> <span class="o">+</span> <span class="n">Timedelta</span><span class="p">(</span><span class="s1">&apos;10 days&apos;</span><span class="p">)</span>
+<span class="gr">Out[106]: </span><span class="n">TimedeltaIndex</span><span class="p">([</span><span class="s1">&apos;11 days&apos;</span><span class="p">,</span> <span class="n">NaT</span><span class="p">,</span> <span class="s1">&apos;12 days&apos;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&apos;timedelta64[ns]&apos;</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
+
+<span class="c"># division can result in a Timedelta if the divisor is an integer</span>
+<span class="gp">In [107]: </span><span class="n">tdi</span> <span class="o">/</span> <span class="mi">2</span>
+<span class="gr">Out[107]: </span><span class="n">TimedeltaIndex</span><span class="p">([</span><span class="s1">&apos;0 days 12:00:00&apos;</span><span class="p">,</span> <span class="n">NaT</span><span class="p">,</span> <span class="s1">&apos;1 days 00:00:00&apos;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&apos;timedelta64[ns]&apos;</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
+
+<span class="c"># or a Float64Index if the divisor is a Timedelta</span>
+<span class="gp">In [108]: </span><span class="n">tdi</span> <span class="o">/</span> <span class="n">tdi</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="gr">Out[108]: </span><span class="n">Float64Index</span><span class="p">([</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">nan</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&apos;float64&apos;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="resampling">
+<span id="timedeltas-resampling"></span><h2><span class="yiyi-st" id="yiyi-132">Resampling</span></h2>
+<p><span class="yiyi-st" id="yiyi-133">与<a class="reference internal" href="timeseries.html#timeseries-resampling"><span class="std std-ref">timeseries resampling</span></a>类似，我们可以使用<code class="docutils literal"><span class="pre">TimedeltaIndex</span></code>重新采样。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [109]: </span><span class="n">s</span><span class="o">.</span><span class="n">resample</span><span class="p">(</span><span class="s1">&apos;D&apos;</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+<span class="gr">Out[109]: </span>
+<span class="go">1 days    11.5</span>
+<span class="go">2 days    35.5</span>
+<span class="go">3 days    59.5</span>
+<span class="go">4 days    83.5</span>
+<span class="go">5 days    97.5</span>
+<span class="go">Freq: D, dtype: float64</span>
+</pre></div>
+</div>
+</div>

@@ -1,0 +1,173 @@
+
+<span id="overview"></span><h1><span class="yiyi-st" id="yiyi-54">包概述</span></h1>
+        <blockquote>
+        <p>原文：<a href="http://pandas.pydata.org/pandas-docs/stable/overview.html">http://pandas.pydata.org/pandas-docs/stable/overview.html</a></p>
+        <p>译者：<a href="https://github.com/wizardforcel">飞龙</a> <a href="http://usyiyi.cn/">UsyiyiCN</a></p>
+        <p>校对：（虚位以待）</p>
+        </blockquote>
+    
+<p><span class="yiyi-st" id="yiyi-55"><a class="reference internal" href="index.html#module-pandas" title="pandas"><code class="xref py py-mod docutils literal"><span class="pre">pandas</span></code></a>包含以下内容</span></p>
+<blockquote>
+<div><ul class="simple">
+<li><span class="yiyi-st" id="yiyi-56">面板数据标记功能，其中主要的是Series和DataFrame</span></li>
+<li><span class="yiyi-st" id="yiyi-57">索引功能，其中分为简单轴索引和多层/多级轴索引</span></li>
+<li><span class="yiyi-st" id="yiyi-58">用于聚合和转换数据集的引擎集成组</span></li>
+<li><span class="yiyi-st" id="yiyi-59">生成日期范围（日期范围）和自定义日期偏移，实现自定义频率</span></li>
+<li><span class="yiyi-st" id="yiyi-60">输入/输出工具：从平面文件（CSV，分隔，Excel 2003）加载表格数据，以及从快速高效的PyTables / HDF5格式保存和加载pandas对象。</span></li>
+<li><span class="yiyi-st" id="yiyi-61">用于存储大多数丢失或大部分不变的数据（某些固定值）的标准数据结构的高效内存“稀疏”版本</span></li>
+<li><span class="yiyi-st" id="yiyi-62">移动窗口统计（滚动平均，滚动标准偏差等）</span></li>
+<li><span class="yiyi-st" id="yiyi-63">静态和移动窗口线性回归和<a class="reference external" href="http://en.wikipedia.org/wiki/Panel_data">面板回归</a></span></li>
+</ul>
+</div></blockquote>
+<div class="section" id="data-structures-at-a-glance">
+<h2><span class="yiyi-st" id="yiyi-64">数据结构一览</span></h2>
+<table border="1" class="docutils">
+<colgroup>
+<col width="18%">
+<col width="24%">
+<col width="59%">
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head"><span class="yiyi-st" id="yiyi-65">维度</span></th>
+<th class="head"><span class="yiyi-st" id="yiyi-66">名称</span></th>
+<th class="head"><span class="yiyi-st" id="yiyi-67">描述</span></th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><span class="yiyi-st" id="yiyi-68">1</span></td>
+<td><span class="yiyi-st" id="yiyi-69">Series</span></td>
+<td><span class="yiyi-st" id="yiyi-70">1维标记同类型数组</span></td>
+</tr>
+<tr class="row-odd"><td><span class="yiyi-st" id="yiyi-71">2</span></td>
+<td><span class="yiyi-st" id="yiyi-72">DataFrame</span></td>
+<td><span class="yiyi-st" id="yiyi-73">普通2维标记大小可变的表格结构，且列能有不同类型</span></td>
+</tr>
+<tr class="row-even"><td><span class="yiyi-st" id="yiyi-74">3</span></td>
+<td><span class="yiyi-st" id="yiyi-75">Panel</span></td>
+<td><span class="yiyi-st" id="yiyi-76">普通3维标记，大小可变</span></td>
+</tr>
+</tbody>
+</table>
+<div class="section" id="why-more-than-1-data-structure">
+<h3><span class="yiyi-st" id="yiyi-77">为什么有不止一种数据结构?</span></h3>
+<p><span class="yiyi-st" id="yiyi-78">学习 pandas 数据结构的最好方法是将其作为低维数据的灵活容器。</span><span class="yiyi-st" id="yiyi-79">例如，DataFrame 是 Series 的容器，Panel 是 DataFrame 对象的容器。</span><span class="yiyi-st" id="yiyi-80">我们希望能够以类似字典的方式从这些容器中插入和删除对象。</span></p>
+<p><span class="yiyi-st" id="yiyi-81">此外，我们将对通用API函数（其考虑时间序列和横截面数据集的典型取向）采取明智的默认行为。</span><span class="yiyi-st" id="yiyi-82">当使用ndarrays存储2维和3维数据时，用户在编写函数时会考虑数据集的方向，轴被认为或多或少相等（除非C-或Fortran连续性对性能至关重要）。</span><span class="yiyi-st" id="yiyi-83">在pandas中，轴旨在为数据提供更多的语义意义；即，对于特定数据集，可能存在定向数据的“正确”方式。</span><span class="yiyi-st" id="yiyi-84">因此，目标是减少在下游功能中编码数据转换所需的精神努力量。</span></p>
+<p><span class="yiyi-st" id="yiyi-85">例如，对于表格数据（DataFrame），考虑<strong>索引</strong>（行）和<strong>列</strong>而不是轴0和轴1更具语义上的帮助。</span><span class="yiyi-st" id="yiyi-86">并且遍历DataFrame的列，因此导致更可读的代码：</span></p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+    <span class="n">series</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">col</span><span class="p">]</span>
+    <span class="c1"># do something with series</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="mutability-and-copying-of-data">
+<h2><span class="yiyi-st" id="yiyi-87">Mutability and copying of data</span></h2>
+<p><span class="yiyi-st" id="yiyi-88">所有的pandas数据结构都是值可变的（它们包含的值可以改变），但不总是size-mutable。</span><span class="yiyi-st" id="yiyi-89">Series的长度不可更改，但是，可以将列插入到DataFrame中。</span><span class="yiyi-st" id="yiyi-90">然而，绝大多数方法产生新对象并且保持输入数据不变。</span><span class="yiyi-st" id="yiyi-91">一般来说，我们喜欢<strong>有利于不变性</strong>。</span></p>
+</div>
+<div class="section" id="getting-support">
+<h2><span class="yiyi-st" id="yiyi-92">获得支持</span></h2>
+<p><span class="yiyi-st" id="yiyi-93">Pandas问题和想法的第一站是<a class="reference external" href="https://github.com/pandas-dev/pandas/issues">Github问题跟踪器</a>。</span><span class="yiyi-st" id="yiyi-94">如果你有一个一般的问题，pandas社区专家可以通过<a class="reference external" href="http://stackoverflow.com/questions/tagged/pandas">Stack Overflow</a>回答。</span></p>
+<p><span class="yiyi-st" id="yiyi-95">更长的讨论发生在<a class="reference external" href="http://groups.google.com/group/pystatsmodels">开发人员邮件列表</a>上，而Lambda Foundry的商业支持查询应发送到：<a class="reference external" href="mailto:support%40lambdafoundry.com">支持<span>@</span> lambdafoundry <span>。 </span></a></span></p>
+</div>
+<div class="section" id="credits">
+<h2><span class="yiyi-st" id="yiyi-96">Credits</span></h2>
+<p><span class="yiyi-st" id="yiyi-97">pandas于2008年4月由<a class="reference external" href="http://www.aqr.com">AQR资本管理</a>。</span><span class="yiyi-st" id="yiyi-98">它是在2009年年底开源的。</span><span class="yiyi-st" id="yiyi-99">2011年底，AQR继续为发展提供资源，并继续提供今天的错误报告。</span></p>
+<p><span class="yiyi-st" id="yiyi-100">自2012年1月起，<a class="reference external" href="http://www.lambdafoundry.com">Lambda Foundry</a>一直提供开发资源，以及商业支持，培训和pandas咨询。</span></p>
+<p><span class="yiyi-st" id="yiyi-101">pandas只是由一组世界各地的人像你一样，贡献了新的代码，错误报告，修复，评论和想法。</span><span class="yiyi-st" id="yiyi-102">完整的列表可以在Github上找到<a class="reference external" href="http://www.github.com/pandas-dev/pandas/contributors">。</a></span></p>
+</div>
+<div class="section" id="development-team">
+<h2><span class="yiyi-st" id="yiyi-103">开发团队</span></h2>
+<p><span class="yiyi-st" id="yiyi-104">pandas是PyData项目的一部分。</span><span class="yiyi-st" id="yiyi-105">PyData开发团队是专注于改进Python数据库的开发人员的集合。</span><span class="yiyi-st" id="yiyi-106">协调开发的核心团队可以在<a class="reference external" href="http://github.com/pydata">Github</a>上找到。</span><span class="yiyi-st" id="yiyi-107">如果您有兴趣参与，请访问<a class="reference external" href="http://pandas.pydata.org">项目网站</a>。</span></p>
+</div>
+<div class="section" id="license">
+<h2><span class="yiyi-st" id="yiyi-108">License</span></h2>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">=======</span>
+<span class="n">License</span>
+<span class="o">=======</span>
+
+<span class="n">pandas</span> <span class="ow">is</span> <span class="n">distributed</span> <span class="n">under</span> <span class="n">a</span> <span class="mi">3</span><span class="o">-</span><span class="n">clause</span> <span class="p">(</span><span class="s2">&quot;Simplified&quot;</span> <span class="ow">or</span> <span class="s2">&quot;New&quot;</span><span class="p">)</span> <span class="n">BSD</span>
+<span class="n">license</span><span class="o">.</span> <span class="n">Parts</span> <span class="n">of</span> <span class="n">NumPy</span><span class="p">,</span> <span class="n">SciPy</span><span class="p">,</span> <span class="n">numpydoc</span><span class="p">,</span> <span class="n">bottleneck</span><span class="p">,</span> <span class="n">which</span> <span class="nb">all</span> <span class="n">have</span>
+<span class="n">BSD</span><span class="o">-</span><span class="n">compatible</span> <span class="n">licenses</span><span class="p">,</span> <span class="n">are</span> <span class="n">included</span><span class="o">.</span> <span class="n">Their</span> <span class="n">licenses</span> <span class="n">follow</span> <span class="n">the</span> <span class="n">pandas</span>
+<span class="n">license</span><span class="o">.</span>
+
+<span class="n">pandas</span> <span class="n">license</span>
+<span class="o">==============</span>
+
+<span class="n">Copyright</span> <span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="mi">2011</span><span class="o">-</span><span class="mi">2012</span><span class="p">,</span> <span class="n">Lambda</span> <span class="n">Foundry</span><span class="p">,</span> <span class="n">Inc</span><span class="o">.</span> <span class="ow">and</span> <span class="n">PyData</span> <span class="n">Development</span> <span class="n">Team</span>
+<span class="n">All</span> <span class="n">rights</span> <span class="n">reserved</span><span class="o">.</span>
+
+<span class="n">Copyright</span> <span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="mi">2008</span><span class="o">-</span><span class="mi">2011</span> <span class="n">AQR</span> <span class="n">Capital</span> <span class="n">Management</span><span class="p">,</span> <span class="n">LLC</span>
+<span class="n">All</span> <span class="n">rights</span> <span class="n">reserved</span><span class="o">.</span>
+
+<span class="n">Redistribution</span> <span class="ow">and</span> <span class="n">use</span> <span class="ow">in</span> <span class="n">source</span> <span class="ow">and</span> <span class="n">binary</span> <span class="n">forms</span><span class="p">,</span> <span class="k">with</span> <span class="ow">or</span> <span class="n">without</span>
+<span class="n">modification</span><span class="p">,</span> <span class="n">are</span> <span class="n">permitted</span> <span class="n">provided</span> <span class="n">that</span> <span class="n">the</span> <span class="n">following</span> <span class="n">conditions</span> <span class="n">are</span>
+<span class="n">met</span><span class="p">:</span>
+
+    <span class="o">*</span> <span class="n">Redistributions</span> <span class="n">of</span> <span class="n">source</span> <span class="n">code</span> <span class="n">must</span> <span class="n">retain</span> <span class="n">the</span> <span class="n">above</span> <span class="n">copyright</span>
+       <span class="n">notice</span><span class="p">,</span> <span class="n">this</span> <span class="nb">list</span> <span class="n">of</span> <span class="n">conditions</span> <span class="ow">and</span> <span class="n">the</span> <span class="n">following</span> <span class="n">disclaimer</span><span class="o">.</span>
+
+    <span class="o">*</span> <span class="n">Redistributions</span> <span class="ow">in</span> <span class="n">binary</span> <span class="n">form</span> <span class="n">must</span> <span class="n">reproduce</span> <span class="n">the</span> <span class="n">above</span>
+       <span class="n">copyright</span> <span class="n">notice</span><span class="p">,</span> <span class="n">this</span> <span class="nb">list</span> <span class="n">of</span> <span class="n">conditions</span> <span class="ow">and</span> <span class="n">the</span> <span class="n">following</span>
+       <span class="n">disclaimer</span> <span class="ow">in</span> <span class="n">the</span> <span class="n">documentation</span> <span class="ow">and</span><span class="o">/</span><span class="ow">or</span> <span class="n">other</span> <span class="n">materials</span> <span class="n">provided</span>
+       <span class="k">with</span> <span class="n">the</span> <span class="n">distribution</span><span class="o">.</span>
+
+    <span class="o">*</span> <span class="n">Neither</span> <span class="n">the</span> <span class="n">name</span> <span class="n">of</span> <span class="n">the</span> <span class="n">copyright</span> <span class="n">holder</span> <span class="n">nor</span> <span class="n">the</span> <span class="n">names</span> <span class="n">of</span> <span class="nb">any</span>
+       <span class="n">contributors</span> <span class="n">may</span> <span class="n">be</span> <span class="n">used</span> <span class="n">to</span> <span class="n">endorse</span> <span class="ow">or</span> <span class="n">promote</span> <span class="n">products</span> <span class="n">derived</span>
+       <span class="kn">from</span> <span class="nn">this</span> <span class="n">software</span> <span class="n">without</span> <span class="n">specific</span> <span class="n">prior</span> <span class="n">written</span> <span class="n">permission</span><span class="o">.</span>
+
+<span class="n">THIS</span> <span class="n">SOFTWARE</span> <span class="n">IS</span> <span class="n">PROVIDED</span> <span class="n">BY</span> <span class="n">THE</span> <span class="n">COPYRIGHT</span> <span class="n">HOLDER</span> <span class="n">AND</span> <span class="n">CONTRIBUTORS</span>
+<span class="s2">&quot;AS IS&quot;</span> <span class="n">AND</span> <span class="n">ANY</span> <span class="n">EXPRESS</span> <span class="n">OR</span> <span class="n">IMPLIED</span> <span class="n">WARRANTIES</span><span class="p">,</span> <span class="n">INCLUDING</span><span class="p">,</span> <span class="n">BUT</span> <span class="n">NOT</span>
+<span class="n">LIMITED</span> <span class="n">TO</span><span class="p">,</span> <span class="n">THE</span> <span class="n">IMPLIED</span> <span class="n">WARRANTIES</span> <span class="n">OF</span> <span class="n">MERCHANTABILITY</span> <span class="n">AND</span> <span class="n">FITNESS</span> <span class="n">FOR</span>
+<span class="n">A</span> <span class="n">PARTICULAR</span> <span class="n">PURPOSE</span> <span class="n">ARE</span> <span class="n">DISCLAIMED</span><span class="o">.</span> <span class="n">IN</span> <span class="n">NO</span> <span class="n">EVENT</span> <span class="n">SHALL</span> <span class="n">THE</span> <span class="n">COPYRIGHT</span>
+<span class="n">OWNER</span> <span class="n">OR</span> <span class="n">CONTRIBUTORS</span> <span class="n">BE</span> <span class="n">LIABLE</span> <span class="n">FOR</span> <span class="n">ANY</span> <span class="n">DIRECT</span><span class="p">,</span> <span class="n">INDIRECT</span><span class="p">,</span> <span class="n">INCIDENTAL</span><span class="p">,</span>
+<span class="n">SPECIAL</span><span class="p">,</span> <span class="n">EXEMPLARY</span><span class="p">,</span> <span class="n">OR</span> <span class="n">CONSEQUENTIAL</span> <span class="n">DAMAGES</span> <span class="p">(</span><span class="n">INCLUDING</span><span class="p">,</span> <span class="n">BUT</span> <span class="n">NOT</span>
+<span class="n">LIMITED</span> <span class="n">TO</span><span class="p">,</span> <span class="n">PROCUREMENT</span> <span class="n">OF</span> <span class="n">SUBSTITUTE</span> <span class="n">GOODS</span> <span class="n">OR</span> <span class="n">SERVICES</span><span class="p">;</span> <span class="n">LOSS</span> <span class="n">OF</span> <span class="n">USE</span><span class="p">,</span>
+<span class="n">DATA</span><span class="p">,</span> <span class="n">OR</span> <span class="n">PROFITS</span><span class="p">;</span> <span class="n">OR</span> <span class="n">BUSINESS</span> <span class="n">INTERRUPTION</span><span class="p">)</span> <span class="n">HOWEVER</span> <span class="n">CAUSED</span> <span class="n">AND</span> <span class="n">ON</span> <span class="n">ANY</span>
+<span class="n">THEORY</span> <span class="n">OF</span> <span class="n">LIABILITY</span><span class="p">,</span> <span class="n">WHETHER</span> <span class="n">IN</span> <span class="n">CONTRACT</span><span class="p">,</span> <span class="n">STRICT</span> <span class="n">LIABILITY</span><span class="p">,</span> <span class="n">OR</span> <span class="n">TORT</span>
+<span class="p">(</span><span class="n">INCLUDING</span> <span class="n">NEGLIGENCE</span> <span class="n">OR</span> <span class="n">OTHERWISE</span><span class="p">)</span> <span class="n">ARISING</span> <span class="n">IN</span> <span class="n">ANY</span> <span class="n">WAY</span> <span class="n">OUT</span> <span class="n">OF</span> <span class="n">THE</span> <span class="n">USE</span>
+<span class="n">OF</span> <span class="n">THIS</span> <span class="n">SOFTWARE</span><span class="p">,</span> <span class="n">EVEN</span> <span class="n">IF</span> <span class="n">ADVISED</span> <span class="n">OF</span> <span class="n">THE</span> <span class="n">POSSIBILITY</span> <span class="n">OF</span> <span class="n">SUCH</span> <span class="n">DAMAGE</span><span class="o">.</span>
+
+<span class="n">About</span> <span class="n">the</span> <span class="n">Copyright</span> <span class="n">Holders</span>
+<span class="o">===========================</span>
+
+<span class="n">AQR</span> <span class="n">Capital</span> <span class="n">Management</span> <span class="n">began</span> <span class="n">pandas</span> <span class="n">development</span> <span class="ow">in</span> <span class="mf">2008.</span> <span class="n">Development</span> <span class="n">was</span>
+<span class="n">led</span> <span class="n">by</span> <span class="n">Wes</span> <span class="n">McKinney</span><span class="o">.</span> <span class="n">AQR</span> <span class="n">released</span> <span class="n">the</span> <span class="n">source</span> <span class="n">under</span> <span class="n">this</span> <span class="n">license</span> <span class="ow">in</span> <span class="mf">2009.</span>
+<span class="n">Wes</span> <span class="ow">is</span> <span class="n">now</span> <span class="n">an</span> <span class="n">employee</span> <span class="n">of</span> <span class="n">Lambda</span> <span class="n">Foundry</span><span class="p">,</span> <span class="ow">and</span> <span class="n">remains</span> <span class="n">the</span> <span class="n">pandas</span> <span class="n">project</span>
+<span class="n">lead</span><span class="o">.</span>
+
+<span class="n">The</span> <span class="n">PyData</span> <span class="n">Development</span> <span class="n">Team</span> <span class="ow">is</span> <span class="n">the</span> <span class="n">collection</span> <span class="n">of</span> <span class="n">developers</span> <span class="n">of</span> <span class="n">the</span> <span class="n">PyData</span>
+<span class="n">project</span><span class="o">.</span> <span class="n">This</span> <span class="n">includes</span> <span class="nb">all</span> <span class="n">of</span> <span class="n">the</span> <span class="n">PyData</span> <span class="n">sub</span><span class="o">-</span><span class="n">projects</span><span class="p">,</span> <span class="n">including</span> <span class="n">pandas</span><span class="o">.</span> <span class="n">The</span>
+<span class="n">core</span> <span class="n">team</span> <span class="n">that</span> <span class="n">coordinates</span> <span class="n">development</span> <span class="n">on</span> <span class="n">GitHub</span> <span class="n">can</span> <span class="n">be</span> <span class="n">found</span> <span class="n">here</span><span class="p">:</span>
+<span class="n">http</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">pydata</span><span class="o">.</span>
+
+<span class="n">Full</span> <span class="n">credits</span> <span class="k">for</span> <span class="n">pandas</span> <span class="n">contributors</span> <span class="n">can</span> <span class="n">be</span> <span class="n">found</span> <span class="ow">in</span> <span class="n">the</span> <span class="n">documentation</span><span class="o">.</span>
+
+<span class="n">Our</span> <span class="n">Copyright</span> <span class="n">Policy</span>
+<span class="o">====================</span>
+
+<span class="n">PyData</span> <span class="n">uses</span> <span class="n">a</span> <span class="n">shared</span> <span class="n">copyright</span> <span class="n">model</span><span class="o">.</span> <span class="n">Each</span> <span class="n">contributor</span> <span class="n">maintains</span> <span class="n">copyright</span>
+<span class="n">over</span> <span class="n">their</span> <span class="n">contributions</span> <span class="n">to</span> <span class="n">PyData</span><span class="o">.</span> <span class="n">However</span><span class="p">,</span> <span class="n">it</span> <span class="ow">is</span> <span class="n">important</span> <span class="n">to</span> <span class="n">note</span> <span class="n">that</span>
+<span class="n">these</span> <span class="n">contributions</span> <span class="n">are</span> <span class="n">typically</span> <span class="n">only</span> <span class="n">changes</span> <span class="n">to</span> <span class="n">the</span> <span class="n">repositories</span><span class="o">.</span> <span class="n">Thus</span><span class="p">,</span>
+<span class="n">the</span> <span class="n">PyData</span> <span class="n">source</span> <span class="n">code</span><span class="p">,</span> <span class="ow">in</span> <span class="n">its</span> <span class="n">entirety</span><span class="p">,</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">the</span> <span class="n">copyright</span> <span class="n">of</span> <span class="nb">any</span> <span class="n">single</span>
+<span class="n">person</span> <span class="ow">or</span> <span class="n">institution</span><span class="o">.</span> <span class="n">Instead</span><span class="p">,</span> <span class="n">it</span> <span class="ow">is</span> <span class="n">the</span> <span class="n">collective</span> <span class="n">copyright</span> <span class="n">of</span> <span class="n">the</span>
+<span class="n">entire</span> <span class="n">PyData</span> <span class="n">Development</span> <span class="n">Team</span><span class="o">.</span> <span class="n">If</span> <span class="n">individual</span> <span class="n">contributors</span> <span class="n">want</span> <span class="n">to</span> <span class="n">maintain</span>
+<span class="n">a</span> <span class="n">record</span> <span class="n">of</span> <span class="n">what</span> <span class="n">changes</span><span class="o">/</span><span class="n">contributions</span> <span class="n">they</span> <span class="n">have</span> <span class="n">specific</span> <span class="n">copyright</span> <span class="n">on</span><span class="p">,</span>
+<span class="n">they</span> <span class="n">should</span> <span class="n">indicate</span> <span class="n">their</span> <span class="n">copyright</span> <span class="ow">in</span> <span class="n">the</span> <span class="n">commit</span> <span class="n">message</span> <span class="n">of</span> <span class="n">the</span> <span class="n">change</span>
+<span class="n">when</span> <span class="n">they</span> <span class="n">commit</span> <span class="n">the</span> <span class="n">change</span> <span class="n">to</span> <span class="n">one</span> <span class="n">of</span> <span class="n">the</span> <span class="n">PyData</span> <span class="n">repositories</span><span class="o">.</span>
+
+<span class="n">With</span> <span class="n">this</span> <span class="ow">in</span> <span class="n">mind</span><span class="p">,</span> <span class="n">the</span> <span class="n">following</span> <span class="n">banner</span> <span class="n">should</span> <span class="n">be</span> <span class="n">used</span> <span class="ow">in</span> <span class="nb">any</span> <span class="n">source</span> <span class="n">code</span>
+<span class="n">file</span> <span class="n">to</span> <span class="n">indicate</span> <span class="n">the</span> <span class="n">copyright</span> <span class="ow">and</span> <span class="n">license</span> <span class="n">terms</span><span class="p">:</span>
+
+<span class="c1">#-----------------------------------------------------------------------------</span>
+<span class="c1"># Copyright (c) 2012, PyData Development Team</span>
+<span class="c1"># All rights reserved.</span>
+<span class="c1">#</span>
+<span class="c1"># Distributed under the terms of the BSD Simplified License.</span>
+<span class="c1">#</span>
+<span class="c1"># The full license is in the LICENSE file, distributed with this software.</span>
+<span class="c1">#-----------------------------------------------------------------------------</span>
+
+<span class="n">Other</span> <span class="n">licenses</span> <span class="n">can</span> <span class="n">be</span> <span class="n">found</span> <span class="ow">in</span> <span class="n">the</span> <span class="n">LICENSES</span> <span class="n">directory</span><span class="o">.</span>
+</pre></div>
+</div>
+</div>

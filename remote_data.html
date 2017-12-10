@@ -1,0 +1,80 @@
+
+<span id="remote-data"></span><h1><span class="yiyi-st" id="yiyi-51">Remote Data Access</span></h1>
+        <blockquote>
+        <p>原文：<a href="http://pandas.pydata.org/pandas-docs/stable/remote_data.html">http://pandas.pydata.org/pandas-docs/stable/remote_data.html</a></p>
+        <p>译者：<a href="https://github.com/wizardforcel">飞龙</a> <a href="http://usyiyi.cn/">UsyiyiCN</a></p>
+        <p>校对：（虚位以待）</p>
+        </blockquote>
+    
+<div class="section" id="datareader">
+<span id="remote-data-pandas-datareader"></span><h2><span class="yiyi-st" id="yiyi-52">DataReader</span></h2>
+<p><span class="yiyi-st" id="yiyi-53">删除子包<code class="docutils literal"><span class="pre">pandas.io.data</span></code>以支持可单独安装的<a class="reference external" href="https://github.com/pandas-dev/pandas-datareader">pandas-datareader包</a>。</span><span class="yiyi-st" id="yiyi-54">这将允许数据模块独立更新到您的pandas安装。</span><span class="yiyi-st" id="yiyi-55"><code class="docutils literal"><span class="pre">pandas-datareader</span> <span class="pre">v0.1.1</span></code>的API与<code class="docutils literal"><span class="pre">pandas</span> <span class="pre">v0 .16.1</span></code>。</span><span class="yiyi-st" id="yiyi-56">（<a class="reference external" href="https://github.com/pandas-dev/pandas/issues/8961">GH8961</a>）</span></p>
+<blockquote>
+<div><p><span class="yiyi-st" id="yiyi-57">您应该替换以下的导入：</span></p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pandas.io</span> <span class="kn">import</span> <span class="n">data</span><span class="p">,</span> <span class="n">wb</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-58">使用：</span></p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pandas_datareader</span> <span class="kn">import</span> <span class="n">data</span><span class="p">,</span> <span class="n">wb</span>
+</pre></div>
+</div>
+</div></blockquote>
+</div>
+<div class="section" id="google-analytics">
+<span id="remote-data-ga"></span><h2><span class="yiyi-st" id="yiyi-59">Google Analytics</span></h2>
+<p><span class="yiyi-st" id="yiyi-60"><code class="xref py py-mod docutils literal"><span class="pre">ga</span></code>模块为<a class="reference external" href="https://developers.google.com/analytics/devguides">Google Analytics API</a>提供了一个包装，以简化检索流量数据。</span><span class="yiyi-st" id="yiyi-61">结果集将解析为具有从源表派生的形状和数据类型的pandas DataFrame。</span></p>
+<div class="section" id="configuring-access-to-google-analytics">
+<h3><span class="yiyi-st" id="yiyi-62">Configuring Access to Google Analytics</span></h3>
+<p><span class="yiyi-st" id="yiyi-63">您需要做的第一件事是设置对Google Analytics（分析）API的访问。</span><span class="yiyi-st" id="yiyi-64">请按照以下步骤操作：</span></p>
+<ol class="arabic">
+<li><dl class="first docutils">
+<dt><span class="yiyi-st" id="yiyi-65">在<a class="reference external" href="https://console.developers.google.com">Google Developers Console</a>中</span></dt>
+<dd><ol class="first last arabic simple">
+<li><span class="yiyi-st" id="yiyi-66">启用Google Analytics（分析）API</span></li>
+<li><span class="yiyi-st" id="yiyi-67">创建一个新项目</span></li>
+<li><span class="yiyi-st" id="yiyi-68">为“已安装的应用程序”创建一个新的客户端ID（在新创建的项目的“APIs＆auth / Credentials部分”中）</span></li>
+<li><span class="yiyi-st" id="yiyi-69">下载它（JSON文件）</span></li>
+</ol>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt><span class="yiyi-st" id="yiyi-70">在您的机器上</span></dt>
+<dd><ol class="first last arabic simple">
+<li><span class="yiyi-st" id="yiyi-71">将其重命名为<code class="docutils literal"><span class="pre">client_secrets.json</span></code></span></li>
+<li><span class="yiyi-st" id="yiyi-72">将其移动到<code class="docutils literal"><span class="pre">pandas/io</span></code>模块目录</span></li>
+</ol>
+</dd>
+</dl>
+</li>
+</ol>
+<p><span class="yiyi-st" id="yiyi-73">第一次使用<code class="xref py py-func docutils literal"><span class="pre">read_ga()</span></code>函数时，将打开一个浏览器窗口，要求您对Google API进行身份验证。</span><span class="yiyi-st" id="yiyi-74">请继续。</span></p>
+</div>
+<div class="section" id="using-the-google-analytics-api">
+<h3><span class="yiyi-st" id="yiyi-75">Using the Google Analytics API</span></h3>
+<p><span class="yiyi-st" id="yiyi-76">以下内容将从特定媒体资源获取2014年第一季度每周的每日用户和浏览量（指标）数据。</span></p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">pandas.io.ga</span> <span class="kn">as</span> <span class="nn">ga</span>
+<span class="n">ga</span><span class="o">.</span><span class="n">read_ga</span><span class="p">(</span>
+    <span class="n">account_id</span>  <span class="o">=</span> <span class="s2">&quot;2360420&quot;</span><span class="p">,</span>
+    <span class="n">profile_id</span>  <span class="o">=</span> <span class="s2">&quot;19462946&quot;</span><span class="p">,</span>
+    <span class="n">property_id</span> <span class="o">=</span> <span class="s2">&quot;UA-2360420-5&quot;</span><span class="p">,</span>
+    <span class="n">metrics</span>     <span class="o">=</span> <span class="p">[</span><span class="s1">&apos;users&apos;</span><span class="p">,</span> <span class="s1">&apos;pageviews&apos;</span><span class="p">],</span>
+    <span class="n">dimensions</span>  <span class="o">=</span> <span class="p">[</span><span class="s1">&apos;dayOfWeek&apos;</span><span class="p">],</span>
+    <span class="n">start_date</span>  <span class="o">=</span> <span class="s2">&quot;2014-01-01&quot;</span><span class="p">,</span>
+    <span class="n">end_date</span>    <span class="o">=</span> <span class="s2">&quot;2014-08-01&quot;</span><span class="p">,</span>
+    <span class="n">index_col</span>   <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+    <span class="n">filters</span>     <span class="o">=</span> <span class="s2">&quot;pagePath=~aboutus;ga:country==France&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-77">唯一的强制参数是<code class="docutils literal"><span class="pre">metrics,</span></code> <code class="docutils literal"><span class="pre">dimensions</span></code>和<code class="docutils literal"><span class="pre">start_date</span></code>。</span><span class="yiyi-st" id="yiyi-78">我们强烈建议您始终指定<code class="docutils literal"><span class="pre">account_id</span></code>，<code class="docutils literal"><span class="pre">profile_id</span></code>和<code class="docutils literal"><span class="pre">property_id</span></code>，以避免在Google Analytics（分析）中访问错误的数据桶。</span></p>
+<p><span class="yiyi-st" id="yiyi-79"><code class="docutils literal"><span class="pre">index_col</span></code>参数指示必须将哪个维度用作索引。</span></p>
+<p><span class="yiyi-st" id="yiyi-80"><code class="docutils literal"><span class="pre">filters</span></code>参数指示要应用于查询的过滤。</span><span class="yiyi-st" id="yiyi-81">在上面的示例中，网页网址必须包含<code class="docutils literal"><span class="pre">aboutus</span></code>，访问者国家必须是法国。</span></p>
+<p><span class="yiyi-st" id="yiyi-82">详细信息如下：</span></p>
+<ul class="simple">
+<li><span class="yiyi-st" id="yiyi-83"><a class="reference external" href="http://blog.yhathq.com/posts/pandas-google-analytics.html">熊猫＆amp； google analytics，by yhat</a></span></li>
+<li><span class="yiyi-st" id="yiyi-84"><a class="reference external" href="http://quantabee.wordpress.com/2012/12/17/google-analytics-pandas/">Google Analytics（分析）与大熊猫的集成，由Chang She</a></span></li>
+<li><span class="yiyi-st" id="yiyi-85"><a class="reference external" href="https://developers.google.com/analytics/devguides/reporting/core/dimsmets">Google Analytics（分析）维度和指标参考</a></span></li>
+</ul>
+</div>
+</div>

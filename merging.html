@@ -1,0 +1,923 @@
+
+<span id="merging"></span><h1><span class="yiyi-st" id="yiyi-67">Merge, join, and concatenate</span></h1>
+        <blockquote>
+        <p>原文：<a href="http://pandas.pydata.org/pandas-docs/stable/merging.html">http://pandas.pydata.org/pandas-docs/stable/merging.html</a></p>
+        <p>译者：<a href="https://github.com/wizardforcel">飞龙</a> <a href="http://usyiyi.cn/">UsyiyiCN</a></p>
+        <p>校对：（虚位以待）</p>
+        </blockquote>
+    
+<p><span class="yiyi-st" id="yiyi-68">pandas提供了各种设施，以便在连接/合并类型操作的情况下，轻松地将Series，DataFrame和Panel对象与索引的各种集合逻辑以及关系代数功能组合在一起。</span></p>
+<div class="section" id="concatenating-objects">
+<span id="merging-concat"></span><h2><span class="yiyi-st" id="yiyi-69">Concatenating objects</span></h2>
+<p><span class="yiyi-st" id="yiyi-70"><code class="docutils literal"><span class="pre">concat</span></code>函数（在主pandas命名空间中）执行沿轴执行连接操作的所有繁重工作，同时执行索引（如果有）的可选集逻辑（联合或交集）轴。</span><span class="yiyi-st" id="yiyi-71">注意，我说“如果有”，因为对于Series只有一个可能的级联轴。</span></p>
+<p><span class="yiyi-st" id="yiyi-72">在介绍<code class="docutils literal"><span class="pre">concat</span></code>的所有细节以及它能做什么之前，这里有一个简单的例子：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [1]: </span><span class="n">df1</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s1">&apos;A&apos;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&apos;A0&apos;</span><span class="p">,</span> <span class="s1">&apos;A1&apos;</span><span class="p">,</span> <span class="s1">&apos;A2&apos;</span><span class="p">,</span> <span class="s1">&apos;A3&apos;</span><span class="p">],</span>
+<span class="gp">   ...:</span>                     <span class="s1">&apos;B&apos;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&apos;B0&apos;</span><span class="p">,</span> <span class="s1">&apos;B1&apos;</span><span class="p">,</span> <span class="s1">&apos;B2&apos;</span><span class="p">,</span> <span class="s1">&apos;B3&apos;</span><span class="p">],</span>
+<span class="gp">   ...:</span>                     <span class="s1">&apos;C&apos;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&apos;C0&apos;</span><span class="p">,</span> <span class="s1">&apos;C1&apos;</span><span class="p">,</span> <span class="s1">&apos;C2&apos;</span><span class="p">,</span> <span class="s1">&apos;C3&apos;</span><span class="p">],</span>
+<span class="gp">   ...:</span>                     <span class="s1">&apos;D&apos;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&apos;D0&apos;</span><span class="p">,</span> <span class="s1">&apos;D1&apos;</span><span class="p">,</span> <span class="s1">&apos;D2&apos;</span><span class="p">,</span> <span class="s1">&apos;D3&apos;</span><span class="p">]},</span>
+<span class="gp">   ...:</span>                     <span class="n">index</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">])</span>
+<span class="gp">   ...:</span> 
+
+<span class="gp">In [2]: </span><span class="n">df2</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s1">&apos;A&apos;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&apos;A4&apos;</span><span class="p">,</span> <span class="s1">&apos;A5&apos;</span><span class="p">,</span> <span class="s1">&apos;A6&apos;</span><span class="p">,</span> <span class="s1">&apos;A7&apos;</span><span class="p">],</span>
+<span class="gp">   ...:</span>                     <span class="s1">&apos;B&apos;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&apos;B4&apos;</span><span class="p">,</span> <span class="s1">&apos;B5&apos;</span><span class="p">,</span> <span class="s1">&apos;B6&apos;</span><span class="p">,</span> <span class="s1">&apos;B7&apos;</span><span class="p">],</span>
+<span class="gp">   ...:</span>                     <span class="s1">&apos;C&apos;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&apos;C4&apos;</span><span class="p">,</span> <span class="s1">&apos;C5&apos;</span><span class="p">,</span> <span class="s1">&apos;C6&apos;</span><span class="p">,</span> <span class="s1">&apos;C7&apos;</span><span class="p">],</span>
+<span class="gp">   ...:</span>                     <span class="s1">&apos;D&apos;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&apos;D4&apos;</span><span class="p">,</span> <span class="s1">&apos;D5&apos;</span><span class="p">,</span> <span class="s1">&apos;D6&apos;</span><span class="p">,</span> <span class="s1">&apos;D7&apos;</span><span class="p">]},</span>
+<span class="gp">   ...:</span>                      <span class="n">index</span><span class="o">=</span><span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">7</span><span class="p">])</span>
+<span class="gp">   ...:</span> 
+
+<span class="gp">In [3]: </span><span class="n">df3</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s1">&apos;A&apos;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&apos;A8&apos;</span><span class="p">,</span> <span class="s1">&apos;A9&apos;</span><span class="p">,</span> <span class="s1">&apos;A10&apos;</span><span class="p">,</span> <span class="s1">&apos;A11&apos;</span><span class="p">],</span>
+<span class="gp">   ...:</span>                     <span class="s1">&apos;B&apos;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&apos;B8&apos;</span><span class="p">,</span> <span class="s1">&apos;B9&apos;</span><span class="p">,</span> <span class="s1">&apos;B10&apos;</span><span class="p">,</span> <span class="s1">&apos;B11&apos;</span><span class="p">],</span>
+<span class="gp">   ...:</span>                     <span class="s1">&apos;C&apos;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&apos;C8&apos;</span><span class="p">,</span> <span class="s1">&apos;C9&apos;</span><span class="p">,</span> <span class="s1">&apos;C10&apos;</span><span class="p">,</span> <span class="s1">&apos;C11&apos;</span><span class="p">],</span>
+<span class="gp">   ...:</span>                     <span class="s1">&apos;D&apos;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&apos;D8&apos;</span><span class="p">,</span> <span class="s1">&apos;D9&apos;</span><span class="p">,</span> <span class="s1">&apos;D10&apos;</span><span class="p">,</span> <span class="s1">&apos;D11&apos;</span><span class="p">]},</span>
+<span class="gp">   ...:</span>                     <span class="n">index</span><span class="o">=</span><span class="p">[</span><span class="mi">8</span><span class="p">,</span> <span class="mi">9</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">11</span><span class="p">])</span>
+<span class="gp">   ...:</span> 
+
+<span class="gp">In [4]: </span><span class="n">frames</span> <span class="o">=</span> <span class="p">[</span><span class="n">df1</span><span class="p">,</span> <span class="n">df2</span><span class="p">,</span> <span class="n">df3</span><span class="p">]</span>
+
+<span class="gp">In [5]: </span><span class="n">result</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">frames</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span>
+</pre></div>
+</div>
+<img alt="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/merging_concat_basic.png" src="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/merging_concat_basic.png">
+<p><span class="yiyi-st" id="yiyi-73">像它在ndarrays上的同级函数一样，<code class="docutils literal"><span class="pre">numpy.concatenate</span></code>，<code class="docutils literal"><span class="pre">pandas.concat</span></code>接受同类型对象的列表或dict，并将它们与“与其他轴“：</span></p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">objs</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">join</span><span class="o">=</span><span class="s1">&apos;outer&apos;</span><span class="p">,</span> <span class="n">join_axes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ignore_index</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+          <span class="n">keys</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">levels</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">names</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">verify_integrity</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+          <span class="n">copy</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><span class="yiyi-st" id="yiyi-74"><code class="docutils literal"><span class="pre">objs</span></code>：Series，DataFrame或Panel对象的序列或映射。</span><span class="yiyi-st" id="yiyi-75">如果传递了dict，则排序的键将用作<cite>键</cite>参数，除非它被传递，在这种情况下，将选择值（见下文）。</span><span class="yiyi-st" id="yiyi-76">任何无对象将被静默删除，除非它们都是无，在这种情况下将引发一个ValueError。</span></li>
+<li><span class="yiyi-st" id="yiyi-77"><code class="docutils literal"><span class="pre">axis</span></code>：{0,1，...}，默认为0。</span><span class="yiyi-st" id="yiyi-78">沿着连接的轴。</span></li>
+<li><span class="yiyi-st" id="yiyi-79"><code class="docutils literal"><span class="pre">join</span></code>：{&apos;inner&apos;，&apos;outer&apos;}，默认为“outer”。</span><span class="yiyi-st" id="yiyi-80">如何处理其他轴上的索引。</span><span class="yiyi-st" id="yiyi-81">outer为联合和inner为交集。</span></li>
+<li><span class="yiyi-st" id="yiyi-82"><code class="docutils literal"><span class="pre">ignore_index</span></code>：boolean，default False。</span><span class="yiyi-st" id="yiyi-83">如果为True，请不要使用并置轴上的索引值。</span><span class="yiyi-st" id="yiyi-84">结果轴将被标记为0，...，n-1。</span><span class="yiyi-st" id="yiyi-85">如果要连接其中并置轴没有有意义的索引信息的对象，这将非常有用。</span><span class="yiyi-st" id="yiyi-86">注意，其他轴上的索引值在连接中仍然受到尊重。</span></li>
+<li><span class="yiyi-st" id="yiyi-87"><code class="docutils literal"><span class="pre">join_axes</span></code>：Index对象列表。</span><span class="yiyi-st" id="yiyi-88">用于其他n-1轴的特定索引，而不是执行内部/外部设置逻辑。</span></li>
+<li><span class="yiyi-st" id="yiyi-89"><code class="docutils literal"><span class="pre">keys</span></code>：序列，默认值无。</span><span class="yiyi-st" id="yiyi-90">使用传递的键作为最外层构建层次索引。</span><span class="yiyi-st" id="yiyi-91">如果为多索引，应该使用元组。</span></li>
+<li><span class="yiyi-st" id="yiyi-92"><code class="docutils literal"><span class="pre">levels</span></code>：序列列表，默认值无。</span><span class="yiyi-st" id="yiyi-93">用于构建MultiIndex的特定级别（唯一值）。</span><span class="yiyi-st" id="yiyi-94">否则，它们将从键推断。</span></li>
+<li><span class="yiyi-st" id="yiyi-95"><code class="docutils literal"><span class="pre">names</span></code>：list，default无。</span><span class="yiyi-st" id="yiyi-96">结果层次索引中的级别的名称。</span></li>
+<li><span class="yiyi-st" id="yiyi-97"><code class="docutils literal"><span class="pre">verify_integrity</span></code>：boolean，default False。</span><span class="yiyi-st" id="yiyi-98">检查新连接的轴是否包含重复项。</span><span class="yiyi-st" id="yiyi-99">这相对于实际的数据串联可能是非常昂贵的。</span></li>
+<li><span class="yiyi-st" id="yiyi-100"><code class="docutils literal"><span class="pre">copy</span></code>：boolean，default True。</span><span class="yiyi-st" id="yiyi-101">如果为False，请勿不必要地复制数据。</span></li>
+</ul>
+<p><span class="yiyi-st" id="yiyi-102">没有一点点上下文和例子许多这些参数没有多大意义。</span><span class="yiyi-st" id="yiyi-103">让我们来看上面的例子。</span><span class="yiyi-st" id="yiyi-104">假设我们想要将特定的键与每一个被切碎的DataFrame关联起来。</span><span class="yiyi-st" id="yiyi-105">我们可以使用<code class="docutils literal"><span class="pre">keys</span></code>参数：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [6]: </span><span class="n">result</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">frames</span><span class="p">,</span> <span class="n">keys</span><span class="o">=</span><span class="p">[</span><span class="s1">&apos;x&apos;</span><span class="p">,</span> <span class="s1">&apos;y&apos;</span><span class="p">,</span> <span class="s1">&apos;z&apos;</span><span class="p">])</span>
+</pre></div>
+</div>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span>
+</pre></div>
+</div>
+<img alt="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/merging_concat_keys.png" src="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/merging_concat_keys.png">
+<p><span class="yiyi-st" id="yiyi-106">正如你可以看到的（如果你已经阅读了文档的其余部分），结果对象的索引具有<a class="reference internal" href="advanced.html#advanced-hierarchical"><span class="std std-ref">hierarchical index</span></a>。</span><span class="yiyi-st" id="yiyi-107">这意味着我们现在可以做的东西，像通过键选择每个块：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [7]: </span><span class="n">result</span><span class="o">.</span><span class="n">ix</span><span class="p">[</span><span class="s1">&apos;y&apos;</span><span class="p">]</span>
+<span class="gr">Out[7]: </span>
+<span class="go">    A   B   C   D</span>
+<span class="go">4  A4  B4  C4  D4</span>
+<span class="go">5  A5  B5  C5  D5</span>
+<span class="go">6  A6  B6  C6  D6</span>
+<span class="go">7  A7  B7  C7  D7</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-108">这不是一个伸展，看看这可以非常有用。</span><span class="yiyi-st" id="yiyi-109">有关此功能的更多详细信息。</span></p>
+<div class="admonition note">
+<p class="first admonition-title"><span class="yiyi-st" id="yiyi-110">注意</span></p>
+<p class="last"><span class="yiyi-st" id="yiyi-111">然而，值得注意的是，<code class="docutils literal"><span class="pre">concat</span></code>（因此<code class="docutils literal"><span class="pre">append</span></code>）会创建数据的完整副本，并且不断重用此函数可能会产生重大的性能损失。</span><span class="yiyi-st" id="yiyi-112">如果需要使用对多个数据集的操作，请使用列表推导。</span></p>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">frames</span> <span class="o">=</span> <span class="p">[</span> <span class="n">process_your_file</span><span class="p">(</span><span class="n">f</span><span class="p">)</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">files</span> <span class="p">]</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">frames</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="section" id="set-logic-on-the-other-axes">
+<h3><span class="yiyi-st" id="yiyi-113">Set logic on the other axes</span></h3>
+<p><span class="yiyi-st" id="yiyi-114">例如，当将多个DataFrames（或面板或...）粘合在一起时，您可以选择如何处理其他轴（不是并置的轴）。</span><span class="yiyi-st" id="yiyi-115">这可以通过三种方式完成：</span></p>
+<ul class="simple">
+<li><span class="yiyi-st" id="yiyi-116">取它们的（排序）并集，<code class="docutils literal"><span class="pre">join=&apos;outer&apos;</span></code>。</span><span class="yiyi-st" id="yiyi-117">这是默认选项，因为它导致零信息丢失。</span></li>
+<li><span class="yiyi-st" id="yiyi-118">以交叉点<code class="docutils literal"><span class="pre">join=&apos;inner&apos;</span></code>。</span></li>
+<li><span class="yiyi-st" id="yiyi-119">使用特定索引（在DataFrame的情况下）或索引（在Panel或未来更高维度的对象的情况下），即<code class="docutils literal"><span class="pre">join_axes</span></code>参数</span></li>
+</ul>
+<p><span class="yiyi-st" id="yiyi-120">这里是每个这些方法的示例。</span><span class="yiyi-st" id="yiyi-121">首先，默认的<code class="docutils literal"><span class="pre">join=&apos;outer&apos;</span></code>行为：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [8]: </span><span class="n">df4</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s1">&apos;B&apos;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&apos;B2&apos;</span><span class="p">,</span> <span class="s1">&apos;B3&apos;</span><span class="p">,</span> <span class="s1">&apos;B6&apos;</span><span class="p">,</span> <span class="s1">&apos;B7&apos;</span><span class="p">],</span>
+<span class="gp">   ...:</span>                  <span class="s1">&apos;D&apos;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&apos;D2&apos;</span><span class="p">,</span> <span class="s1">&apos;D3&apos;</span><span class="p">,</span> <span class="s1">&apos;D6&apos;</span><span class="p">,</span> <span class="s1">&apos;D7&apos;</span><span class="p">],</span>
+<span class="gp">   ...:</span>                  <span class="s1">&apos;F&apos;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&apos;F2&apos;</span><span class="p">,</span> <span class="s1">&apos;F3&apos;</span><span class="p">,</span> <span class="s1">&apos;F6&apos;</span><span class="p">,</span> <span class="s1">&apos;F7&apos;</span><span class="p">]},</span>
+<span class="gp">   ...:</span>                 <span class="n">index</span><span class="o">=</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">7</span><span class="p">])</span>
+<span class="gp">   ...:</span> 
+
+<span class="gp">In [9]: </span><span class="n">result</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">df1</span><span class="p">,</span> <span class="n">df4</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span>
+</pre></div>
+</div>
+<img alt="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/merging_concat_axis1.png" src="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/merging_concat_axis1.png">
+<p><span class="yiyi-st" id="yiyi-122">注意，行索引已经被组合和排序。</span><span class="yiyi-st" id="yiyi-123">这与<code class="docutils literal"><span class="pre">join=&apos;inner&apos;</span></code>是一样的：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [10]: </span><span class="n">result</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">df1</span><span class="p">,</span> <span class="n">df4</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">join</span><span class="o">=</span><span class="s1">&apos;inner&apos;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span>
+</pre></div>
+</div>
+<img alt="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/merging_concat_axis1_inner.png" src="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/merging_concat_axis1_inner.png">
+<p><span class="yiyi-st" id="yiyi-124">最后，假设我们只想从原始DataFrame重用<em>确切索引</em>：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [11]: </span><span class="n">result</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">df1</span><span class="p">,</span> <span class="n">df4</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">join_axes</span><span class="o">=</span><span class="p">[</span><span class="n">df1</span><span class="o">.</span><span class="n">index</span><span class="p">])</span>
+</pre></div>
+</div>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span>
+</pre></div>
+</div>
+<img alt="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/merging_concat_axis1_join_axes.png" src="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/merging_concat_axis1_join_axes.png">
+</div>
+<div class="section" id="concatenating-using-append">
+<span id="merging-concatenation"></span><h3><span class="yiyi-st" id="yiyi-125">Concatenating using <code class="docutils literal"><span class="pre">append</span></code></span></h3>
+<p><span class="yiyi-st" id="yiyi-126">对<code class="docutils literal"><span class="pre">concat</span></code>有用的快捷方式是Series和DataFrame上的<code class="docutils literal"><span class="pre">append</span></code>实例方法。</span><span class="yiyi-st" id="yiyi-127">这些方法实际上早于<code class="docutils literal"><span class="pre">concat</span></code>。</span><span class="yiyi-st" id="yiyi-128">它们沿<code class="docutils literal"><span class="pre">axis=0</span></code>连接，即索引：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [12]: </span><span class="n">result</span> <span class="o">=</span> <span class="n">df1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">df2</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span>
+</pre></div>
+</div>
+<img alt="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/merging_append1.png" src="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/merging_append1.png">
+<p><span class="yiyi-st" id="yiyi-129">在DataFrame的情况下，索引必须是不相交的，但列不需要是：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [13]: </span><span class="n">result</span> <span class="o">=</span> <span class="n">df1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">df4</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span>
+</pre></div>
+</div>
+<img alt="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/merging_append2.png" src="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/merging_append2.png">
+<p><span class="yiyi-st" id="yiyi-130"><code class="docutils literal"><span class="pre">append</span></code>可能需要多个对象进行连接：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [14]: </span><span class="n">result</span> <span class="o">=</span> <span class="n">df1</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">df2</span><span class="p">,</span> <span class="n">df3</span><span class="p">])</span>
+</pre></div>
+</div>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span>
+</pre></div>
+</div>
+<img alt="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/merging_append3.png" src="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/merging_append3.png">
+<div class="admonition note">
+<p class="first admonition-title"><span class="yiyi-st" id="yiyi-131">注意</span></p>
+<p class="last"><span class="yiyi-st" id="yiyi-132">与不附加到原始列表并不返回任何内容的<cite>list.append</cite>方法不同，<code class="docutils literal"><span class="pre">append</span></code> <strong>不会</strong>修改<code class="docutils literal"><span class="pre">df1</span></code>并返回其附带<code class="docutils literal"><span class="pre">df2</span></code>的副本。</span></p>
+</div>
+</div>
+<div class="section" id="ignoring-indexes-on-the-concatenation-axis">
+<span id="merging-ignore-index"></span><h3><span class="yiyi-st" id="yiyi-133">Ignoring indexes on the concatenation axis</span></h3>
+<p><span class="yiyi-st" id="yiyi-134">对于没有有意义索引的DataFrames，您可能希望附加它们，并忽略它们可能具有重叠索引的事实：</span></p>
+<p><span class="yiyi-st" id="yiyi-135">为此，请使用<code class="docutils literal"><span class="pre">ignore_index</span></code>参数：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [15]: </span><span class="n">result</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">df1</span><span class="p">,</span> <span class="n">df4</span><span class="p">],</span> <span class="n">ignore_index</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span>
+</pre></div>
+</div>
+<img alt="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/merging_concat_ignore_index.png" src="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/merging_concat_ignore_index.png">
+<p><span class="yiyi-st" id="yiyi-136">这也是<code class="docutils literal"><span class="pre">DataFrame.append</span></code>的有效参数：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [16]: </span><span class="n">result</span> <span class="o">=</span> <span class="n">df1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">df4</span><span class="p">,</span> <span class="n">ignore_index</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span>
+</pre></div>
+</div>
+<img alt="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/merging_append_ignore_index.png" src="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/merging_append_ignore_index.png">
+</div>
+<div class="section" id="concatenating-with-mixed-ndims">
+<span id="merging-mixed-ndims"></span><h3><span class="yiyi-st" id="yiyi-137">Concatenating with mixed ndims</span></h3>
+<p><span class="yiyi-st" id="yiyi-138">您可以连接Series和DataFrames的混合。</span><span class="yiyi-st" id="yiyi-139">该系列将被转换为DataFrames，列名称为Series的名称。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [17]: </span><span class="n">s1</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">([</span><span class="s1">&apos;X0&apos;</span><span class="p">,</span> <span class="s1">&apos;X1&apos;</span><span class="p">,</span> <span class="s1">&apos;X2&apos;</span><span class="p">,</span> <span class="s1">&apos;X3&apos;</span><span class="p">],</span> <span class="n">name</span><span class="o">=</span><span class="s1">&apos;X&apos;</span><span class="p">)</span>
+
+<span class="gp">In [18]: </span><span class="n">result</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">df1</span><span class="p">,</span> <span class="n">s1</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span>
+</pre></div>
+</div>
+<img alt="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/merging_concat_mixed_ndim.png" src="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/merging_concat_mixed_ndim.png">
+<p><span class="yiyi-st" id="yiyi-140">如果未命名的系列通过，它们将被连续编号。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [19]: </span><span class="n">s2</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">([</span><span class="s1">&apos;_0&apos;</span><span class="p">,</span> <span class="s1">&apos;_1&apos;</span><span class="p">,</span> <span class="s1">&apos;_2&apos;</span><span class="p">,</span> <span class="s1">&apos;_3&apos;</span><span class="p">])</span>
+
+<span class="gp">In [20]: </span><span class="n">result</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">df1</span><span class="p">,</span> <span class="n">s2</span><span class="p">,</span> <span class="n">s2</span><span class="p">,</span> <span class="n">s2</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span>
+</pre></div>
+</div>
+<img alt="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/merging_concat_unnamed_series.png" src="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/merging_concat_unnamed_series.png">
+<p><span class="yiyi-st" id="yiyi-141">传递<code class="docutils literal"><span class="pre">ignore_index=True</span></code>将删除所有名称引用。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [21]: </span><span class="n">result</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">df1</span><span class="p">,</span> <span class="n">s1</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">ignore_index</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span>
+</pre></div>
+</div>
+<img alt="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/merging_concat_series_ignore_index.png" src="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/merging_concat_series_ignore_index.png">
+</div>
+<div class="section" id="more-concatenating-with-group-keys">
+<h3><span class="yiyi-st" id="yiyi-142">More concatenating with group keys</span></h3>
+<p><span class="yiyi-st" id="yiyi-143"><code class="docutils literal"><span class="pre">keys</span></code>参数的常见用法是在基于现有系列创建新的DataFrame时覆盖列名。</span><span class="yiyi-st" id="yiyi-144">请注意默认行为是如何让结果DataFrame继承父系列名称（如果存在）。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [22]: </span><span class="n">s3</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="n">name</span><span class="o">=</span><span class="s1">&apos;foo&apos;</span><span class="p">)</span>
+
+<span class="gp">In [23]: </span><span class="n">s4</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">])</span>
+
+<span class="gp">In [24]: </span><span class="n">s5</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">])</span>
+
+<span class="gp">In [25]: </span><span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">s3</span><span class="p">,</span> <span class="n">s4</span><span class="p">,</span> <span class="n">s5</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="gr">Out[25]: </span>
+<span class="go">   foo  0  1</span>
+<span class="go">0    0  0  0</span>
+<span class="go">1    1  1  1</span>
+<span class="go">2    2  2  4</span>
+<span class="go">3    3  3  5</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-145">通过<code class="docutils literal"><span class="pre">keys</span></code>参数，我们可以覆盖现有的列名。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [26]: </span><span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">s3</span><span class="p">,</span> <span class="n">s4</span><span class="p">,</span> <span class="n">s5</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">keys</span><span class="o">=</span><span class="p">[</span><span class="s1">&apos;red&apos;</span><span class="p">,</span><span class="s1">&apos;blue&apos;</span><span class="p">,</span><span class="s1">&apos;yellow&apos;</span><span class="p">])</span>
+<span class="gr">Out[26]: </span>
+<span class="go">   red  blue  yellow</span>
+<span class="go">0    0     0       0</span>
+<span class="go">1    1     1       1</span>
+<span class="go">2    2     2       4</span>
+<span class="go">3    3     3       5</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-146">让我们现在考虑一个变化的第一个例子：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [27]: </span><span class="n">result</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">frames</span><span class="p">,</span> <span class="n">keys</span><span class="o">=</span><span class="p">[</span><span class="s1">&apos;x&apos;</span><span class="p">,</span> <span class="s1">&apos;y&apos;</span><span class="p">,</span> <span class="s1">&apos;z&apos;</span><span class="p">])</span>
+</pre></div>
+</div>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span>
+</pre></div>
+</div>
+<img alt="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/merging_concat_group_keys2.png" src="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/merging_concat_group_keys2.png">
+<p><span class="yiyi-st" id="yiyi-147">您还可以将dict传递到<code class="docutils literal"><span class="pre">concat</span></code>，在这种情况下，dict键将用于<code class="docutils literal"><span class="pre">keys</span></code>参数（除非指定了其他键）：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [28]: </span><span class="n">pieces</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&apos;x&apos;</span><span class="p">:</span> <span class="n">df1</span><span class="p">,</span> <span class="s1">&apos;y&apos;</span><span class="p">:</span> <span class="n">df2</span><span class="p">,</span> <span class="s1">&apos;z&apos;</span><span class="p">:</span> <span class="n">df3</span><span class="p">}</span>
+
+<span class="gp">In [29]: </span><span class="n">result</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">pieces</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span>
+</pre></div>
+</div>
+<img alt="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/merging_concat_dict.png" src="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/merging_concat_dict.png">
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [30]: </span><span class="n">result</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">pieces</span><span class="p">,</span> <span class="n">keys</span><span class="o">=</span><span class="p">[</span><span class="s1">&apos;z&apos;</span><span class="p">,</span> <span class="s1">&apos;y&apos;</span><span class="p">])</span>
+</pre></div>
+</div>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span>
+</pre></div>
+</div>
+<img alt="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/merging_concat_dict_keys.png" src="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/merging_concat_dict_keys.png">
+<p><span class="yiyi-st" id="yiyi-148">创建的MultiIndex具有根据传递的键和DataFrame段的索引构建的级别：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [31]: </span><span class="n">result</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">levels</span>
+<span class="gr">Out[31]: </span><span class="n">FrozenList</span><span class="p">([[</span><span class="s1">u&apos;z&apos;</span><span class="p">,</span> <span class="s1">u&apos;y&apos;</span><span class="p">],</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">9</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">11</span><span class="p">]])</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-149">如果您想指定其他级别（偶尔会这样），您可以使用<code class="docutils literal"><span class="pre">levels</span></code>参数：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [32]: </span><span class="n">result</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">pieces</span><span class="p">,</span> <span class="n">keys</span><span class="o">=</span><span class="p">[</span><span class="s1">&apos;x&apos;</span><span class="p">,</span> <span class="s1">&apos;y&apos;</span><span class="p">,</span> <span class="s1">&apos;z&apos;</span><span class="p">],</span>
+<span class="gp">   ....:</span>                 <span class="n">levels</span><span class="o">=</span><span class="p">[[</span><span class="s1">&apos;z&apos;</span><span class="p">,</span> <span class="s1">&apos;y&apos;</span><span class="p">,</span> <span class="s1">&apos;x&apos;</span><span class="p">,</span> <span class="s1">&apos;w&apos;</span><span class="p">]],</span>
+<span class="gp">   ....:</span>                 <span class="n">names</span><span class="o">=</span><span class="p">[</span><span class="s1">&apos;group_key&apos;</span><span class="p">])</span>
+<span class="gp">   ....:</span> 
+</pre></div>
+</div>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span>
+</pre></div>
+</div>
+<img alt="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/merging_concat_dict_keys_names.png" src="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/merging_concat_dict_keys_names.png">
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [33]: </span><span class="n">result</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">levels</span>
+<span class="gr">Out[33]: </span><span class="n">FrozenList</span><span class="p">([[</span><span class="s1">u&apos;z&apos;</span><span class="p">,</span> <span class="s1">u&apos;y&apos;</span><span class="p">,</span> <span class="s1">u&apos;x&apos;</span><span class="p">,</span> <span class="s1">u&apos;w&apos;</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">9</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">11</span><span class="p">]])</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-150">是的，这是相当深奥，但实际上是实现像GroupBy，其中分类变量的顺序是有意义的。</span></p>
+</div>
+<div class="section" id="appending-rows-to-a-dataframe">
+<span id="merging-append-row"></span><h3><span class="yiyi-st" id="yiyi-151">Appending rows to a DataFrame</span></h3>
+<p><span class="yiyi-st" id="yiyi-152">虽然不是特别有效（因为必须创建一个新的对象），你可以通过传递一个Series或dict到<code class="docutils literal"><span class="pre">append</span></code>，它返回一个新的DataFrame如上所示，附加一行到DataFrame。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [34]: </span><span class="n">s2</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">([</span><span class="s1">&apos;X0&apos;</span><span class="p">,</span> <span class="s1">&apos;X1&apos;</span><span class="p">,</span> <span class="s1">&apos;X2&apos;</span><span class="p">,</span> <span class="s1">&apos;X3&apos;</span><span class="p">],</span> <span class="n">index</span><span class="o">=</span><span class="p">[</span><span class="s1">&apos;A&apos;</span><span class="p">,</span> <span class="s1">&apos;B&apos;</span><span class="p">,</span> <span class="s1">&apos;C&apos;</span><span class="p">,</span> <span class="s1">&apos;D&apos;</span><span class="p">])</span>
+
+<span class="gp">In [35]: </span><span class="n">result</span> <span class="o">=</span> <span class="n">df1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">s2</span><span class="p">,</span> <span class="n">ignore_index</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span>
+</pre></div>
+</div>
+<img alt="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/merging_append_series_as_row.png" src="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/merging_append_series_as_row.png">
+<p><span class="yiyi-st" id="yiyi-153">您应该使用<code class="docutils literal"><span class="pre">ignore_index</span></code>与此方法指示DataFrame丢弃其索引。</span><span class="yiyi-st" id="yiyi-154">如果希望保留索引，应该构造一个适当索引的DataFrame，并附加或连接这些对象。</span></p>
+<p><span class="yiyi-st" id="yiyi-155">您还可以传递一个列表或系列：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [36]: </span><span class="n">dicts</span> <span class="o">=</span> <span class="p">[{</span><span class="s1">&apos;A&apos;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&apos;B&apos;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="s1">&apos;C&apos;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span> <span class="s1">&apos;X&apos;</span><span class="p">:</span> <span class="mi">4</span><span class="p">},</span>
+<span class="gp">   ....:</span>          <span class="p">{</span><span class="s1">&apos;A&apos;</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span> <span class="s1">&apos;B&apos;</span><span class="p">:</span> <span class="mi">6</span><span class="p">,</span> <span class="s1">&apos;C&apos;</span><span class="p">:</span> <span class="mi">7</span><span class="p">,</span> <span class="s1">&apos;Y&apos;</span><span class="p">:</span> <span class="mi">8</span><span class="p">}]</span>
+<span class="gp">   ....:</span> 
+
+<span class="gp">In [37]: </span><span class="n">result</span> <span class="o">=</span> <span class="n">df1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dicts</span><span class="p">,</span> <span class="n">ignore_index</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span>
+</pre></div>
+</div>
+<img alt="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/merging_append_dits.png" src="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/merging_append_dits.png">
+</div>
+</div>
+<div class="section" id="database-style-dataframe-joining-merging">
+<span id="merging-join"></span><h2><span class="yiyi-st" id="yiyi-156">Database-style DataFrame joining/merging</span></h2>
+<p><span class="yiyi-st" id="yiyi-157">pandas具有全功能的，<strong>高性能</strong>内存中连接操作，与SQL等关系数据库非常相似。</span><span class="yiyi-st" id="yiyi-158">这些方法比其他开源实现（例如R中的<code class="docutils literal"><span class="pre">base::merge.data.frame</span></code>）执行得更好（在某些情况下好得多一个数量级）。</span><span class="yiyi-st" id="yiyi-159">其原因是DataFrame中的数据的仔细的算法设计和内部布局。</span></p>
+<p><span class="yiyi-st" id="yiyi-160">有关某些高级策略，请参阅<a class="reference internal" href="cookbook.html#cookbook-merge"><span class="std std-ref">cookbook</span></a>。</span></p>
+<p><span class="yiyi-st" id="yiyi-161">熟悉SQL但是新增了pandas的用户可能对与SQL的<a class="reference internal" href="comparison_with_sql.html#compare-with-sql-join"><span class="std std-ref">comparison with SQL</span></a></span></p>
+<p><span class="yiyi-st" id="yiyi-162">pandas提供单个函数<code class="docutils literal"><span class="pre">merge</span></code>作为DataFrame对象之间的所有标准数据库连接操作的入口点：</span></p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pd</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">left</span><span class="p">,</span> <span class="n">right</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s1">&apos;inner&apos;</span><span class="p">,</span> <span class="n">on</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">left_on</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">right_on</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+         <span class="n">left_index</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">right_index</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">sort</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+         <span class="n">suffixes</span><span class="o">=</span><span class="p">(</span><span class="s1">&apos;_x&apos;</span><span class="p">,</span> <span class="s1">&apos;_y&apos;</span><span class="p">),</span> <span class="n">copy</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">indicator</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</pre></div>
+</div>
+<ul>
+<li><p class="first"><span class="yiyi-st" id="yiyi-163"><code class="docutils literal"><span class="pre">left</span></code>：DataFrame对象</span></p>
+</li>
+<li><p class="first"><span class="yiyi-st" id="yiyi-164"><code class="docutils literal"><span class="pre">right</span></code>：另一个DataFrame对象</span></p>
+</li>
+<li><p class="first"><span class="yiyi-st" id="yiyi-165"><code class="docutils literal"><span class="pre">on</span></code>：要加入的列（名称）。</span><span class="yiyi-st" id="yiyi-166">必须在左右DataFrame对象中找到。</span><span class="yiyi-st" id="yiyi-167">如果未传递，且<code class="docutils literal"><span class="pre">left_index</span></code>和<code class="docutils literal"><span class="pre">right_index</span></code>为<code class="docutils literal"><span class="pre">False</span></code>，则DataFrames中的列的交集将被推断为连接键</span></p>
+</li>
+<li><p class="first"><span class="yiyi-st" id="yiyi-168"><code class="docutils literal"><span class="pre">left_on</span></code>：左侧DataFrame中用作键的列。</span><span class="yiyi-st" id="yiyi-169">可以是列名称或长度等于DataFrame长度的数组</span></p>
+</li>
+<li><p class="first"><span class="yiyi-st" id="yiyi-170"><code class="docutils literal"><span class="pre">right_on</span></code>：来自右侧DataFrame的列，用作键。</span><span class="yiyi-st" id="yiyi-171">可以是列名称或长度等于DataFrame长度的数组</span></p>
+</li>
+<li><p class="first"><span class="yiyi-st" id="yiyi-172"><code class="docutils literal"><span class="pre">left_index</span></code>：如果<code class="docutils literal"><span class="pre">True</span></code>，请使用左侧DataFrame中的索引（行标签）作为其连接键。</span><span class="yiyi-st" id="yiyi-173">在具有MultiIndex（分层）的DataFrame的情况下，级别数必须与来自右侧DataFrame的连接键数匹配</span></p>
+</li>
+<li><p class="first"><span class="yiyi-st" id="yiyi-174"><code class="docutils literal"><span class="pre">right_index</span></code>：与<code class="docutils literal"><span class="pre">left_index</span></code>使用方式相同，适用于正确的DataFrame</span></p>
+</li>
+<li><p class="first"><span class="yiyi-st" id="yiyi-175"><code class="docutils literal"><span class="pre">how</span></code>：<code class="docutils literal"><span class="pre">&apos;left&apos;</span></code>，<code class="docutils literal"><span class="pre">&apos;right&apos;</span></code>，<code class="docutils literal"><span class="pre">&apos;outer&apos;</span></code>，<code class="docutils literal"><span class="pre">&apos;inner&apos;</span></code>。</span><span class="yiyi-st" id="yiyi-176">默认为<code class="docutils literal"><span class="pre">inner</span></code>。</span><span class="yiyi-st" id="yiyi-177">有关每种方法的详细说明，请参阅下文</span></p>
+</li>
+<li><p class="first"><span class="yiyi-st" id="yiyi-178"><code class="docutils literal"><span class="pre">sort</span></code>：按照字典顺序通过连接键对结果DataFrame进行排序。</span><span class="yiyi-st" id="yiyi-179">默认为<code class="docutils literal"><span class="pre">True</span></code>，设置为<code class="docutils literal"><span class="pre">False</span></code>会大幅提高性能</span></p>
+</li>
+<li><p class="first"><span class="yiyi-st" id="yiyi-180"><code class="docutils literal"><span class="pre">suffixes</span></code>：应用于重叠列的字符串后缀的元组。</span><span class="yiyi-st" id="yiyi-181">默认为<code class="docutils literal"><span class="pre">（&apos;_ x&apos;，</span> <span class="pre">&apos;_ y&apos;）</span></code>。</span></p>
+</li>
+<li><p class="first"><span class="yiyi-st" id="yiyi-182"><code class="docutils literal"><span class="pre">copy</span></code>：始终从传递的DataFrame对象复制数据（默认<code class="docutils literal"><span class="pre">True</span></code>），即使不需要重建索引。</span><span class="yiyi-st" id="yiyi-183">在许多情况下不能避免，但可以提高性能/内存使用。</span><span class="yiyi-st" id="yiyi-184">可以避免复制的情况有些病态，但仍然提供此选项。</span></p>
+</li>
+<li><p class="first"><span class="yiyi-st" id="yiyi-185"><code class="docutils literal"><span class="pre">indicator</span></code>：向输出DataFrame中添加一个名为<code class="docutils literal"><span class="pre">_merge</span></code>的列，其中包含有关每行源的信息。</span><span class="yiyi-st" id="yiyi-186"><code class="docutils literal"><span class="pre">_merge</span></code> is Categorical-type and takes on a value of <code class="docutils literal"><span class="pre">left_only</span></code> for observations whose merge key only appears in <code class="docutils literal"><span class="pre">&apos;left&apos;</span></code> DataFrame, <code class="docutils literal"><span class="pre">right_only</span></code> for observations whose merge key only appears in <code class="docutils literal"><span class="pre">&apos;right&apos;</span></code> DataFrame, and <code class="docutils literal"><span class="pre">both</span></code> if the observation’s merge key is found in both.</span></p>
+<div class="versionadded">
+<p><span class="yiyi-st" id="yiyi-187"><span class="versionmodified">版本0.17.0中的新功能。</span></span></p>
+</div>
+</li>
+</ul>
+<p><span class="yiyi-st" id="yiyi-188">返回类型将与<code class="docutils literal"><span class="pre">left</span></code></span><span class="yiyi-st" id="yiyi-189">如果<code class="docutils literal"><span class="pre">left</span></code>是<code class="docutils literal"><span class="pre">DataFrame</span></code>和<code class="docutils literal"><span class="pre">right</span></code>是DataFrame的子类，则返回类型仍然是<code class="docutils literal"><span class="pre">DataFrame</span></code>。</span></p>
+<p><span class="yiyi-st" id="yiyi-190"><code class="docutils literal"><span class="pre">merge</span></code>是pandas命名空间中的函数，它也可用作DataFrame实例方法，调用DataFrame被隐式地视为连接中的左侧对象。</span></p>
+<p><span class="yiyi-st" id="yiyi-191">The related <code class="docutils literal"><span class="pre">DataFrame.join</span></code> method, uses <code class="docutils literal"><span class="pre">merge</span></code> internally for the index-on-index (by default) and column(s)-on-index join. </span><span class="yiyi-st" id="yiyi-192">如果您只加入索引，您可能希望使用<code class="docutils literal"><span class="pre">DataFrame.join</span></code>来保存自己一些输入。</span></p>
+<div class="section" id="brief-primer-on-merge-methods-relational-algebra">
+<h3><span class="yiyi-st" id="yiyi-193">Brief primer on merge methods (relational algebra)</span></h3>
+<p><span class="yiyi-st" id="yiyi-194">经验丰富的关系数据库（如SQL）的用户将熟悉用于描述两个类似SQL表结构（DataFrame对象）之间的连接操作的术语。</span><span class="yiyi-st" id="yiyi-195">有几种情况需要考虑，这是非常重要的理解：</span></p>
+<ul class="simple">
+<li><span class="yiyi-st" id="yiyi-196"><strong>一对一</strong>连接：例如，当在其索引（必须包含唯一值）上连接两个DataFrame对象时，</span></li>
+<li><span class="yiyi-st" id="yiyi-197"><strong>多对一</strong>连接：例如，当将索引（唯一）连接到DataFrame中的一个或多个列时</span></li>
+<li><span class="yiyi-st" id="yiyi-198"><strong>多对多</strong>连接：连接列上的列。</span></li>
+</ul>
+<div class="admonition note">
+<p class="first admonition-title"><span class="yiyi-st" id="yiyi-199">注意</span></p>
+<p class="last"><span class="yiyi-st" id="yiyi-200">当连接列上的列（可能是多对多连接）时，传递的DataFrame对象<strong>上的任何索引都将被丢弃</strong>。</span></p>
+</div>
+<p><span class="yiyi-st" id="yiyi-201">值得花一些时间来理解<strong>多对多</strong>连接情况的结果。</span><span class="yiyi-st" id="yiyi-202">在SQL /标准关系代数中，如果一个键组合在两个表中出现多次，则结果表将具有相关数据的<strong>笛卡尔乘积</strong>。</span><span class="yiyi-st" id="yiyi-203">这里是一个非常基本的例子，一个唯一的组合键：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [38]: </span><span class="n">left</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s1">&apos;key&apos;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&apos;K0&apos;</span><span class="p">,</span> <span class="s1">&apos;K1&apos;</span><span class="p">,</span> <span class="s1">&apos;K2&apos;</span><span class="p">,</span> <span class="s1">&apos;K3&apos;</span><span class="p">],</span>
+<span class="gp">   ....:</span>                      <span class="s1">&apos;A&apos;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&apos;A0&apos;</span><span class="p">,</span> <span class="s1">&apos;A1&apos;</span><span class="p">,</span> <span class="s1">&apos;A2&apos;</span><span class="p">,</span> <span class="s1">&apos;A3&apos;</span><span class="p">],</span>
+<span class="gp">   ....:</span>                      <span class="s1">&apos;B&apos;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&apos;B0&apos;</span><span class="p">,</span> <span class="s1">&apos;B1&apos;</span><span class="p">,</span> <span class="s1">&apos;B2&apos;</span><span class="p">,</span> <span class="s1">&apos;B3&apos;</span><span class="p">]})</span>
+<span class="gp">   ....:</span> 
+
+<span class="gp">In [39]: </span><span class="n">right</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s1">&apos;key&apos;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&apos;K0&apos;</span><span class="p">,</span> <span class="s1">&apos;K1&apos;</span><span class="p">,</span> <span class="s1">&apos;K2&apos;</span><span class="p">,</span> <span class="s1">&apos;K3&apos;</span><span class="p">],</span>
+<span class="gp">   ....:</span>                       <span class="s1">&apos;C&apos;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&apos;C0&apos;</span><span class="p">,</span> <span class="s1">&apos;C1&apos;</span><span class="p">,</span> <span class="s1">&apos;C2&apos;</span><span class="p">,</span> <span class="s1">&apos;C3&apos;</span><span class="p">],</span>
+<span class="gp">   ....:</span>                       <span class="s1">&apos;D&apos;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&apos;D0&apos;</span><span class="p">,</span> <span class="s1">&apos;D1&apos;</span><span class="p">,</span> <span class="s1">&apos;D2&apos;</span><span class="p">,</span> <span class="s1">&apos;D3&apos;</span><span class="p">]})</span>
+<span class="gp">   ....:</span> 
+
+<span class="gp">In [40]: </span><span class="n">result</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">left</span><span class="p">,</span> <span class="n">right</span><span class="p">,</span> <span class="n">on</span><span class="o">=</span><span class="s1">&apos;key&apos;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span>
+</pre></div>
+</div>
+<img alt="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/merging_merge_on_key.png" src="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/merging_merge_on_key.png">
+<p><span class="yiyi-st" id="yiyi-204">这里是一个更复杂的示例与多个连接键：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [41]: </span><span class="n">left</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s1">&apos;key1&apos;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&apos;K0&apos;</span><span class="p">,</span> <span class="s1">&apos;K0&apos;</span><span class="p">,</span> <span class="s1">&apos;K1&apos;</span><span class="p">,</span> <span class="s1">&apos;K2&apos;</span><span class="p">],</span>
+<span class="gp">   ....:</span>                      <span class="s1">&apos;key2&apos;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&apos;K0&apos;</span><span class="p">,</span> <span class="s1">&apos;K1&apos;</span><span class="p">,</span> <span class="s1">&apos;K0&apos;</span><span class="p">,</span> <span class="s1">&apos;K1&apos;</span><span class="p">],</span>
+<span class="gp">   ....:</span>                      <span class="s1">&apos;A&apos;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&apos;A0&apos;</span><span class="p">,</span> <span class="s1">&apos;A1&apos;</span><span class="p">,</span> <span class="s1">&apos;A2&apos;</span><span class="p">,</span> <span class="s1">&apos;A3&apos;</span><span class="p">],</span>
+<span class="gp">   ....:</span>                      <span class="s1">&apos;B&apos;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&apos;B0&apos;</span><span class="p">,</span> <span class="s1">&apos;B1&apos;</span><span class="p">,</span> <span class="s1">&apos;B2&apos;</span><span class="p">,</span> <span class="s1">&apos;B3&apos;</span><span class="p">]})</span>
+<span class="gp">   ....:</span> 
+
+<span class="gp">In [42]: </span><span class="n">right</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s1">&apos;key1&apos;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&apos;K0&apos;</span><span class="p">,</span> <span class="s1">&apos;K1&apos;</span><span class="p">,</span> <span class="s1">&apos;K1&apos;</span><span class="p">,</span> <span class="s1">&apos;K2&apos;</span><span class="p">],</span>
+<span class="gp">   ....:</span>                       <span class="s1">&apos;key2&apos;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&apos;K0&apos;</span><span class="p">,</span> <span class="s1">&apos;K0&apos;</span><span class="p">,</span> <span class="s1">&apos;K0&apos;</span><span class="p">,</span> <span class="s1">&apos;K0&apos;</span><span class="p">],</span>
+<span class="gp">   ....:</span>                       <span class="s1">&apos;C&apos;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&apos;C0&apos;</span><span class="p">,</span> <span class="s1">&apos;C1&apos;</span><span class="p">,</span> <span class="s1">&apos;C2&apos;</span><span class="p">,</span> <span class="s1">&apos;C3&apos;</span><span class="p">],</span>
+<span class="gp">   ....:</span>                       <span class="s1">&apos;D&apos;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&apos;D0&apos;</span><span class="p">,</span> <span class="s1">&apos;D1&apos;</span><span class="p">,</span> <span class="s1">&apos;D2&apos;</span><span class="p">,</span> <span class="s1">&apos;D3&apos;</span><span class="p">]})</span>
+<span class="gp">   ....:</span> 
+
+<span class="gp">In [43]: </span><span class="n">result</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">left</span><span class="p">,</span> <span class="n">right</span><span class="p">,</span> <span class="n">on</span><span class="o">=</span><span class="p">[</span><span class="s1">&apos;key1&apos;</span><span class="p">,</span> <span class="s1">&apos;key2&apos;</span><span class="p">])</span>
+</pre></div>
+</div>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span>
+</pre></div>
+</div>
+<img alt="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/merging_merge_on_key_multiple.png" src="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/merging_merge_on_key_multiple.png">
+<p><span class="yiyi-st" id="yiyi-205">The <code class="docutils literal"><span class="pre">how</span></code> argument to <code class="docutils literal"><span class="pre">merge</span></code> specifies how to determine which keys are to be included in the resulting table. </span><span class="yiyi-st" id="yiyi-206">如果在左或右表中未出现<strong>组合键</strong>，则连接表中的值将为<code class="docutils literal"><span class="pre">NA</span></code>。</span><span class="yiyi-st" id="yiyi-207">以下是<code class="docutils literal"><span class="pre">how</span></code>选项及其SQL等效名称的摘要：</span></p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="20%">
+<col width="20%">
+<col width="60%">
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head"><span class="yiyi-st" id="yiyi-208">合并方法</span></th>
+<th class="head"><span class="yiyi-st" id="yiyi-209">SQL加入名称</span></th>
+<th class="head"><span class="yiyi-st" id="yiyi-210">描述</span></th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><span class="yiyi-st" id="yiyi-211"><code class="docutils literal"><span class="pre">left</span></code></span></td>
+<td><span class="yiyi-st" id="yiyi-212"><code class="docutils literal"><span class="pre">LEFT</span> <span class="pre">OUTER</span> <span class="pre">JOIN</span></code></span></td>
+<td><span class="yiyi-st" id="yiyi-213">仅使用左框架的键</span></td>
+</tr>
+<tr class="row-odd"><td><span class="yiyi-st" id="yiyi-214"><code class="docutils literal"><span class="pre">right</span></code></span></td>
+<td><span class="yiyi-st" id="yiyi-215"><code class="docutils literal"><span class="pre">RIGHT</span> <span class="pre">OUTER</span> <span class="pre">JOIN</span></code></span></td>
+<td><span class="yiyi-st" id="yiyi-216">仅使用右边框的键</span></td>
+</tr>
+<tr class="row-even"><td><span class="yiyi-st" id="yiyi-217"><code class="docutils literal"><span class="pre">outer</span></code></span></td>
+<td><span class="yiyi-st" id="yiyi-218"><code class="docutils literal"><span class="pre">FULL</span> <span class="pre">OUTER</span> <span class="pre">JOIN</span></code></span></td>
+<td><span class="yiyi-st" id="yiyi-219">使用来自两个帧的键的联合</span></td>
+</tr>
+<tr class="row-odd"><td><span class="yiyi-st" id="yiyi-220"><code class="docutils literal"><span class="pre">inner</span></code></span></td>
+<td><span class="yiyi-st" id="yiyi-221"><code class="docutils literal"><span class="pre">INNER</span> <span class="pre">JOIN</span></code></span></td>
+<td><span class="yiyi-st" id="yiyi-222">使用两个帧的交叉点</span></td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [44]: </span><span class="n">result</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">left</span><span class="p">,</span> <span class="n">right</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s1">&apos;left&apos;</span><span class="p">,</span> <span class="n">on</span><span class="o">=</span><span class="p">[</span><span class="s1">&apos;key1&apos;</span><span class="p">,</span> <span class="s1">&apos;key2&apos;</span><span class="p">])</span>
+</pre></div>
+</div>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span>
+</pre></div>
+</div>
+<img alt="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/merging_merge_on_key_left.png" src="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/merging_merge_on_key_left.png">
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [45]: </span><span class="n">result</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">left</span><span class="p">,</span> <span class="n">right</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s1">&apos;right&apos;</span><span class="p">,</span> <span class="n">on</span><span class="o">=</span><span class="p">[</span><span class="s1">&apos;key1&apos;</span><span class="p">,</span> <span class="s1">&apos;key2&apos;</span><span class="p">])</span>
+</pre></div>
+</div>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span>
+</pre></div>
+</div>
+<img alt="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/merging_merge_on_key_right.png" src="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/merging_merge_on_key_right.png">
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [46]: </span><span class="n">result</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">left</span><span class="p">,</span> <span class="n">right</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s1">&apos;outer&apos;</span><span class="p">,</span> <span class="n">on</span><span class="o">=</span><span class="p">[</span><span class="s1">&apos;key1&apos;</span><span class="p">,</span> <span class="s1">&apos;key2&apos;</span><span class="p">])</span>
+</pre></div>
+</div>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span>
+</pre></div>
+</div>
+<img alt="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/merging_merge_on_key_outer.png" src="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/merging_merge_on_key_outer.png">
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [47]: </span><span class="n">result</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">left</span><span class="p">,</span> <span class="n">right</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s1">&apos;inner&apos;</span><span class="p">,</span> <span class="n">on</span><span class="o">=</span><span class="p">[</span><span class="s1">&apos;key1&apos;</span><span class="p">,</span> <span class="s1">&apos;key2&apos;</span><span class="p">])</span>
+</pre></div>
+</div>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span>
+</pre></div>
+</div>
+<img alt="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/merging_merge_on_key_inner.png" src="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/merging_merge_on_key_inner.png">
+</div>
+<div class="section" id="the-merge-indicator">
+<span id="merging-indicator"></span><h3><span class="yiyi-st" id="yiyi-223">The merge indicator</span></h3>
+<div class="versionadded">
+<p><span class="yiyi-st" id="yiyi-224"><span class="versionmodified">版本0.17.0中的新功能。</span></span></p>
+</div>
+<p><span class="yiyi-st" id="yiyi-225"><code class="docutils literal"><span class="pre">merge</span></code>现在接受参数<code class="docutils literal"><span class="pre">indicator</span></code>。</span><span class="yiyi-st" id="yiyi-226">如果<code class="docutils literal"><span class="pre">True</span></code>，则将一个名为<code class="docutils literal"><span class="pre">_merge</span></code>的分类类型列添加到接受值的输出对象：</span></p>
+<blockquote>
+<div><table border="1" class="docutils">
+<colgroup>
+<col width="69%">
+<col width="31%">
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head"><span class="yiyi-st" id="yiyi-227">观察原产地</span></th>
+<th class="head"><span class="yiyi-st" id="yiyi-228"><code class="docutils literal"><span class="pre">_merge</span></code>值</span></th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><span class="yiyi-st" id="yiyi-229">只在<code class="docutils literal"><span class="pre">&apos;left&apos;</span></code>框中合并键</span></td>
+<td><span class="yiyi-st" id="yiyi-230"><code class="docutils literal"><span class="pre">left_only</span></code></span></td>
+</tr>
+<tr class="row-odd"><td><span class="yiyi-st" id="yiyi-231">仅在<code class="docutils literal"><span class="pre">&apos;right&apos;</span></code>框中合并键</span></td>
+<td><span class="yiyi-st" id="yiyi-232"><code class="docutils literal"><span class="pre">right_only</span></code></span></td>
+</tr>
+<tr class="row-even"><td><span class="yiyi-st" id="yiyi-233">在两个框架中合并关键帧</span></td>
+<td><span class="yiyi-st" id="yiyi-234"><code class="docutils literal"><span class="pre">both</span></code></span></td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [48]: </span><span class="n">df1</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s1">&apos;col1&apos;</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="s1">&apos;col_left&apos;</span><span class="p">:[</span><span class="s1">&apos;a&apos;</span><span class="p">,</span> <span class="s1">&apos;b&apos;</span><span class="p">]})</span>
+
+<span class="gp">In [49]: </span><span class="n">df2</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s1">&apos;col1&apos;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span><span class="s1">&apos;col_right&apos;</span><span class="p">:[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">]})</span>
+
+<span class="gp">In [50]: </span><span class="n">pd</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">df1</span><span class="p">,</span> <span class="n">df2</span><span class="p">,</span> <span class="n">on</span><span class="o">=</span><span class="s1">&apos;col1&apos;</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s1">&apos;outer&apos;</span><span class="p">,</span> <span class="n">indicator</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="gr">Out[50]: </span>
+<span class="go">   col1 col_left  col_right      _merge</span>
+<span class="go">0     0        a        NaN   left_only</span>
+<span class="go">1     1        b        2.0        both</span>
+<span class="go">2     2      NaN        2.0  right_only</span>
+<span class="go">3     2      NaN        2.0  right_only</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-235"><code class="docutils literal"><span class="pre">indicator</span></code>参数也将接受字符串参数，在这种情况下，指示符函数将使用传递的字符串的值作为指示符列的名称。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [51]: </span><span class="n">pd</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">df1</span><span class="p">,</span> <span class="n">df2</span><span class="p">,</span> <span class="n">on</span><span class="o">=</span><span class="s1">&apos;col1&apos;</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s1">&apos;outer&apos;</span><span class="p">,</span> <span class="n">indicator</span><span class="o">=</span><span class="s1">&apos;indicator_column&apos;</span><span class="p">)</span>
+<span class="gr">Out[51]: </span>
+<span class="go">   col1 col_left  col_right indicator_column</span>
+<span class="go">0     0        a        NaN        left_only</span>
+<span class="go">1     1        b        2.0             both</span>
+<span class="go">2     2      NaN        2.0       right_only</span>
+<span class="go">3     2      NaN        2.0       right_only</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="joining-on-index">
+<span id="merging-join-index"></span><h3><span class="yiyi-st" id="yiyi-236">Joining on index</span></h3>
+<p><span class="yiyi-st" id="yiyi-237"><code class="docutils literal"><span class="pre">DataFrame.join</span></code>是一种方便的方法，用于将两个可能不同索引的DataFrames的列合并为单个结果DataFrame。</span><span class="yiyi-st" id="yiyi-238">这里有一个非常基本的例子：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [52]: </span><span class="n">left</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s1">&apos;A&apos;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&apos;A0&apos;</span><span class="p">,</span> <span class="s1">&apos;A1&apos;</span><span class="p">,</span> <span class="s1">&apos;A2&apos;</span><span class="p">],</span>
+<span class="gp">   ....:</span>                      <span class="s1">&apos;B&apos;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&apos;B0&apos;</span><span class="p">,</span> <span class="s1">&apos;B1&apos;</span><span class="p">,</span> <span class="s1">&apos;B2&apos;</span><span class="p">]},</span>
+<span class="gp">   ....:</span>                      <span class="n">index</span><span class="o">=</span><span class="p">[</span><span class="s1">&apos;K0&apos;</span><span class="p">,</span> <span class="s1">&apos;K1&apos;</span><span class="p">,</span> <span class="s1">&apos;K2&apos;</span><span class="p">])</span>
+<span class="gp">   ....:</span> 
+
+<span class="gp">In [53]: </span><span class="n">right</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s1">&apos;C&apos;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&apos;C0&apos;</span><span class="p">,</span> <span class="s1">&apos;C2&apos;</span><span class="p">,</span> <span class="s1">&apos;C3&apos;</span><span class="p">],</span>
+<span class="gp">   ....:</span>                       <span class="s1">&apos;D&apos;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&apos;D0&apos;</span><span class="p">,</span> <span class="s1">&apos;D2&apos;</span><span class="p">,</span> <span class="s1">&apos;D3&apos;</span><span class="p">]},</span>
+<span class="gp">   ....:</span>                       <span class="n">index</span><span class="o">=</span><span class="p">[</span><span class="s1">&apos;K0&apos;</span><span class="p">,</span> <span class="s1">&apos;K2&apos;</span><span class="p">,</span> <span class="s1">&apos;K3&apos;</span><span class="p">])</span>
+<span class="gp">   ....:</span> 
+
+<span class="gp">In [54]: </span><span class="n">result</span> <span class="o">=</span> <span class="n">left</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">right</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span>
+</pre></div>
+</div>
+<img alt="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/merging_join.png" src="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/merging_join.png">
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [55]: </span><span class="n">result</span> <span class="o">=</span> <span class="n">left</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">right</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s1">&apos;outer&apos;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span>
+</pre></div>
+</div>
+<img alt="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/merging_join_outer.png" src="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/merging_join_outer.png">
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [56]: </span><span class="n">result</span> <span class="o">=</span> <span class="n">left</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">right</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s1">&apos;inner&apos;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span>
+</pre></div>
+</div>
+<img alt="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/merging_join_inner.png" src="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/merging_join_inner.png">
+<p><span class="yiyi-st" id="yiyi-239">这里的数据对齐在索引（行标签）上。</span><span class="yiyi-st" id="yiyi-240">使用<code class="docutils literal"><span class="pre">merge</span></code>加上指示它使用索引的其他参数也可以实现相同的行为：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [57]: </span><span class="n">result</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">left</span><span class="p">,</span> <span class="n">right</span><span class="p">,</span> <span class="n">left_index</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">right_index</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s1">&apos;outer&apos;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span>
+</pre></div>
+</div>
+<img alt="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/merging_merge_index_outer.png" src="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/merging_merge_index_outer.png">
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [58]: </span><span class="n">result</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">left</span><span class="p">,</span> <span class="n">right</span><span class="p">,</span> <span class="n">left_index</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">right_index</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s1">&apos;inner&apos;</span><span class="p">);</span>
+</pre></div>
+</div>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span>
+</pre></div>
+</div>
+<img alt="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/merging_merge_index_inner.png" src="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/merging_merge_index_inner.png">
+</div>
+<div class="section" id="joining-key-columns-on-an-index">
+<h3><span class="yiyi-st" id="yiyi-241">Joining key columns on an index</span></h3>
+<p><span class="yiyi-st" id="yiyi-242"><code class="docutils literal"><span class="pre">join</span></code>在参数上接受一个可选的<code class="docutils literal"><span class="pre">on</span></code></span><span class="yiyi-st" id="yiyi-243">这两个函数调用是完全等价的：</span></p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">left</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">right</span><span class="p">,</span> <span class="n">on</span><span class="o">=</span><span class="n">key_or_keys</span><span class="p">)</span>
+<span class="n">pd</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">left</span><span class="p">,</span> <span class="n">right</span><span class="p">,</span> <span class="n">left_on</span><span class="o">=</span><span class="n">key_or_keys</span><span class="p">,</span> <span class="n">right_index</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+      <span class="n">how</span><span class="o">=</span><span class="s1">&apos;left&apos;</span><span class="p">,</span> <span class="n">sort</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-244">显然你可以选择任何形式，你觉得更方便。</span><span class="yiyi-st" id="yiyi-245">对于多对一连接（其中一个DataFrame已通过连接键索引），使用<code class="docutils literal"><span class="pre">join</span></code>可能更方便。</span><span class="yiyi-st" id="yiyi-246">这里有一个简单的例子：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [59]: </span><span class="n">left</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s1">&apos;A&apos;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&apos;A0&apos;</span><span class="p">,</span> <span class="s1">&apos;A1&apos;</span><span class="p">,</span> <span class="s1">&apos;A2&apos;</span><span class="p">,</span> <span class="s1">&apos;A3&apos;</span><span class="p">],</span>
+<span class="gp">   ....:</span>                      <span class="s1">&apos;B&apos;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&apos;B0&apos;</span><span class="p">,</span> <span class="s1">&apos;B1&apos;</span><span class="p">,</span> <span class="s1">&apos;B2&apos;</span><span class="p">,</span> <span class="s1">&apos;B3&apos;</span><span class="p">],</span>
+<span class="gp">   ....:</span>                      <span class="s1">&apos;key&apos;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&apos;K0&apos;</span><span class="p">,</span> <span class="s1">&apos;K1&apos;</span><span class="p">,</span> <span class="s1">&apos;K0&apos;</span><span class="p">,</span> <span class="s1">&apos;K1&apos;</span><span class="p">]})</span>
+<span class="gp">   ....:</span> 
+
+<span class="gp">In [60]: </span><span class="n">right</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s1">&apos;C&apos;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&apos;C0&apos;</span><span class="p">,</span> <span class="s1">&apos;C1&apos;</span><span class="p">],</span>
+<span class="gp">   ....:</span>                       <span class="s1">&apos;D&apos;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&apos;D0&apos;</span><span class="p">,</span> <span class="s1">&apos;D1&apos;</span><span class="p">]},</span>
+<span class="gp">   ....:</span>                       <span class="n">index</span><span class="o">=</span><span class="p">[</span><span class="s1">&apos;K0&apos;</span><span class="p">,</span> <span class="s1">&apos;K1&apos;</span><span class="p">])</span>
+<span class="gp">   ....:</span> 
+
+<span class="gp">In [61]: </span><span class="n">result</span> <span class="o">=</span> <span class="n">left</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">right</span><span class="p">,</span> <span class="n">on</span><span class="o">=</span><span class="s1">&apos;key&apos;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span>
+</pre></div>
+</div>
+<img alt="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/merging_join_key_columns.png" src="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/merging_join_key_columns.png">
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [62]: </span><span class="n">result</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">left</span><span class="p">,</span> <span class="n">right</span><span class="p">,</span> <span class="n">left_on</span><span class="o">=</span><span class="s1">&apos;key&apos;</span><span class="p">,</span> <span class="n">right_index</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+<span class="gp">   ....:</span>                   <span class="n">how</span><span class="o">=</span><span class="s1">&apos;left&apos;</span><span class="p">,</span> <span class="n">sort</span><span class="o">=</span><span class="bp">False</span><span class="p">);</span>
+<span class="gp">   ....:</span> 
+</pre></div>
+</div>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span>
+</pre></div>
+</div>
+<img alt="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/merging_merge_key_columns.png" src="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/merging_merge_key_columns.png">
+<p id="merging-multikey-join"><span class="yiyi-st" id="yiyi-247">要在多个键上连接，传递的DataFrame必须具有<code class="docutils literal"><span class="pre">MultiIndex</span></code>：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [63]: </span><span class="n">left</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s1">&apos;A&apos;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&apos;A0&apos;</span><span class="p">,</span> <span class="s1">&apos;A1&apos;</span><span class="p">,</span> <span class="s1">&apos;A2&apos;</span><span class="p">,</span> <span class="s1">&apos;A3&apos;</span><span class="p">],</span>
+<span class="gp">   ....:</span>                      <span class="s1">&apos;B&apos;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&apos;B0&apos;</span><span class="p">,</span> <span class="s1">&apos;B1&apos;</span><span class="p">,</span> <span class="s1">&apos;B2&apos;</span><span class="p">,</span> <span class="s1">&apos;B3&apos;</span><span class="p">],</span>
+<span class="gp">   ....:</span>                      <span class="s1">&apos;key1&apos;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&apos;K0&apos;</span><span class="p">,</span> <span class="s1">&apos;K0&apos;</span><span class="p">,</span> <span class="s1">&apos;K1&apos;</span><span class="p">,</span> <span class="s1">&apos;K2&apos;</span><span class="p">],</span>
+<span class="gp">   ....:</span>                      <span class="s1">&apos;key2&apos;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&apos;K0&apos;</span><span class="p">,</span> <span class="s1">&apos;K1&apos;</span><span class="p">,</span> <span class="s1">&apos;K0&apos;</span><span class="p">,</span> <span class="s1">&apos;K1&apos;</span><span class="p">]})</span>
+<span class="gp">   ....:</span> 
+
+<span class="gp">In [64]: </span><span class="n">index</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">MultiIndex</span><span class="o">.</span><span class="n">from_tuples</span><span class="p">([(</span><span class="s1">&apos;K0&apos;</span><span class="p">,</span> <span class="s1">&apos;K0&apos;</span><span class="p">),</span> <span class="p">(</span><span class="s1">&apos;K1&apos;</span><span class="p">,</span> <span class="s1">&apos;K0&apos;</span><span class="p">),</span>
+<span class="gp">   ....:</span>                                   <span class="p">(</span><span class="s1">&apos;K2&apos;</span><span class="p">,</span> <span class="s1">&apos;K0&apos;</span><span class="p">),</span> <span class="p">(</span><span class="s1">&apos;K2&apos;</span><span class="p">,</span> <span class="s1">&apos;K1&apos;</span><span class="p">)])</span>
+<span class="gp">   ....:</span> 
+
+<span class="gp">In [65]: </span><span class="n">right</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s1">&apos;C&apos;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&apos;C0&apos;</span><span class="p">,</span> <span class="s1">&apos;C1&apos;</span><span class="p">,</span> <span class="s1">&apos;C2&apos;</span><span class="p">,</span> <span class="s1">&apos;C3&apos;</span><span class="p">],</span>
+<span class="gp">   ....:</span>                    <span class="s1">&apos;D&apos;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&apos;D0&apos;</span><span class="p">,</span> <span class="s1">&apos;D1&apos;</span><span class="p">,</span> <span class="s1">&apos;D2&apos;</span><span class="p">,</span> <span class="s1">&apos;D3&apos;</span><span class="p">]},</span>
+<span class="gp">   ....:</span>                   <span class="n">index</span><span class="o">=</span><span class="n">index</span><span class="p">)</span>
+<span class="gp">   ....:</span> 
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-248">现在可以通过传递两个键列名称来连接：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [66]: </span><span class="n">result</span> <span class="o">=</span> <span class="n">left</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">right</span><span class="p">,</span> <span class="n">on</span><span class="o">=</span><span class="p">[</span><span class="s1">&apos;key1&apos;</span><span class="p">,</span> <span class="s1">&apos;key2&apos;</span><span class="p">])</span>
+</pre></div>
+</div>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span>
+</pre></div>
+</div>
+<img alt="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/merging_join_multikeys.png" src="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/merging_join_multikeys.png">
+<p id="merging-df-inner-join"><span class="yiyi-st" id="yiyi-249"><code class="docutils literal"><span class="pre">DataFrame.join</span></code>的默认值是执行左连接（本质上是一个“VLOOKUP”操作，对于Excel用户），它只使用在调用DataFrame中找到的键。</span><span class="yiyi-st" id="yiyi-250">其他连接类型，例如内连接，可以很容易地执行：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [67]: </span><span class="n">result</span> <span class="o">=</span> <span class="n">left</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">right</span><span class="p">,</span> <span class="n">on</span><span class="o">=</span><span class="p">[</span><span class="s1">&apos;key1&apos;</span><span class="p">,</span> <span class="s1">&apos;key2&apos;</span><span class="p">],</span> <span class="n">how</span><span class="o">=</span><span class="s1">&apos;inner&apos;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span>
+</pre></div>
+</div>
+<img alt="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/merging_join_multikeys_inner.png" src="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/merging_join_multikeys_inner.png">
+<p><span class="yiyi-st" id="yiyi-251">正如你所看到的，这会删除任何没有匹配的行。</span></p>
+</div>
+<div class="section" id="joining-a-single-index-to-a-multi-index">
+<span id="merging-join-on-mi"></span><h3><span class="yiyi-st" id="yiyi-252">Joining a single Index to a Multi-index</span></h3>
+<div class="versionadded">
+<p><span class="yiyi-st" id="yiyi-253"><span class="versionmodified">版本0.14.0中的新功能。</span></span></p>
+</div>
+<p><span class="yiyi-st" id="yiyi-254">您可以使用多索引的<code class="docutils literal"><span class="pre">DataFrame</span></code>级别加入单索引的<code class="docutils literal"><span class="pre">DataFrame</span></code>。</span><span class="yiyi-st" id="yiyi-255">该级别将使单索引帧的索引的名称与多索引帧的级别名称匹配。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [68]: </span><span class="n">left</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s1">&apos;A&apos;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&apos;A0&apos;</span><span class="p">,</span> <span class="s1">&apos;A1&apos;</span><span class="p">,</span> <span class="s1">&apos;A2&apos;</span><span class="p">],</span>
+<span class="gp">   ....:</span>                      <span class="s1">&apos;B&apos;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&apos;B0&apos;</span><span class="p">,</span> <span class="s1">&apos;B1&apos;</span><span class="p">,</span> <span class="s1">&apos;B2&apos;</span><span class="p">]},</span>
+<span class="gp">   ....:</span>                      <span class="n">index</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">Index</span><span class="p">([</span><span class="s1">&apos;K0&apos;</span><span class="p">,</span> <span class="s1">&apos;K1&apos;</span><span class="p">,</span> <span class="s1">&apos;K2&apos;</span><span class="p">],</span> <span class="n">name</span><span class="o">=</span><span class="s1">&apos;key&apos;</span><span class="p">))</span>
+<span class="gp">   ....:</span> 
+
+<span class="gp">In [69]: </span><span class="n">index</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">MultiIndex</span><span class="o">.</span><span class="n">from_tuples</span><span class="p">([(</span><span class="s1">&apos;K0&apos;</span><span class="p">,</span> <span class="s1">&apos;Y0&apos;</span><span class="p">),</span> <span class="p">(</span><span class="s1">&apos;K1&apos;</span><span class="p">,</span> <span class="s1">&apos;Y1&apos;</span><span class="p">),</span>
+<span class="gp">   ....:</span>                                   <span class="p">(</span><span class="s1">&apos;K2&apos;</span><span class="p">,</span> <span class="s1">&apos;Y2&apos;</span><span class="p">),</span> <span class="p">(</span><span class="s1">&apos;K2&apos;</span><span class="p">,</span> <span class="s1">&apos;Y3&apos;</span><span class="p">)],</span>
+<span class="gp">   ....:</span>                                    <span class="n">names</span><span class="o">=</span><span class="p">[</span><span class="s1">&apos;key&apos;</span><span class="p">,</span> <span class="s1">&apos;Y&apos;</span><span class="p">])</span>
+<span class="gp">   ....:</span> 
+
+<span class="gp">In [70]: </span><span class="n">right</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s1">&apos;C&apos;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&apos;C0&apos;</span><span class="p">,</span> <span class="s1">&apos;C1&apos;</span><span class="p">,</span> <span class="s1">&apos;C2&apos;</span><span class="p">,</span> <span class="s1">&apos;C3&apos;</span><span class="p">],</span>
+<span class="gp">   ....:</span>                       <span class="s1">&apos;D&apos;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&apos;D0&apos;</span><span class="p">,</span> <span class="s1">&apos;D1&apos;</span><span class="p">,</span> <span class="s1">&apos;D2&apos;</span><span class="p">,</span> <span class="s1">&apos;D3&apos;</span><span class="p">]},</span>
+<span class="gp">   ....:</span>                       <span class="n">index</span><span class="o">=</span><span class="n">index</span><span class="p">)</span>
+<span class="gp">   ....:</span> 
+
+<span class="gp">In [71]: </span><span class="n">result</span> <span class="o">=</span> <span class="n">left</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">right</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s1">&apos;inner&apos;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span>
+</pre></div>
+</div>
+<img alt="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/merging_join_multiindex_inner.png" src="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/merging_join_multiindex_inner.png">
+<p><span class="yiyi-st" id="yiyi-256">这是等效的，但是较少冗长和更多的内存高效/更快。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [72]: </span><span class="n">result</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">left</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(),</span> <span class="n">right</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(),</span>
+<span class="gp">   ....:</span>       <span class="n">on</span><span class="o">=</span><span class="p">[</span><span class="s1">&apos;key&apos;</span><span class="p">],</span> <span class="n">how</span><span class="o">=</span><span class="s1">&apos;inner&apos;</span><span class="p">)</span><span class="o">.</span><span class="n">set_index</span><span class="p">([</span><span class="s1">&apos;key&apos;</span><span class="p">,</span><span class="s1">&apos;Y&apos;</span><span class="p">])</span>
+<span class="gp">   ....:</span> 
+</pre></div>
+</div>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span>
+</pre></div>
+</div>
+<img alt="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/merging_merge_multiindex_alternative.png" src="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/merging_merge_multiindex_alternative.png">
+</div>
+<div class="section" id="joining-with-two-multi-indexes">
+<h3><span class="yiyi-st" id="yiyi-257">Joining with two multi-indexes</span></h3>
+<p><span class="yiyi-st" id="yiyi-258">这不是通过<code class="docutils literal"><span class="pre">join</span></code>实现的，但是可以使用以下方法完成。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [73]: </span><span class="n">index</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">MultiIndex</span><span class="o">.</span><span class="n">from_tuples</span><span class="p">([(</span><span class="s1">&apos;K0&apos;</span><span class="p">,</span> <span class="s1">&apos;X0&apos;</span><span class="p">),</span> <span class="p">(</span><span class="s1">&apos;K0&apos;</span><span class="p">,</span> <span class="s1">&apos;X1&apos;</span><span class="p">),</span>
+<span class="gp">   ....:</span>                                    <span class="p">(</span><span class="s1">&apos;K1&apos;</span><span class="p">,</span> <span class="s1">&apos;X2&apos;</span><span class="p">)],</span>
+<span class="gp">   ....:</span>                                     <span class="n">names</span><span class="o">=</span><span class="p">[</span><span class="s1">&apos;key&apos;</span><span class="p">,</span> <span class="s1">&apos;X&apos;</span><span class="p">])</span>
+<span class="gp">   ....:</span> 
+
+<span class="gp">In [74]: </span><span class="n">left</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s1">&apos;A&apos;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&apos;A0&apos;</span><span class="p">,</span> <span class="s1">&apos;A1&apos;</span><span class="p">,</span> <span class="s1">&apos;A2&apos;</span><span class="p">],</span>
+<span class="gp">   ....:</span>                      <span class="s1">&apos;B&apos;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&apos;B0&apos;</span><span class="p">,</span> <span class="s1">&apos;B1&apos;</span><span class="p">,</span> <span class="s1">&apos;B2&apos;</span><span class="p">]},</span>
+<span class="gp">   ....:</span>                       <span class="n">index</span><span class="o">=</span><span class="n">index</span><span class="p">)</span>
+<span class="gp">   ....:</span> 
+
+<span class="gp">In [75]: </span><span class="n">result</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">left</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(),</span> <span class="n">right</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(),</span>
+<span class="gp">   ....:</span>                   <span class="n">on</span><span class="o">=</span><span class="p">[</span><span class="s1">&apos;key&apos;</span><span class="p">],</span> <span class="n">how</span><span class="o">=</span><span class="s1">&apos;inner&apos;</span><span class="p">)</span><span class="o">.</span><span class="n">set_index</span><span class="p">([</span><span class="s1">&apos;key&apos;</span><span class="p">,</span><span class="s1">&apos;X&apos;</span><span class="p">,</span><span class="s1">&apos;Y&apos;</span><span class="p">])</span>
+<span class="gp">   ....:</span> 
+</pre></div>
+</div>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span>
+</pre></div>
+</div>
+<img alt="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/merging_merge_two_multiindex.png" src="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/merging_merge_two_multiindex.png">
+</div>
+<div class="section" id="overlapping-value-columns">
+<h3><span class="yiyi-st" id="yiyi-259">Overlapping value columns</span></h3>
+<p><span class="yiyi-st" id="yiyi-260">合并<code class="docutils literal"><span class="pre">suffixes</span></code>参数需要一个字符串列表的元组，以附加到输入DataFrames中的重叠列名称，以消除结果列的歧义：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [76]: </span><span class="n">left</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s1">&apos;k&apos;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&apos;K0&apos;</span><span class="p">,</span> <span class="s1">&apos;K1&apos;</span><span class="p">,</span> <span class="s1">&apos;K2&apos;</span><span class="p">],</span> <span class="s1">&apos;v&apos;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">]})</span>
+
+<span class="gp">In [77]: </span><span class="n">right</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s1">&apos;k&apos;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&apos;K0&apos;</span><span class="p">,</span> <span class="s1">&apos;K0&apos;</span><span class="p">,</span> <span class="s1">&apos;K3&apos;</span><span class="p">],</span> <span class="s1">&apos;v&apos;</span><span class="p">:</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">]})</span>
+
+<span class="gp">In [78]: </span><span class="n">result</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">left</span><span class="p">,</span> <span class="n">right</span><span class="p">,</span> <span class="n">on</span><span class="o">=</span><span class="s1">&apos;k&apos;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span>
+</pre></div>
+</div>
+<img alt="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/merging_merge_overlapped.png" src="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/merging_merge_overlapped.png">
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [79]: </span><span class="n">result</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">left</span><span class="p">,</span> <span class="n">right</span><span class="p">,</span> <span class="n">on</span><span class="o">=</span><span class="s1">&apos;k&apos;</span><span class="p">,</span> <span class="n">suffixes</span><span class="o">=</span><span class="p">[</span><span class="s1">&apos;_l&apos;</span><span class="p">,</span> <span class="s1">&apos;_r&apos;</span><span class="p">])</span>
+</pre></div>
+</div>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span>
+</pre></div>
+</div>
+<img alt="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/merging_merge_overlapped_suffix.png" src="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/merging_merge_overlapped_suffix.png">
+<p><span class="yiyi-st" id="yiyi-261"><code class="docutils literal"><span class="pre">DataFrame.join</span></code>具有类似的<code class="docutils literal"><span class="pre">lsuffix</span></code>和<code class="docutils literal"><span class="pre">rsuffix</span></code>参数。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [80]: </span><span class="n">left</span> <span class="o">=</span> <span class="n">left</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s1">&apos;k&apos;</span><span class="p">)</span>
+
+<span class="gp">In [81]: </span><span class="n">right</span> <span class="o">=</span> <span class="n">right</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s1">&apos;k&apos;</span><span class="p">)</span>
+
+<span class="gp">In [82]: </span><span class="n">result</span> <span class="o">=</span> <span class="n">left</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">right</span><span class="p">,</span> <span class="n">lsuffix</span><span class="o">=</span><span class="s1">&apos;_l&apos;</span><span class="p">,</span> <span class="n">rsuffix</span><span class="o">=</span><span class="s1">&apos;_r&apos;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span>
+</pre></div>
+</div>
+<img alt="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/merging_merge_overlapped_multi_suffix.png" src="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/merging_merge_overlapped_multi_suffix.png">
+</div>
+<div class="section" id="joining-multiple-dataframe-or-panel-objects">
+<span id="merging-multiple-join"></span><h3><span class="yiyi-st" id="yiyi-262">Joining multiple DataFrame or Panel objects</span></h3>
+<p><span class="yiyi-st" id="yiyi-263">DataFrames的列表或元组也可以传递到<code class="docutils literal"><span class="pre">DataFrame.join</span></code>，以将它们的索引连接在一起。</span><span class="yiyi-st" id="yiyi-264">对于<code class="docutils literal"><span class="pre">Panel.join</span></code>也是如此。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [83]: </span><span class="n">right2</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s1">&apos;v&apos;</span><span class="p">:</span> <span class="p">[</span><span class="mi">7</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">9</span><span class="p">]},</span> <span class="n">index</span><span class="o">=</span><span class="p">[</span><span class="s1">&apos;K1&apos;</span><span class="p">,</span> <span class="s1">&apos;K1&apos;</span><span class="p">,</span> <span class="s1">&apos;K2&apos;</span><span class="p">])</span>
+
+<span class="gp">In [84]: </span><span class="n">result</span> <span class="o">=</span> <span class="n">left</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">right</span><span class="p">,</span> <span class="n">right2</span><span class="p">])</span>
+</pre></div>
+</div>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span>
+</pre></div>
+</div>
+<img alt="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/merging_join_multi_df.png" src="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/merging_join_multi_df.png">
+</div>
+<div class="section" id="merging-together-values-within-series-or-dataframe-columns">
+<span id="merging-combine-first-update"></span><h3><span class="yiyi-st" id="yiyi-265">Merging together values within Series or DataFrame columns</span></h3>
+<p><span class="yiyi-st" id="yiyi-266">另一个相当普遍的情况是有两个相似索引（或类似索引）的Series或DataFrame对象，并且希望在一个对象中“修补”值，以匹配另一个中的索引值。</span><span class="yiyi-st" id="yiyi-267">这里是一个例子：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [85]: </span><span class="n">df1</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">([[</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="mf">3.</span><span class="p">,</span> <span class="mf">5.</span><span class="p">],</span> <span class="p">[</span><span class="o">-</span><span class="mf">4.6</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">],</span>
+<span class="gp">   ....:</span>                    <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="mf">7.</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">]])</span>
+<span class="gp">   ....:</span> 
+
+<span class="gp">In [86]: </span><span class="n">df2</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">([[</span><span class="o">-</span><span class="mf">42.6</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="o">-</span><span class="mf">8.2</span><span class="p">],</span> <span class="p">[</span><span class="o">-</span><span class="mf">5.</span><span class="p">,</span> <span class="mf">1.6</span><span class="p">,</span> <span class="mi">4</span><span class="p">]],</span>
+<span class="gp">   ....:</span>                    <span class="n">index</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span>
+<span class="gp">   ....:</span> 
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-268">为此，请使用<code class="docutils literal"><span class="pre">combine_first</span></code>方法：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [87]: </span><span class="n">result</span> <span class="o">=</span> <span class="n">df1</span><span class="o">.</span><span class="n">combine_first</span><span class="p">(</span><span class="n">df2</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span>
+</pre></div>
+</div>
+<img alt="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/merging_combine_first.png" src="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/merging_combine_first.png">
+<p><span class="yiyi-st" id="yiyi-269">注意，这个方法只从右边的DataFrame中获取值，如果它们在左边的DataFrame中缺失的话。</span><span class="yiyi-st" id="yiyi-270">相关方法<code class="docutils literal"><span class="pre">update</span></code>可替代地更改非NA值：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [88]: </span><span class="n">df1</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">df2</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span>
+</pre></div>
+</div>
+<img alt="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/merging_update.png" src="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/merging_update.png">
+</div>
+</div>
+<div class="section" id="timeseries-friendly-merging">
+<span id="merging-time-series"></span><h2><span class="yiyi-st" id="yiyi-271">Timeseries friendly merging</span></h2>
+<div class="section" id="merging-ordered-data">
+<span id="merging-merge-ordered"></span><h3><span class="yiyi-st" id="yiyi-272">Merging Ordered Data</span></h3>
+<p><span class="yiyi-st" id="yiyi-273"><a class="reference internal" href="generated/pandas.merge_ordered.html#pandas.merge_ordered" title="pandas.merge_ordered"><code class="xref py py-func docutils literal"><span class="pre">merge_ordered()</span></code></a>函数允许组合时间序列和其他有序数据。</span><span class="yiyi-st" id="yiyi-274">特别地，它具有可选的<code class="docutils literal"><span class="pre">fill_method</span></code>关键字来填充/内插缺失的数据：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [89]: </span><span class="n">left</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s1">&apos;k&apos;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&apos;K0&apos;</span><span class="p">,</span> <span class="s1">&apos;K1&apos;</span><span class="p">,</span> <span class="s1">&apos;K1&apos;</span><span class="p">,</span> <span class="s1">&apos;K2&apos;</span><span class="p">],</span>
+<span class="gp">   ....:</span>                      <span class="s1">&apos;lv&apos;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">],</span>
+<span class="gp">   ....:</span>                      <span class="s1">&apos;s&apos;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&apos;a&apos;</span><span class="p">,</span> <span class="s1">&apos;b&apos;</span><span class="p">,</span> <span class="s1">&apos;c&apos;</span><span class="p">,</span> <span class="s1">&apos;d&apos;</span><span class="p">]})</span>
+<span class="gp">   ....:</span> 
+
+<span class="gp">In [90]: </span><span class="n">right</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s1">&apos;k&apos;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&apos;K1&apos;</span><span class="p">,</span> <span class="s1">&apos;K2&apos;</span><span class="p">,</span> <span class="s1">&apos;K4&apos;</span><span class="p">],</span>
+<span class="gp">   ....:</span>                       <span class="s1">&apos;rv&apos;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">]})</span>
+<span class="gp">   ....:</span> 
+
+<span class="gp">In [91]: </span><span class="n">pd</span><span class="o">.</span><span class="n">merge_ordered</span><span class="p">(</span><span class="n">left</span><span class="p">,</span> <span class="n">right</span><span class="p">,</span> <span class="n">fill_method</span><span class="o">=</span><span class="s1">&apos;ffill&apos;</span><span class="p">,</span> <span class="n">left_by</span><span class="o">=</span><span class="s1">&apos;s&apos;</span><span class="p">)</span>
+<span class="gr">Out[91]: </span>
+<span class="go">     k   lv  s   rv</span>
+<span class="go">0   K0  1.0  a  NaN</span>
+<span class="go">1   K1  1.0  a  1.0</span>
+<span class="go">2   K2  1.0  a  2.0</span>
+<span class="go">3   K4  1.0  a  3.0</span>
+<span class="go">4   K1  2.0  b  1.0</span>
+<span class="go">5   K2  2.0  b  2.0</span>
+<span class="go">6   K4  2.0  b  3.0</span>
+<span class="go">7   K1  3.0  c  1.0</span>
+<span class="go">8   K2  3.0  c  2.0</span>
+<span class="go">9   K4  3.0  c  3.0</span>
+<span class="go">10  K1  NaN  d  1.0</span>
+<span class="go">11  K2  4.0  d  2.0</span>
+<span class="go">12  K4  4.0  d  3.0</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="merging-asof">
+<span id="merging-merge-asof"></span><h3><span class="yiyi-st" id="yiyi-275">Merging AsOf</span></h3>
+<div class="versionadded">
+<p><span class="yiyi-st" id="yiyi-276"><span class="versionmodified">版本0.19.0中的新功能。</span></span></p>
+</div>
+<p><span class="yiyi-st" id="yiyi-277"><a class="reference internal" href="generated/pandas.merge_asof.html#pandas.merge_asof" title="pandas.merge_asof"><code class="xref py py-func docutils literal"><span class="pre">merge_asof()</span></code></a>类似于有序左连接，除了我们匹配最近的键而不是相等的键。</span><span class="yiyi-st" id="yiyi-278">For each row in the <code class="docutils literal"><span class="pre">left</span></code> DataFrame, we select the last row in the <code class="docutils literal"><span class="pre">right</span></code> DataFrame whose <code class="docutils literal"><span class="pre">on</span></code> key is less than the left’s key. </span><span class="yiyi-st" id="yiyi-279">两个DataFrames都必须按键排序。</span></p>
+<p><span class="yiyi-st" id="yiyi-280">可选地，asof合并可以执行分组合并。</span><span class="yiyi-st" id="yiyi-281">除了<code class="docutils literal"><span class="pre">on</span></code>键上最接近的匹配，这与<code class="docutils literal"><span class="pre">by</span></code>键相同。</span></p>
+<p><span class="yiyi-st" id="yiyi-282">例如；我们可能会有<code class="docutils literal"><span class="pre">trades</span></code>和<code class="docutils literal"><span class="pre">quotes</span></code>，我们要<code class="docutils literal"><span class="pre">asof</span></code>合并它们。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [92]: </span><span class="n">trades</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span>
+<span class="gp">   ....:</span>     <span class="s1">&apos;time&apos;</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">([</span><span class="s1">&apos;20160525 13:30:00.023&apos;</span><span class="p">,</span>
+<span class="gp">   ....:</span>                             <span class="s1">&apos;20160525 13:30:00.038&apos;</span><span class="p">,</span>
+<span class="gp">   ....:</span>                             <span class="s1">&apos;20160525 13:30:00.048&apos;</span><span class="p">,</span>
+<span class="gp">   ....:</span>                             <span class="s1">&apos;20160525 13:30:00.048&apos;</span><span class="p">,</span>
+<span class="gp">   ....:</span>                             <span class="s1">&apos;20160525 13:30:00.048&apos;</span><span class="p">]),</span>
+<span class="gp">   ....:</span>     <span class="s1">&apos;ticker&apos;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&apos;MSFT&apos;</span><span class="p">,</span> <span class="s1">&apos;MSFT&apos;</span><span class="p">,</span>
+<span class="gp">   ....:</span>                <span class="s1">&apos;GOOG&apos;</span><span class="p">,</span> <span class="s1">&apos;GOOG&apos;</span><span class="p">,</span> <span class="s1">&apos;AAPL&apos;</span><span class="p">],</span>
+<span class="gp">   ....:</span>     <span class="s1">&apos;price&apos;</span><span class="p">:</span> <span class="p">[</span><span class="mf">51.95</span><span class="p">,</span> <span class="mf">51.95</span><span class="p">,</span>
+<span class="gp">   ....:</span>               <span class="mf">720.77</span><span class="p">,</span> <span class="mf">720.92</span><span class="p">,</span> <span class="mf">98.00</span><span class="p">],</span>
+<span class="gp">   ....:</span>     <span class="s1">&apos;quantity&apos;</span><span class="p">:</span> <span class="p">[</span><span class="mi">75</span><span class="p">,</span> <span class="mi">155</span><span class="p">,</span>
+<span class="gp">   ....:</span>                  <span class="mi">100</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">100</span><span class="p">]},</span>
+<span class="gp">   ....:</span>     <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&apos;time&apos;</span><span class="p">,</span> <span class="s1">&apos;ticker&apos;</span><span class="p">,</span> <span class="s1">&apos;price&apos;</span><span class="p">,</span> <span class="s1">&apos;quantity&apos;</span><span class="p">])</span>
+<span class="gp">   ....:</span> 
+
+<span class="gp">In [93]: </span><span class="n">quotes</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span>
+<span class="gp">   ....:</span>     <span class="s1">&apos;time&apos;</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">([</span><span class="s1">&apos;20160525 13:30:00.023&apos;</span><span class="p">,</span>
+<span class="gp">   ....:</span>                             <span class="s1">&apos;20160525 13:30:00.023&apos;</span><span class="p">,</span>
+<span class="gp">   ....:</span>                             <span class="s1">&apos;20160525 13:30:00.030&apos;</span><span class="p">,</span>
+<span class="gp">   ....:</span>                             <span class="s1">&apos;20160525 13:30:00.041&apos;</span><span class="p">,</span>
+<span class="gp">   ....:</span>                             <span class="s1">&apos;20160525 13:30:00.048&apos;</span><span class="p">,</span>
+<span class="gp">   ....:</span>                             <span class="s1">&apos;20160525 13:30:00.049&apos;</span><span class="p">,</span>
+<span class="gp">   ....:</span>                             <span class="s1">&apos;20160525 13:30:00.072&apos;</span><span class="p">,</span>
+<span class="gp">   ....:</span>                             <span class="s1">&apos;20160525 13:30:00.075&apos;</span><span class="p">]),</span>
+<span class="gp">   ....:</span>     <span class="s1">&apos;ticker&apos;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&apos;GOOG&apos;</span><span class="p">,</span> <span class="s1">&apos;MSFT&apos;</span><span class="p">,</span> <span class="s1">&apos;MSFT&apos;</span><span class="p">,</span>
+<span class="gp">   ....:</span>                <span class="s1">&apos;MSFT&apos;</span><span class="p">,</span> <span class="s1">&apos;GOOG&apos;</span><span class="p">,</span> <span class="s1">&apos;AAPL&apos;</span><span class="p">,</span> <span class="s1">&apos;GOOG&apos;</span><span class="p">,</span>
+<span class="gp">   ....:</span>                <span class="s1">&apos;MSFT&apos;</span><span class="p">],</span>
+<span class="gp">   ....:</span>     <span class="s1">&apos;bid&apos;</span><span class="p">:</span> <span class="p">[</span><span class="mf">720.50</span><span class="p">,</span> <span class="mf">51.95</span><span class="p">,</span> <span class="mf">51.97</span><span class="p">,</span> <span class="mf">51.99</span><span class="p">,</span>
+<span class="gp">   ....:</span>             <span class="mf">720.50</span><span class="p">,</span> <span class="mf">97.99</span><span class="p">,</span> <span class="mf">720.50</span><span class="p">,</span> <span class="mf">52.01</span><span class="p">],</span>
+<span class="gp">   ....:</span>     <span class="s1">&apos;ask&apos;</span><span class="p">:</span> <span class="p">[</span><span class="mf">720.93</span><span class="p">,</span> <span class="mf">51.96</span><span class="p">,</span> <span class="mf">51.98</span><span class="p">,</span> <span class="mf">52.00</span><span class="p">,</span>
+<span class="gp">   ....:</span>             <span class="mf">720.93</span><span class="p">,</span> <span class="mf">98.01</span><span class="p">,</span> <span class="mf">720.88</span><span class="p">,</span> <span class="mf">52.03</span><span class="p">]},</span>
+<span class="gp">   ....:</span>     <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&apos;time&apos;</span><span class="p">,</span> <span class="s1">&apos;ticker&apos;</span><span class="p">,</span> <span class="s1">&apos;bid&apos;</span><span class="p">,</span> <span class="s1">&apos;ask&apos;</span><span class="p">])</span>
+<span class="gp">   ....:</span> 
+</pre></div>
+</div>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [94]: </span><span class="n">trades</span>
+<span class="gr">Out[94]: </span>
+<span class="go">                     time ticker   price  quantity</span>
+<span class="go">0 2016-05-25 13:30:00.023   MSFT   51.95        75</span>
+<span class="go">1 2016-05-25 13:30:00.038   MSFT   51.95       155</span>
+<span class="go">2 2016-05-25 13:30:00.048   GOOG  720.77       100</span>
+<span class="go">3 2016-05-25 13:30:00.048   GOOG  720.92       100</span>
+<span class="go">4 2016-05-25 13:30:00.048   AAPL   98.00       100</span>
+
+<span class="gp">In [95]: </span><span class="n">quotes</span>
+<span class="gr">Out[95]: </span>
+<span class="go">                     time ticker     bid     ask</span>
+<span class="go">0 2016-05-25 13:30:00.023   GOOG  720.50  720.93</span>
+<span class="go">1 2016-05-25 13:30:00.023   MSFT   51.95   51.96</span>
+<span class="go">2 2016-05-25 13:30:00.030   MSFT   51.97   51.98</span>
+<span class="go">3 2016-05-25 13:30:00.041   MSFT   51.99   52.00</span>
+<span class="go">4 2016-05-25 13:30:00.048   GOOG  720.50  720.93</span>
+<span class="go">5 2016-05-25 13:30:00.049   AAPL   97.99   98.01</span>
+<span class="go">6 2016-05-25 13:30:00.072   GOOG  720.50  720.88</span>
+<span class="go">7 2016-05-25 13:30:00.075   MSFT   52.01   52.03</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-283">默认情况下，我们使用asof的引号。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [96]: </span><span class="n">pd</span><span class="o">.</span><span class="n">merge_asof</span><span class="p">(</span><span class="n">trades</span><span class="p">,</span> <span class="n">quotes</span><span class="p">,</span>
+<span class="gp">   ....:</span>               <span class="n">on</span><span class="o">=</span><span class="s1">&apos;time&apos;</span><span class="p">,</span>
+<span class="gp">   ....:</span>               <span class="n">by</span><span class="o">=</span><span class="s1">&apos;ticker&apos;</span><span class="p">)</span>
+<span class="gp">   ....:</span> 
+<span class="gr">Out[96]: </span>
+<span class="go">                     time ticker   price  quantity     bid     ask</span>
+<span class="go">0 2016-05-25 13:30:00.023   MSFT   51.95        75   51.95   51.96</span>
+<span class="go">1 2016-05-25 13:30:00.038   MSFT   51.95       155   51.97   51.98</span>
+<span class="go">2 2016-05-25 13:30:00.048   GOOG  720.77       100  720.50  720.93</span>
+<span class="go">3 2016-05-25 13:30:00.048   GOOG  720.92       100  720.50  720.93</span>
+<span class="go">4 2016-05-25 13:30:00.048   AAPL   98.00       100     NaN     NaN</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-284">我们只在<code class="docutils literal"><span class="pre">2ms</span></code>之内的报价时间和交易时间之间。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [97]: </span><span class="n">pd</span><span class="o">.</span><span class="n">merge_asof</span><span class="p">(</span><span class="n">trades</span><span class="p">,</span> <span class="n">quotes</span><span class="p">,</span>
+<span class="gp">   ....:</span>               <span class="n">on</span><span class="o">=</span><span class="s1">&apos;time&apos;</span><span class="p">,</span>
+<span class="gp">   ....:</span>               <span class="n">by</span><span class="o">=</span><span class="s1">&apos;ticker&apos;</span><span class="p">,</span>
+<span class="gp">   ....:</span>               <span class="n">tolerance</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">Timedelta</span><span class="p">(</span><span class="s1">&apos;2ms&apos;</span><span class="p">))</span>
+<span class="gp">   ....:</span> 
+<span class="gr">Out[97]: </span>
+<span class="go">                     time ticker   price  quantity     bid     ask</span>
+<span class="go">0 2016-05-25 13:30:00.023   MSFT   51.95        75   51.95   51.96</span>
+<span class="go">1 2016-05-25 13:30:00.038   MSFT   51.95       155     NaN     NaN</span>
+<span class="go">2 2016-05-25 13:30:00.048   GOOG  720.77       100  720.50  720.93</span>
+<span class="go">3 2016-05-25 13:30:00.048   GOOG  720.92       100  720.50  720.93</span>
+<span class="go">4 2016-05-25 13:30:00.048   AAPL   98.00       100     NaN     NaN</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-285">我们只有在<code class="docutils literal"><span class="pre">10ms</span></code>之内的报价时间和交易时间之间，我们排除准时匹配。</span><span class="yiyi-st" id="yiyi-286">注意，虽然我们排除了（报价）的精确匹配，但是先前报价传播到该时间点。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [98]: </span><span class="n">pd</span><span class="o">.</span><span class="n">merge_asof</span><span class="p">(</span><span class="n">trades</span><span class="p">,</span> <span class="n">quotes</span><span class="p">,</span>
+<span class="gp">   ....:</span>               <span class="n">on</span><span class="o">=</span><span class="s1">&apos;time&apos;</span><span class="p">,</span>
+<span class="gp">   ....:</span>               <span class="n">by</span><span class="o">=</span><span class="s1">&apos;ticker&apos;</span><span class="p">,</span>
+<span class="gp">   ....:</span>               <span class="n">tolerance</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">Timedelta</span><span class="p">(</span><span class="s1">&apos;10ms&apos;</span><span class="p">),</span>
+<span class="gp">   ....:</span>               <span class="n">allow_exact_matches</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="gp">   ....:</span> 
+<span class="gr">Out[98]: </span>
+<span class="go">                     time ticker   price  quantity    bid    ask</span>
+<span class="go">0 2016-05-25 13:30:00.023   MSFT   51.95        75    NaN    NaN</span>
+<span class="go">1 2016-05-25 13:30:00.038   MSFT   51.95       155  51.97  51.98</span>
+<span class="go">2 2016-05-25 13:30:00.048   GOOG  720.77       100    NaN    NaN</span>
+<span class="go">3 2016-05-25 13:30:00.048   GOOG  720.92       100    NaN    NaN</span>
+<span class="go">4 2016-05-25 13:30:00.048   AAPL   98.00       100    NaN    NaN</span>
+</pre></div>
+</div>
+</div>
+</div>

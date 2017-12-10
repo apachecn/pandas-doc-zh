@@ -1,0 +1,116 @@
+
+<span id="faq"></span><h1><span class="yiyi-st" id="yiyi-50">Frequently Asked Questions (FAQ)</span></h1>
+        <blockquote>
+        <p>原文：<a href="http://pandas.pydata.org/pandas-docs/stable/faq.html">http://pandas.pydata.org/pandas-docs/stable/faq.html</a></p>
+        <p>译者：<a href="https://github.com/wizardforcel">飞龙</a> <a href="http://usyiyi.cn/">UsyiyiCN</a></p>
+        <p>校对：（虚位以待）</p>
+        </blockquote>
+    
+<div class="section" id="dataframe-memory-usage">
+<span id="df-memory-usage"></span><h2><span class="yiyi-st" id="yiyi-51">DataFrame memory usage</span></h2>
+<p><span class="yiyi-st" id="yiyi-52">对于pandas版本0.15.0，当使用<code class="docutils literal"><span class="pre">info</span></code>方法访问结构数据时，将输出结构数据（包括索引）的内存使用情况。</span><span class="yiyi-st" id="yiyi-53">配置选项<code class="docutils literal"><span class="pre">display.memory_usage</span></code>（请参阅<a class="reference internal" href="options.html#options"><span class="std std-ref">Options and Settings</span></a>）指定在调用<code class="docutils literal"><span class="pre">df.info()</span></code></span></p>
+<p><span class="yiyi-st" id="yiyi-54">例如，调用<code class="docutils literal"><span class="pre">df.info()</span></code>时会显示以下结构数据的内存使用情况：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [1]: </span><span class="n">dtypes</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&apos;int64&apos;</span><span class="p">,</span> <span class="s1">&apos;float64&apos;</span><span class="p">,</span> <span class="s1">&apos;datetime64[ns]&apos;</span><span class="p">,</span> <span class="s1">&apos;timedelta64[ns]&apos;</span><span class="p">,</span>
+<span class="gp">   ...:</span>           <span class="s1">&apos;complex128&apos;</span><span class="p">,</span> <span class="s1">&apos;object&apos;</span><span class="p">,</span> <span class="s1">&apos;bool&apos;</span><span class="p">]</span>
+<span class="gp">   ...:</span> 
+
+<span class="gp">In [2]: </span><span class="n">n</span> <span class="o">=</span> <span class="mi">5000</span>
+
+<span class="gp">In [3]: </span><span class="n">data</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">([</span> <span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">n</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">t</span><span class="p">))</span>
+<span class="gp">   ...:</span>                 <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">dtypes</span><span class="p">])</span>
+<span class="gp">   ...:</span> 
+
+<span class="gp">In [4]: </span><span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+
+<span class="gp">In [5]: </span><span class="n">df</span><span class="p">[</span><span class="s1">&apos;categorical&apos;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s1">&apos;object&apos;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">&apos;category&apos;</span><span class="p">)</span>
+
+<span class="gp">In [6]: </span><span class="n">df</span><span class="o">.</span><span class="n">info</span><span class="p">()</span>
+<span class="go">&lt;class &apos;pandas.core.frame.DataFrame&apos;&gt;</span>
+<span class="go">RangeIndex: 5000 entries, 0 to 4999</span>
+<span class="go">Data columns (total 8 columns):</span>
+<span class="go">bool               5000 non-null bool</span>
+<span class="go">complex128         5000 non-null complex128</span>
+<span class="go">datetime64[ns]     5000 non-null datetime64[ns]</span>
+<span class="go">float64            5000 non-null float64</span>
+<span class="go">int64              5000 non-null int64</span>
+<span class="go">object             5000 non-null object</span>
+<span class="go">timedelta64[ns]    5000 non-null timedelta64[ns]</span>
+<span class="go">categorical        5000 non-null category</span>
+<span class="go">dtypes: bool(1), category(1), complex128(1), datetime64[ns](1), float64(1), int64(1), object(1), timedelta64[ns](1)</span>
+<span class="go">memory usage: 284.1+ KB</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-55"><code class="docutils literal"><span class="pre">+</span></code>符号表示真正的内存使用率可能更高，因为pandas不会计算<code class="docutils literal"><span class="pre">dtype=object</span></code>的列中使用的内存。</span></p>
+<div class="versionadded">
+<p><span class="yiyi-st" id="yiyi-56"><span class="versionmodified">版本0.17.1中的新功能。</span></span></p>
+</div>
+<p><span class="yiyi-st" id="yiyi-57">传递<code class="docutils literal"><span class="pre">memory_usage=&apos;deep&apos;</span></code>参数，将输出更准确的内存使用情况报告，包含结构数据内存的完全使用情况。</span><span class="yiyi-st" id="yiyi-58">这是参数是可选的，因为做更深入的内存检查需要付出更多。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [7]: </span><span class="n">df</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">memory_usage</span><span class="o">=</span><span class="s1">&apos;deep&apos;</span><span class="p">)</span>
+<span class="go">&lt;class &apos;pandas.core.frame.DataFrame&apos;&gt;</span>
+<span class="go">RangeIndex: 5000 entries, 0 to 4999</span>
+<span class="go">Data columns (total 8 columns):</span>
+<span class="go">bool               5000 non-null bool</span>
+<span class="go">complex128         5000 non-null complex128</span>
+<span class="go">datetime64[ns]     5000 non-null datetime64[ns]</span>
+<span class="go">float64            5000 non-null float64</span>
+<span class="go">int64              5000 non-null int64</span>
+<span class="go">object             5000 non-null object</span>
+<span class="go">timedelta64[ns]    5000 non-null timedelta64[ns]</span>
+<span class="go">categorical        5000 non-null category</span>
+<span class="go">dtypes: bool(1), category(1), complex128(1), datetime64[ns](1), float64(1), int64(1), object(1), timedelta64[ns](1)</span>
+<span class="go">memory usage: 401.2 KB</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-59">默认情况下，display选项设置为<code class="docutils literal"><span class="pre">True</span></code>，但是可以在调用<code class="docutils literal"><span class="pre">df.info()</span></code>时传递<code class="docutils literal"><span class="pre">memory_usage</span></code>参数来显式覆盖。</span></p>
+<p><span class="yiyi-st" id="yiyi-60">通过调用<code class="docutils literal"><span class="pre">memory_usage</span></code>方法可以找到每列的内存使用情况。</span><span class="yiyi-st" id="yiyi-61">这将返回一个具有以字节表示的列的名称和内存使用情况的索引。</span><span class="yiyi-st" id="yiyi-62">对于上面的数据帧，可以使用memory_usage方法找到每列数据的内存使用情况和结构数据的总内存使用情况：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [8]: </span><span class="n">df</span><span class="o">.</span><span class="n">memory_usage</span><span class="p">()</span>
+<span class="gr">Out[8]: </span>
+<span class="go">Index                 72</span>
+<span class="go">bool                5000</span>
+<span class="go">complex128         80000</span>
+<span class="go">datetime64[ns]     40000</span>
+<span class="go">float64            40000</span>
+<span class="go">int64              40000</span>
+<span class="go">object             40000</span>
+<span class="go">timedelta64[ns]    40000</span>
+<span class="go">categorical         5800</span>
+<span class="go">dtype: int64</span>
+
+<span class="c"># total memory usage of dataframe</span>
+<span class="gp">In [9]: </span><span class="n">df</span><span class="o">.</span><span class="n">memory_usage</span><span class="p">()</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+<span class="gr">Out[9]: </span><span class="mi">290872</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-63">默认情况下，结构数据索引的内存使用情况显示在返回的Series中，可以通过传递<code class="docutils literal"><span class="pre">index=False</span></code>参数来去除索引的内存使用情况：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [10]: </span><span class="n">df</span><span class="o">.</span><span class="n">memory_usage</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="gr">Out[10]: </span>
+<span class="go">bool                5000</span>
+<span class="go">complex128         80000</span>
+<span class="go">datetime64[ns]     40000</span>
+<span class="go">float64            40000</span>
+<span class="go">int64              40000</span>
+<span class="go">object             40000</span>
+<span class="go">timedelta64[ns]    40000</span>
+<span class="go">categorical         5800</span>
+<span class="go">dtype: int64</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-64"><code class="docutils literal"><span class="pre">info</span></code>方法显示的内存使用情况利用<code class="docutils literal"><span class="pre">memory_usage</span></code>方法来确定结构数据的内存使用情况，同时还以人类可读单位格式化输出（base-2表示；即1KB = 1024字节）。</span></p>
+<p><span class="yiyi-st" id="yiyi-65">另请参见<a class="reference internal" href="categorical.html#categorical-memory"><span class="std std-ref">Categorical Memory Usage</span></a>。</span></p>
+</div>
+<div class="section" id="byte-ordering-issues">
+<h2><span class="yiyi-st" id="yiyi-66">Byte-Ordering Issues</span></h2>
+<p><span class="yiyi-st" id="yiyi-67">有时，您可能必须处理在机器上创建的数据具有与运行Python不同的字节顺序。</span><span class="yiyi-st" id="yiyi-68">要处理这个问题，应该使用类似于以下内容的方法将底层NumPy数组转换为本地系统字节顺序<em>之后</em>传递给Series / DataFrame / Panel构造函数：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [11]: </span><span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">)),</span> <span class="s1">&apos;&gt;i4&apos;</span><span class="p">)</span> <span class="c1"># big endian</span>
+
+<span class="gp">In [12]: </span><span class="n">newx</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">byteswap</span><span class="p">()</span><span class="o">.</span><span class="n">newbyteorder</span><span class="p">()</span> <span class="c1"># force native byteorder</span>
+
+<span class="gp">In [13]: </span><span class="n">s</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">newx</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-69">有关详细信息，请参阅<a class="reference external" href="http://docs.scipy.org/doc/numpy/user/basics.byteswapping.html">有关字节顺序的NumPy文档</a>。</span></p>
+</div>
+<div class="section" id="visualizing-data-in-qt-applications">
+<h2><span class="yiyi-st" id="yiyi-70">Visualizing Data in Qt applications</span></h2>
+<p><span class="yiyi-st" id="yiyi-71">在pandas中没有这种可视化的支持。</span><span class="yiyi-st" id="yiyi-72">但是，外部模块<a class="reference external" href="https://github.com/datalyze-solutions/pandas-qt">pandas-qt</a>提供这样的功能。</span></p>
+</div>

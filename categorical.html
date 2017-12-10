@@ -1,0 +1,1523 @@
+
+<span id="categorical"></span><h1><span class="yiyi-st" id="yiyi-77">Categorical Data</span></h1>
+        <blockquote>
+        <p>原文：<a href="http://pandas.pydata.org/pandas-docs/stable/categorical.html">http://pandas.pydata.org/pandas-docs/stable/categorical.html</a></p>
+        <p>译者：<a href="https://github.com/wizardforcel">飞龙</a> <a href="http://usyiyi.cn/">UsyiyiCN</a></p>
+        <p>校对：（虚位以待）</p>
+        </blockquote>
+    
+<div class="versionadded">
+<p><span class="yiyi-st" id="yiyi-78"><span class="versionmodified">版本0.15中的新功能。</span></span></p>
+</div>
+<div class="admonition note">
+<p class="first admonition-title"><span class="yiyi-st" id="yiyi-79">注意</span></p>
+<p class="last"><span class="yiyi-st" id="yiyi-80">虽然在早期版本中有<cite>pandas.Categorical</cite>，在<cite>系列</cite>和<cite>DataFrame</cite>中使用分类数据的功能是新功能。</span></p>
+</div>
+<p><span class="yiyi-st" id="yiyi-81">这是对pandas分类数据类型的简介，包括与R的<code class="docutils literal"><span class="pre">factor</span></code>的短暂比较。</span></p>
+<p><span class="yiyi-st" id="yiyi-82"><cite>分类</cite>是与统计中的分类变量相对应的熊猫数据类型：一个变量，只能包含有限的，通常固定的可能值（<cite>类别</cite> ； R中的<cite>电平</cite>）。</span><span class="yiyi-st" id="yiyi-83">例如性别，社会阶层，血型，国家关系，观察时间或通过Likert量表评分。</span></p>
+<p><span class="yiyi-st" id="yiyi-84">与统计分类变量相反，分类数据可能有顺序（例如“强同意”与“同意”或“第一次观察”与“第二次观察”），但数值运算（加法，除法，...）可能。</span></p>
+<p><span class="yiyi-st" id="yiyi-85">分类数据的所有值均位于<cite>类别</cite>或<cite>np.nan</cite>中。</span><span class="yiyi-st" id="yiyi-86">顺序由<cite>类别</cite>的顺序定义，而不是值的词汇顺序。</span><span class="yiyi-st" id="yiyi-87">在内部，数据结构由<cite>类别</cite>数组和<cite>代码</cite>的整数数组组成，它指向<cite>类别</cite>数组中的实际值。</span></p>
+<p><span class="yiyi-st" id="yiyi-88">分类数据类型在以下情况下很有用：</span></p>
+<ul class="simple">
+<li><span class="yiyi-st" id="yiyi-89">一个字符串变量，只包含几个不同的值。</span><span class="yiyi-st" id="yiyi-90">将此类字符串变量转换为分类变量将会节省一些内存，请参见<a class="reference internal" href="#categorical-memory"><span class="std std-ref">here</span></a>。</span></li>
+<li><span class="yiyi-st" id="yiyi-91">变量的词法顺序与逻辑顺序（“一个”，“两个”，“三个”）不同。</span><span class="yiyi-st" id="yiyi-92">通过转换为分类并在类别上指定顺序，排序和最小/最大将使用逻辑顺序而不是词法顺序，请参见<a class="reference internal" href="#categorical-sort"><span class="std std-ref">here</span></a>。</span></li>
+<li><span class="yiyi-st" id="yiyi-93">作为一个信号给其他python库，这个列应该被当作一个分类变量（例如使用合适的统计方法或图类型）。</span></li>
+</ul>
+<p><span class="yiyi-st" id="yiyi-94">另请参阅<a class="reference internal" href="api.html#api-categorical"><span class="std std-ref">API docs on categoricals</span></a>。</span></p>
+<div class="section" id="object-creation">
+<h2><span class="yiyi-st" id="yiyi-95">Object Creation</span></h2>
+<p><span class="yiyi-st" id="yiyi-96">分类<cite>系列</cite>或<cite>DataFrame</cite>中的列可以通过以下几种方式创建：</span></p>
+<p><span class="yiyi-st" id="yiyi-97">在构建<cite>系列</cite>时指定<code class="docutils literal"><span class="pre">dtype=&quot;category&quot;</span></code>：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [1]: </span><span class="n">s</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">([</span><span class="s2">&quot;a&quot;</span><span class="p">,</span><span class="s2">&quot;b&quot;</span><span class="p">,</span><span class="s2">&quot;c&quot;</span><span class="p">,</span><span class="s2">&quot;a&quot;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">&quot;category&quot;</span><span class="p">)</span>
+
+<span class="gp">In [2]: </span><span class="n">s</span>
+<span class="gr">Out[2]: </span>
+<span class="go">0    a</span>
+<span class="go">1    b</span>
+<span class="go">2    c</span>
+<span class="go">3    a</span>
+<span class="go">dtype: category</span>
+<span class="go">Categories (3, object): [a, b, c]</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-98">将现有的<cite>系列</cite>或列转换为<code class="docutils literal"><span class="pre">category</span></code> dtype：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [3]: </span><span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s2">&quot;A&quot;</span><span class="p">:[</span><span class="s2">&quot;a&quot;</span><span class="p">,</span><span class="s2">&quot;b&quot;</span><span class="p">,</span><span class="s2">&quot;c&quot;</span><span class="p">,</span><span class="s2">&quot;a&quot;</span><span class="p">]})</span>
+
+<span class="gp">In [4]: </span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;B&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;A&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">&apos;category&apos;</span><span class="p">)</span>
+
+<span class="gp">In [5]: </span><span class="n">df</span>
+<span class="gr">Out[5]: </span>
+<span class="go">   A  B</span>
+<span class="go">0  a  a</span>
+<span class="go">1  b  b</span>
+<span class="go">2  c  c</span>
+<span class="go">3  a  a</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-99">通过使用一些特殊功能：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [6]: </span><span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s1">&apos;value&apos;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">20</span><span class="p">)})</span>
+
+<span class="gp">In [7]: </span><span class="n">labels</span> <span class="o">=</span> <span class="p">[</span> <span class="s2">&quot;{0} - {1}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">9</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span> <span class="p">]</span>
+
+<span class="gp">In [8]: </span><span class="n">df</span><span class="p">[</span><span class="s1">&apos;group&apos;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">cut</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">105</span><span class="p">,</span> <span class="mi">10</span><span class="p">),</span> <span class="n">right</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">labels</span><span class="o">=</span><span class="n">labels</span><span class="p">)</span>
+
+<span class="gp">In [9]: </span><span class="n">df</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+<span class="gr">Out[9]: </span>
+<span class="go">   value    group</span>
+<span class="go">0     65  60 - 69</span>
+<span class="go">1     49  40 - 49</span>
+<span class="go">2     56  50 - 59</span>
+<span class="go">3     43  40 - 49</span>
+<span class="go">4     43  40 - 49</span>
+<span class="go">5     91  90 - 99</span>
+<span class="go">6     32  30 - 39</span>
+<span class="go">7     87  80 - 89</span>
+<span class="go">8     36  30 - 39</span>
+<span class="go">9      8    0 - 9</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-100">有关<a class="reference internal" href="generated/pandas.cut.html#pandas.cut" title="pandas.cut"><code class="xref py py-func docutils literal"><span class="pre">cut()</span></code></a>的信息，请参阅<a class="reference internal" href="reshaping.html#reshaping-tile-cut"><span class="std std-ref">documentation</span></a>。</span></p>
+<p><span class="yiyi-st" id="yiyi-101">将<a class="reference internal" href="generated/pandas.Categorical.html#pandas.Categorical" title="pandas.Categorical"><code class="xref py py-class docutils literal"><span class="pre">pandas.Categorical</span></code></a>对象传递到<cite>系列</cite>或将其分配给<cite>DataFrame</cite>。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [10]: </span><span class="n">raw_cat</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Categorical</span><span class="p">([</span><span class="s2">&quot;a&quot;</span><span class="p">,</span><span class="s2">&quot;b&quot;</span><span class="p">,</span><span class="s2">&quot;c&quot;</span><span class="p">,</span><span class="s2">&quot;a&quot;</span><span class="p">],</span> <span class="n">categories</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;b&quot;</span><span class="p">,</span><span class="s2">&quot;c&quot;</span><span class="p">,</span><span class="s2">&quot;d&quot;</span><span class="p">],</span>
+<span class="gp">   ....:</span>                          <span class="n">ordered</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="gp">   ....:</span> 
+
+<span class="gp">In [11]: </span><span class="n">s</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">raw_cat</span><span class="p">)</span>
+
+<span class="gp">In [12]: </span><span class="n">s</span>
+<span class="gr">Out[12]: </span>
+<span class="go">0    NaN</span>
+<span class="go">1      b</span>
+<span class="go">2      c</span>
+<span class="go">3    NaN</span>
+<span class="go">dtype: category</span>
+<span class="go">Categories (3, object): [b, c, d]</span>
+
+<span class="gp">In [13]: </span><span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s2">&quot;A&quot;</span><span class="p">:[</span><span class="s2">&quot;a&quot;</span><span class="p">,</span><span class="s2">&quot;b&quot;</span><span class="p">,</span><span class="s2">&quot;c&quot;</span><span class="p">,</span><span class="s2">&quot;a&quot;</span><span class="p">]})</span>
+
+<span class="gp">In [14]: </span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;B&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">raw_cat</span>
+
+<span class="gp">In [15]: </span><span class="n">df</span>
+<span class="gr">Out[15]: </span>
+<span class="go">   A    B</span>
+<span class="go">0  a  NaN</span>
+<span class="go">1  b    b</span>
+<span class="go">2  c    c</span>
+<span class="go">3  a  NaN</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-102">您还可以通过将这些参数传递到<code class="docutils literal"><span class="pre">astype()</span></code>来指定不同排序的类别或将结果数据排序：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [16]: </span><span class="n">s</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">([</span><span class="s2">&quot;a&quot;</span><span class="p">,</span><span class="s2">&quot;b&quot;</span><span class="p">,</span><span class="s2">&quot;c&quot;</span><span class="p">,</span><span class="s2">&quot;a&quot;</span><span class="p">])</span>
+
+<span class="gp">In [17]: </span><span class="n">s_cat</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s2">&quot;category&quot;</span><span class="p">,</span> <span class="n">categories</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;b&quot;</span><span class="p">,</span><span class="s2">&quot;c&quot;</span><span class="p">,</span><span class="s2">&quot;d&quot;</span><span class="p">],</span> <span class="n">ordered</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+
+<span class="gp">In [18]: </span><span class="n">s_cat</span>
+<span class="gr">Out[18]: </span>
+<span class="go">0    NaN</span>
+<span class="go">1      b</span>
+<span class="go">2      c</span>
+<span class="go">3    NaN</span>
+<span class="go">dtype: category</span>
+<span class="go">Categories (3, object): [b, c, d]</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-103">分类数据具有特定的<code class="docutils literal"><span class="pre">category</span></code> <a class="reference internal" href="basics.html#basics-dtypes"><span class="std std-ref">dtype</span></a>：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [19]: </span><span class="n">df</span><span class="o">.</span><span class="n">dtypes</span>
+<span class="gr">Out[19]: </span>
+<span class="go">A      object</span>
+<span class="go">B    category</span>
+<span class="go">dtype: object</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title"><span class="yiyi-st" id="yiyi-104">注意</span></p>
+<p class="last"><span class="yiyi-st" id="yiyi-105">与R的<cite>因子</cite>函数相反，分类数据不会将输入值转换为字符串，类别将最终与原始值具有相同的数据类型。</span></p>
+</div>
+<div class="admonition note">
+<p class="first admonition-title"><span class="yiyi-st" id="yiyi-106">注意</span></p>
+<p class="last"><span class="yiyi-st" id="yiyi-107">与R的<cite>因子</cite>函数相反，当前没有办法在创建时分配/更改标签。</span><span class="yiyi-st" id="yiyi-108">使用<cite>类别</cite>可在创建时间后更改类别。</span></p>
+</div>
+<p><span class="yiyi-st" id="yiyi-109">要返回原始系列或<cite>numpy</cite>数组，请使用<code class="docutils literal"><span class="pre">Series.astype(original_dtype)</span></code>或<code class="docutils literal"><span class="pre">np.asarray(categorical)</span></code>：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [20]: </span><span class="n">s</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">([</span><span class="s2">&quot;a&quot;</span><span class="p">,</span><span class="s2">&quot;b&quot;</span><span class="p">,</span><span class="s2">&quot;c&quot;</span><span class="p">,</span><span class="s2">&quot;a&quot;</span><span class="p">])</span>
+
+<span class="gp">In [21]: </span><span class="n">s</span>
+<span class="gr">Out[21]: </span>
+<span class="go">0    a</span>
+<span class="go">1    b</span>
+<span class="go">2    c</span>
+<span class="go">3    a</span>
+<span class="go">dtype: object</span>
+
+<span class="gp">In [22]: </span><span class="n">s2</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">&apos;category&apos;</span><span class="p">)</span>
+
+<span class="gp">In [23]: </span><span class="n">s2</span>
+<span class="gr">Out[23]: </span>
+<span class="go">0    a</span>
+<span class="go">1    b</span>
+<span class="go">2    c</span>
+<span class="go">3    a</span>
+<span class="go">dtype: category</span>
+<span class="go">Categories (3, object): [a, b, c]</span>
+
+<span class="gp">In [24]: </span><span class="n">s3</span> <span class="o">=</span> <span class="n">s2</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">&apos;string&apos;</span><span class="p">)</span>
+
+<span class="gp">In [25]: </span><span class="n">s3</span>
+<span class="gr">Out[25]: </span>
+<span class="go">0    a</span>
+<span class="go">1    b</span>
+<span class="go">2    c</span>
+<span class="go">3    a</span>
+<span class="go">dtype: object</span>
+
+<span class="gp">In [26]: </span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">s2</span><span class="p">)</span>
+<span class="gr">Out[26]: </span><span class="n">array</span><span class="p">([</span><span class="s1">&apos;a&apos;</span><span class="p">,</span> <span class="s1">&apos;b&apos;</span><span class="p">,</span> <span class="s1">&apos;c&apos;</span><span class="p">,</span> <span class="s1">&apos;a&apos;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">object</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-110">如果您已经具有<cite>代码</cite>和<cite>类别</cite>，则可以使用<a class="reference internal" href="generated/pandas.Categorical.from_codes.html#pandas.Categorical.from_codes" title="pandas.Categorical.from_codes"><code class="xref py py-func docutils literal"><span class="pre">from_codes()</span></code></a>构造函数在正常构造函数模式下保存factorize步骤：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [27]: </span><span class="n">splitter</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="mi">5</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="p">[</span><span class="mf">0.5</span><span class="p">,</span><span class="mf">0.5</span><span class="p">])</span>
+
+<span class="gp">In [28]: </span><span class="n">s</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">Categorical</span><span class="o">.</span><span class="n">from_codes</span><span class="p">(</span><span class="n">splitter</span><span class="p">,</span> <span class="n">categories</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;train&quot;</span><span class="p">,</span> <span class="s2">&quot;test&quot;</span><span class="p">]))</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2><span class="yiyi-st" id="yiyi-111">Description</span></h2>
+<p><span class="yiyi-st" id="yiyi-112">对分类数据使用<code class="docutils literal"><span class="pre">.describe()</span></code>将产生与<code class="docutils literal"><span class="pre">string</span></code>类型的<cite>Series</cite>或<cite>DataFrame</cite>类似的输出。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [29]: </span><span class="n">cat</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Categorical</span><span class="p">([</span><span class="s2">&quot;a&quot;</span><span class="p">,</span> <span class="s2">&quot;c&quot;</span><span class="p">,</span> <span class="s2">&quot;c&quot;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">],</span> <span class="n">categories</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;b&quot;</span><span class="p">,</span> <span class="s2">&quot;a&quot;</span><span class="p">,</span> <span class="s2">&quot;c&quot;</span><span class="p">])</span>
+
+<span class="gp">In [30]: </span><span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s2">&quot;cat&quot;</span><span class="p">:</span><span class="n">cat</span><span class="p">,</span> <span class="s2">&quot;s&quot;</span><span class="p">:[</span><span class="s2">&quot;a&quot;</span><span class="p">,</span> <span class="s2">&quot;c&quot;</span><span class="p">,</span> <span class="s2">&quot;c&quot;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">]})</span>
+
+<span class="gp">In [31]: </span><span class="n">df</span><span class="o">.</span><span class="n">describe</span><span class="p">()</span>
+<span class="gr">Out[31]: </span>
+<span class="go">       cat  s</span>
+<span class="go">count    3  3</span>
+<span class="go">unique   2  2</span>
+<span class="go">top      c  c</span>
+<span class="go">freq     2  2</span>
+
+<span class="gp">In [32]: </span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;cat&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">describe</span><span class="p">()</span>
+<span class="gr">Out[32]: </span>
+<span class="go">count     3</span>
+<span class="go">unique    2</span>
+<span class="go">top       c</span>
+<span class="go">freq      2</span>
+<span class="go">Name: cat, dtype: object</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="working-with-categories">
+<h2><span class="yiyi-st" id="yiyi-113">Working with categories</span></h2>
+<p><span class="yiyi-st" id="yiyi-114">分类数据具有<cite>类别</cite>和<cite>有序</cite>属性，其中列出了其可能的值以及顺序是否重要。</span><span class="yiyi-st" id="yiyi-115">这些属性显示为<code class="docutils literal"><span class="pre">s.cat.categories</span></code>和<code class="docutils literal"><span class="pre">s.cat.ordered</span></code>。</span><span class="yiyi-st" id="yiyi-116">如果不手动指定类别和顺序，则从传递的值推断它们。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [33]: </span><span class="n">s</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">([</span><span class="s2">&quot;a&quot;</span><span class="p">,</span><span class="s2">&quot;b&quot;</span><span class="p">,</span><span class="s2">&quot;c&quot;</span><span class="p">,</span><span class="s2">&quot;a&quot;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">&quot;category&quot;</span><span class="p">)</span>
+
+<span class="gp">In [34]: </span><span class="n">s</span><span class="o">.</span><span class="n">cat</span><span class="o">.</span><span class="n">categories</span>
+<span class="gr">Out[34]: </span><span class="n">Index</span><span class="p">([</span><span class="s1">u&apos;a&apos;</span><span class="p">,</span> <span class="s1">u&apos;b&apos;</span><span class="p">,</span> <span class="s1">u&apos;c&apos;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&apos;object&apos;</span><span class="p">)</span>
+
+<span class="gp">In [35]: </span><span class="n">s</span><span class="o">.</span><span class="n">cat</span><span class="o">.</span><span class="n">ordered</span>
+<span class="gr">Out[35]: </span><span class="bp">False</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-117">还可以按特定顺序传入类别：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [36]: </span><span class="n">s</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">Categorical</span><span class="p">([</span><span class="s2">&quot;a&quot;</span><span class="p">,</span><span class="s2">&quot;b&quot;</span><span class="p">,</span><span class="s2">&quot;c&quot;</span><span class="p">,</span><span class="s2">&quot;a&quot;</span><span class="p">],</span> <span class="n">categories</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;c&quot;</span><span class="p">,</span><span class="s2">&quot;b&quot;</span><span class="p">,</span><span class="s2">&quot;a&quot;</span><span class="p">]))</span>
+
+<span class="gp">In [37]: </span><span class="n">s</span><span class="o">.</span><span class="n">cat</span><span class="o">.</span><span class="n">categories</span>
+<span class="gr">Out[37]: </span><span class="n">Index</span><span class="p">([</span><span class="s1">u&apos;c&apos;</span><span class="p">,</span> <span class="s1">u&apos;b&apos;</span><span class="p">,</span> <span class="s1">u&apos;a&apos;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&apos;object&apos;</span><span class="p">)</span>
+
+<span class="gp">In [38]: </span><span class="n">s</span><span class="o">.</span><span class="n">cat</span><span class="o">.</span><span class="n">ordered</span>
+<span class="gr">Out[38]: </span><span class="bp">False</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title"><span class="yiyi-st" id="yiyi-118">注意</span></p>
+<p class="last"><span class="yiyi-st" id="yiyi-119">新的分类数据不会自动排序。</span><span class="yiyi-st" id="yiyi-120">您必须明确传递<code class="docutils literal"><span class="pre">ordered=True</span></code>以指示有序的<code class="docutils literal"><span class="pre">Categorical</span></code>。</span></p>
+</div>
+<div class="admonition note">
+<p class="first admonition-title"><span class="yiyi-st" id="yiyi-121">注意</span></p>
+<p><span class="yiyi-st" id="yiyi-122"><code class="docutils literal"><span class="pre">Series.unique()</span></code>的结果并不总是与<code class="docutils literal"><span class="pre">Series.cat.categories</span></code>相同，因为<code class="docutils literal"><span class="pre">Series.unique()</span></code>的保证，即它按出现顺序返回类别，并且它仅包括实际存在的值。</span></p>
+<div class="last highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [39]: </span><span class="n">s</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="s1">&apos;babc&apos;</span><span class="p">))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">&apos;category&apos;</span><span class="p">,</span> <span class="n">categories</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="s1">&apos;abcd&apos;</span><span class="p">))</span>
+
+<span class="gp">In [40]: </span><span class="n">s</span>
+<span class="gr">Out[40]: </span>
+<span class="go">0    b</span>
+<span class="go">1    a</span>
+<span class="go">2    b</span>
+<span class="go">3    c</span>
+<span class="go">dtype: category</span>
+<span class="go">Categories (4, object): [a, b, c, d]</span>
+
+<span class="c"># categories</span>
+<span class="gp">In [41]: </span><span class="n">s</span><span class="o">.</span><span class="n">cat</span><span class="o">.</span><span class="n">categories</span>
+<span class="gr">Out[41]: </span><span class="n">Index</span><span class="p">([</span><span class="s1">u&apos;a&apos;</span><span class="p">,</span> <span class="s1">u&apos;b&apos;</span><span class="p">,</span> <span class="s1">u&apos;c&apos;</span><span class="p">,</span> <span class="s1">u&apos;d&apos;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&apos;object&apos;</span><span class="p">)</span>
+
+<span class="c"># uniques</span>
+<span class="gp">In [42]: </span><span class="n">s</span><span class="o">.</span><span class="n">unique</span><span class="p">()</span>
+<span class="gr">Out[42]: </span>
+<span class="go">[b, a, c]</span>
+<span class="go">Categories (3, object): [b, a, c]</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="renaming-categories">
+<h3><span class="yiyi-st" id="yiyi-123">Renaming categories</span></h3>
+<p><span class="yiyi-st" id="yiyi-124">通过向<code class="docutils literal"><span class="pre">Series.cat.categories</span></code>属性分配新值或使用<code class="xref py py-func docutils literal"><span class="pre">Categorical.rename_categories()</span></code>方法重命名类别：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [43]: </span><span class="n">s</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">([</span><span class="s2">&quot;a&quot;</span><span class="p">,</span><span class="s2">&quot;b&quot;</span><span class="p">,</span><span class="s2">&quot;c&quot;</span><span class="p">,</span><span class="s2">&quot;a&quot;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">&quot;category&quot;</span><span class="p">)</span>
+
+<span class="gp">In [44]: </span><span class="n">s</span>
+<span class="gr">Out[44]: </span>
+<span class="go">0    a</span>
+<span class="go">1    b</span>
+<span class="go">2    c</span>
+<span class="go">3    a</span>
+<span class="go">dtype: category</span>
+<span class="go">Categories (3, object): [a, b, c]</span>
+
+<span class="gp">In [45]: </span><span class="n">s</span><span class="o">.</span><span class="n">cat</span><span class="o">.</span><span class="n">categories</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Group </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">g</span> <span class="k">for</span> <span class="n">g</span> <span class="ow">in</span> <span class="n">s</span><span class="o">.</span><span class="n">cat</span><span class="o">.</span><span class="n">categories</span><span class="p">]</span>
+
+<span class="gp">In [46]: </span><span class="n">s</span>
+<span class="gr">Out[46]: </span>
+<span class="go">0    Group a</span>
+<span class="go">1    Group b</span>
+<span class="go">2    Group c</span>
+<span class="go">3    Group a</span>
+<span class="go">dtype: category</span>
+<span class="go">Categories (3, object): [Group a, Group b, Group c]</span>
+
+<span class="gp">In [47]: </span><span class="n">s</span><span class="o">.</span><span class="n">cat</span><span class="o">.</span><span class="n">rename_categories</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">])</span>
+<span class="gr">Out[47]: </span>
+<span class="go">0    1</span>
+<span class="go">1    2</span>
+<span class="go">2    3</span>
+<span class="go">3    1</span>
+<span class="go">dtype: category</span>
+<span class="go">Categories (3, int64): [1, 2, 3]</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title"><span class="yiyi-st" id="yiyi-125">注意</span></p>
+<p class="last"><span class="yiyi-st" id="yiyi-126">与R的<cite>因子</cite>相反，分类数据可以具有除字符串之外的其他类型的类别。</span></p>
+</div>
+<div class="admonition note">
+<p class="first admonition-title"><span class="yiyi-st" id="yiyi-127">注意</span></p>
+<p class="last"><span class="yiyi-st" id="yiyi-128">请注意，分配新类别是一个内部操作，而大多数<code class="docutils literal"><span class="pre">Series.cat</span></code>下的其他操作默认返回一系列新的类型<cite>类别</cite>。</span></p>
+</div>
+<p><span class="yiyi-st" id="yiyi-129">类别必须是唯一的或产生<cite>ValueError</cite>：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [48]: </span><span class="k">try</span><span class="p">:</span>
+<span class="gp">   ....:</span>     <span class="n">s</span><span class="o">.</span><span class="n">cat</span><span class="o">.</span><span class="n">categories</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span>
+<span class="gp">   ....:</span> <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+<span class="gp">   ....:</span>     <span class="k">print</span><span class="p">(</span><span class="s2">&quot;ValueError: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
+<span class="gp">   ....:</span> 
+<span class="go">ValueError: Categorical categories must be unique</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="appending-new-categories">
+<h3><span class="yiyi-st" id="yiyi-130">Appending new categories</span></h3>
+<p><span class="yiyi-st" id="yiyi-131">可以使用<code class="xref py py-func docutils literal"><span class="pre">Categorical.add_categories()</span></code>方法来追加类别：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [49]: </span><span class="n">s</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">cat</span><span class="o">.</span><span class="n">add_categories</span><span class="p">([</span><span class="mi">4</span><span class="p">])</span>
+
+<span class="gp">In [50]: </span><span class="n">s</span><span class="o">.</span><span class="n">cat</span><span class="o">.</span><span class="n">categories</span>
+<span class="gr">Out[50]: </span><span class="n">Index</span><span class="p">([</span><span class="s1">u&apos;Group a&apos;</span><span class="p">,</span> <span class="s1">u&apos;Group b&apos;</span><span class="p">,</span> <span class="s1">u&apos;Group c&apos;</span><span class="p">,</span> <span class="mi">4</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&apos;object&apos;</span><span class="p">)</span>
+
+<span class="gp">In [51]: </span><span class="n">s</span>
+<span class="gr">Out[51]: </span>
+<span class="go">0    Group a</span>
+<span class="go">1    Group b</span>
+<span class="go">2    Group c</span>
+<span class="go">3    Group a</span>
+<span class="go">dtype: category</span>
+<span class="go">Categories (4, object): [Group a, Group b, Group c, 4]</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="removing-categories">
+<h3><span class="yiyi-st" id="yiyi-132">Removing categories</span></h3>
+<p><span class="yiyi-st" id="yiyi-133">可以使用<code class="xref py py-func docutils literal"><span class="pre">Categorical.remove_categories()</span></code>方法来删除类别。</span><span class="yiyi-st" id="yiyi-134">删除的值将替换为<code class="docutils literal"><span class="pre">np.nan</span></code>。</span><span class="yiyi-st" id="yiyi-135">：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [52]: </span><span class="n">s</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">cat</span><span class="o">.</span><span class="n">remove_categories</span><span class="p">([</span><span class="mi">4</span><span class="p">])</span>
+
+<span class="gp">In [53]: </span><span class="n">s</span>
+<span class="gr">Out[53]: </span>
+<span class="go">0    Group a</span>
+<span class="go">1    Group b</span>
+<span class="go">2    Group c</span>
+<span class="go">3    Group a</span>
+<span class="go">dtype: category</span>
+<span class="go">Categories (3, object): [Group a, Group b, Group c]</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="removing-unused-categories">
+<h3><span class="yiyi-st" id="yiyi-136">Removing unused categories</span></h3>
+<p><span class="yiyi-st" id="yiyi-137">删除未使用的类别也可以：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [54]: </span><span class="n">s</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">Categorical</span><span class="p">([</span><span class="s2">&quot;a&quot;</span><span class="p">,</span><span class="s2">&quot;b&quot;</span><span class="p">,</span><span class="s2">&quot;a&quot;</span><span class="p">],</span> <span class="n">categories</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;a&quot;</span><span class="p">,</span><span class="s2">&quot;b&quot;</span><span class="p">,</span><span class="s2">&quot;c&quot;</span><span class="p">,</span><span class="s2">&quot;d&quot;</span><span class="p">]))</span>
+
+<span class="gp">In [55]: </span><span class="n">s</span>
+<span class="gr">Out[55]: </span>
+<span class="go">0    a</span>
+<span class="go">1    b</span>
+<span class="go">2    a</span>
+<span class="go">dtype: category</span>
+<span class="go">Categories (4, object): [a, b, c, d]</span>
+
+<span class="gp">In [56]: </span><span class="n">s</span><span class="o">.</span><span class="n">cat</span><span class="o">.</span><span class="n">remove_unused_categories</span><span class="p">()</span>
+<span class="gr">Out[56]: </span>
+<span class="go">0    a</span>
+<span class="go">1    b</span>
+<span class="go">2    a</span>
+<span class="go">dtype: category</span>
+<span class="go">Categories (2, object): [a, b]</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="setting-categories">
+<h3><span class="yiyi-st" id="yiyi-138">Setting categories</span></h3>
+<p><span class="yiyi-st" id="yiyi-139">如果您希望在一个步骤中删除并添加新类别（具有一些速度优势），或只是将类别设置为预定义的比例，请使用<code class="xref py py-func docutils literal"><span class="pre">Categorical.set_categories()</span></code>。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [57]: </span><span class="n">s</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">([</span><span class="s2">&quot;one&quot;</span><span class="p">,</span><span class="s2">&quot;two&quot;</span><span class="p">,</span><span class="s2">&quot;four&quot;</span><span class="p">,</span> <span class="s2">&quot;-&quot;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">&quot;category&quot;</span><span class="p">)</span>
+
+<span class="gp">In [58]: </span><span class="n">s</span>
+<span class="gr">Out[58]: </span>
+<span class="go">0     one</span>
+<span class="go">1     two</span>
+<span class="go">2    four</span>
+<span class="go">3       -</span>
+<span class="go">dtype: category</span>
+<span class="go">Categories (4, object): [-, four, one, two]</span>
+
+<span class="gp">In [59]: </span><span class="n">s</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">cat</span><span class="o">.</span><span class="n">set_categories</span><span class="p">([</span><span class="s2">&quot;one&quot;</span><span class="p">,</span><span class="s2">&quot;two&quot;</span><span class="p">,</span><span class="s2">&quot;three&quot;</span><span class="p">,</span><span class="s2">&quot;four&quot;</span><span class="p">])</span>
+
+<span class="gp">In [60]: </span><span class="n">s</span>
+<span class="gr">Out[60]: </span>
+<span class="go">0     one</span>
+<span class="go">1     two</span>
+<span class="go">2    four</span>
+<span class="go">3     NaN</span>
+<span class="go">dtype: category</span>
+<span class="go">Categories (4, object): [one, two, three, four]</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title"><span class="yiyi-st" id="yiyi-140">注意</span></p>
+<p class="last"><span class="yiyi-st" id="yiyi-141">请注意，<code class="xref py py-func docutils literal"><span class="pre">Categorical.set_categories()</span></code>无法知道某个类别是否被有意省略，或者因为类型差异（例如numpys S1 dtype和python字符串）而拼写错误或（在Python3下）。</span><span class="yiyi-st" id="yiyi-142"></span></p>
+</div>
+</div>
+</div>
+<div class="section" id="sorting-and-order">
+<h2><span class="yiyi-st" id="yiyi-143">Sorting and Order</span></h2>
+<div class="admonition warning" id="categorical-sort">
+<p class="first admonition-title"><span class="yiyi-st" id="yiyi-144">警告</span></p>
+<p class="last"><span class="yiyi-st" id="yiyi-145">默认的构造在v0.16.0中从先前隐式的<code class="docutils literal"><span class="pre">ordered=True</span></code>改变为<code class="docutils literal"><span class="pre">ordered=False</span></code></span></p>
+</div>
+<p><span class="yiyi-st" id="yiyi-146">如果对类别数据排序（<code class="docutils literal"><span class="pre">s.cat.ordered</span> <span class="pre">==</span> <span class="pre">True</span></code>），具有含义并且某些操作是可能的。</span><span class="yiyi-st" id="yiyi-147">如果分类是无序的，<code class="docutils literal"><span class="pre">.min()/.max()</span></code>会引发一个<cite>TypeError</cite>。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [61]: </span><span class="n">s</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">Categorical</span><span class="p">([</span><span class="s2">&quot;a&quot;</span><span class="p">,</span><span class="s2">&quot;b&quot;</span><span class="p">,</span><span class="s2">&quot;c&quot;</span><span class="p">,</span><span class="s2">&quot;a&quot;</span><span class="p">],</span> <span class="n">ordered</span><span class="o">=</span><span class="bp">False</span><span class="p">))</span>
+
+<span class="gp">In [62]: </span><span class="n">s</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="n">inplace</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+<span class="gp">In [63]: </span><span class="n">s</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">([</span><span class="s2">&quot;a&quot;</span><span class="p">,</span><span class="s2">&quot;b&quot;</span><span class="p">,</span><span class="s2">&quot;c&quot;</span><span class="p">,</span><span class="s2">&quot;a&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">&apos;category&apos;</span><span class="p">,</span> <span class="n">ordered</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+<span class="gp">In [64]: </span><span class="n">s</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="n">inplace</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+<span class="gp">In [65]: </span><span class="n">s</span>
+<span class="gr">Out[65]: </span>
+<span class="go">0    a</span>
+<span class="go">3    a</span>
+<span class="go">1    b</span>
+<span class="go">2    c</span>
+<span class="go">dtype: category</span>
+<span class="go">Categories (3, object): [a &lt; b &lt; c]</span>
+
+<span class="gp">In [66]: </span><span class="n">s</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> <span class="n">s</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+<span class="gr">Out[66]: </span><span class="p">(</span><span class="s1">&apos;a&apos;</span><span class="p">,</span> <span class="s1">&apos;c&apos;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-148">您可以使用<code class="docutils literal"><span class="pre">as_ordered()</span></code>或使用<code class="docutils literal"><span class="pre">as_unordered()</span></code>无序排序设置要排序的分类数据。</span><span class="yiyi-st" id="yiyi-149">这些将默认返回<em>新</em>对象。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [67]: </span><span class="n">s</span><span class="o">.</span><span class="n">cat</span><span class="o">.</span><span class="n">as_ordered</span><span class="p">()</span>
+<span class="gr">Out[67]: </span>
+<span class="go">0    a</span>
+<span class="go">3    a</span>
+<span class="go">1    b</span>
+<span class="go">2    c</span>
+<span class="go">dtype: category</span>
+<span class="go">Categories (3, object): [a &lt; b &lt; c]</span>
+
+<span class="gp">In [68]: </span><span class="n">s</span><span class="o">.</span><span class="n">cat</span><span class="o">.</span><span class="n">as_unordered</span><span class="p">()</span>
+<span class="gr">Out[68]: </span>
+<span class="go">0    a</span>
+<span class="go">3    a</span>
+<span class="go">1    b</span>
+<span class="go">2    c</span>
+<span class="go">dtype: category</span>
+<span class="go">Categories (3, object): [a, b, c]</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-150">排序将使用类别定义的顺序，而不是数据类型上存在的任何词法顺序。</span><span class="yiyi-st" id="yiyi-151">这对于字符串和数字数据是正确的：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [69]: </span><span class="n">s</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">&quot;category&quot;</span><span class="p">)</span>
+
+<span class="gp">In [70]: </span><span class="n">s</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">cat</span><span class="o">.</span><span class="n">set_categories</span><span class="p">([</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="n">ordered</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+<span class="gp">In [71]: </span><span class="n">s</span>
+<span class="gr">Out[71]: </span>
+<span class="go">0    1</span>
+<span class="go">1    2</span>
+<span class="go">2    3</span>
+<span class="go">3    1</span>
+<span class="go">dtype: category</span>
+<span class="go">Categories (3, int64): [2 &lt; 3 &lt; 1]</span>
+
+<span class="gp">In [72]: </span><span class="n">s</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="n">inplace</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+<span class="gp">In [73]: </span><span class="n">s</span>
+<span class="gr">Out[73]: </span>
+<span class="go">1    2</span>
+<span class="go">2    3</span>
+<span class="go">0    1</span>
+<span class="go">3    1</span>
+<span class="go">dtype: category</span>
+<span class="go">Categories (3, int64): [2 &lt; 3 &lt; 1]</span>
+
+<span class="gp">In [74]: </span><span class="n">s</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> <span class="n">s</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+<span class="gr">Out[74]: </span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="section" id="reordering">
+<h3><span class="yiyi-st" id="yiyi-152">Reordering</span></h3>
+<p><span class="yiyi-st" id="yiyi-153">可以通过<code class="xref py py-func docutils literal"><span class="pre">Categorical.reorder_categories()</span></code>和<code class="xref py py-func docutils literal"><span class="pre">Categorical.set_categories()</span></code>方法重新排序类别。</span><span class="yiyi-st" id="yiyi-154">对于<code class="xref py py-func docutils literal"><span class="pre">Categorical.reorder_categories()</span></code>，所有旧类别都必须包含在新类别中，不允许使用新类别。</span><span class="yiyi-st" id="yiyi-155">这将必然使排序顺序与类别顺序相同。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [75]: </span><span class="n">s</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">&quot;category&quot;</span><span class="p">)</span>
+
+<span class="gp">In [76]: </span><span class="n">s</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">cat</span><span class="o">.</span><span class="n">reorder_categories</span><span class="p">([</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="n">ordered</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+<span class="gp">In [77]: </span><span class="n">s</span>
+<span class="gr">Out[77]: </span>
+<span class="go">0    1</span>
+<span class="go">1    2</span>
+<span class="go">2    3</span>
+<span class="go">3    1</span>
+<span class="go">dtype: category</span>
+<span class="go">Categories (3, int64): [2 &lt; 3 &lt; 1]</span>
+
+<span class="gp">In [78]: </span><span class="n">s</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="n">inplace</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+<span class="gp">In [79]: </span><span class="n">s</span>
+<span class="gr">Out[79]: </span>
+<span class="go">1    2</span>
+<span class="go">2    3</span>
+<span class="go">0    1</span>
+<span class="go">3    1</span>
+<span class="go">dtype: category</span>
+<span class="go">Categories (3, int64): [2 &lt; 3 &lt; 1]</span>
+
+<span class="gp">In [80]: </span><span class="n">s</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> <span class="n">s</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+<span class="gr">Out[80]: </span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title"><span class="yiyi-st" id="yiyi-156">注意</span></p>
+<p class="last"><span class="yiyi-st" id="yiyi-157">请注意分配新类别和重新排序类别之间的差异：首先重命名类别，因此在<cite>系列</cite>中的各个值，但如果第一个位置最后排序，重命名的值仍将最后排序。</span><span class="yiyi-st" id="yiyi-158">重新排序意味着值的排序方式不同，但不是<cite>系列</cite>中的单个值发生更改。</span></p>
+</div>
+<div class="admonition note">
+<p class="first admonition-title"><span class="yiyi-st" id="yiyi-159">注意</span></p>
+<p class="last"><span class="yiyi-st" id="yiyi-160">如果<cite>分类</cite>未排序，<code class="docutils literal"><span class="pre">Series.min()</span></code>和<code class="docutils literal"><span class="pre">Series.max()</span></code>会引发<code class="docutils literal"><span class="pre">TypeError</span></code>。</span><span class="yiyi-st" id="yiyi-161">像<code class="docutils literal"><span class="pre">+</span></code>，<code class="docutils literal"><span class="pre">-</span></code>，<code class="docutils literal"><span class="pre">*</span></code>，<code class="docutils literal"><span class="pre">/</span></code>和基于它们的操作（例如<code class="docutils literal"><span class="pre">Series.median()</span></code>，如果数组的长度是偶数，则需要计算两个值之间的平均值）不起作用，并产生<code class="docutils literal"><span class="pre">TypeError</span></code>。</span></p>
+</div>
+</div>
+<div class="section" id="multi-column-sorting">
+<h3><span class="yiyi-st" id="yiyi-162">Multi Column Sorting</span></h3>
+<p><span class="yiyi-st" id="yiyi-163">分类类型列将以与其他列类似的方式参与多列排序。</span><span class="yiyi-st" id="yiyi-164">分类的排序由该列的<code class="docutils literal"><span class="pre">categories</span></code>确定。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [81]: </span><span class="n">dfs</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s1">&apos;A&apos;</span> <span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">Categorical</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="s1">&apos;bbeebbaa&apos;</span><span class="p">),</span> <span class="n">categories</span><span class="o">=</span><span class="p">[</span><span class="s1">&apos;e&apos;</span><span class="p">,</span><span class="s1">&apos;a&apos;</span><span class="p">,</span><span class="s1">&apos;b&apos;</span><span class="p">],</span> <span class="n">ordered</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span>
+<span class="gp">   ....:</span>                     <span class="s1">&apos;B&apos;</span> <span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span> <span class="p">})</span>
+<span class="gp">   ....:</span> 
+
+<span class="gp">In [82]: </span><span class="n">dfs</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="n">by</span><span class="o">=</span><span class="p">[</span><span class="s1">&apos;A&apos;</span><span class="p">,</span> <span class="s1">&apos;B&apos;</span><span class="p">])</span>
+<span class="gr">Out[82]: </span>
+<span class="go">   A  B</span>
+<span class="go">2  e  1</span>
+<span class="go">3  e  2</span>
+<span class="go">7  a  1</span>
+<span class="go">6  a  2</span>
+<span class="go">0  b  1</span>
+<span class="go">5  b  1</span>
+<span class="go">1  b  2</span>
+<span class="go">4  b  2</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-165">重新排序<code class="docutils literal"><span class="pre">categories</span></code>会更改未来排序。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [83]: </span><span class="n">dfs</span><span class="p">[</span><span class="s1">&apos;A&apos;</span><span class="p">]</span> <span class="o">=</span> <span class="n">dfs</span><span class="p">[</span><span class="s1">&apos;A&apos;</span><span class="p">]</span><span class="o">.</span><span class="n">cat</span><span class="o">.</span><span class="n">reorder_categories</span><span class="p">([</span><span class="s1">&apos;a&apos;</span><span class="p">,</span><span class="s1">&apos;b&apos;</span><span class="p">,</span><span class="s1">&apos;e&apos;</span><span class="p">])</span>
+
+<span class="gp">In [84]: </span><span class="n">dfs</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="n">by</span><span class="o">=</span><span class="p">[</span><span class="s1">&apos;A&apos;</span><span class="p">,</span><span class="s1">&apos;B&apos;</span><span class="p">])</span>
+<span class="gr">Out[84]: </span>
+<span class="go">   A  B</span>
+<span class="go">7  a  1</span>
+<span class="go">6  a  2</span>
+<span class="go">0  b  1</span>
+<span class="go">5  b  1</span>
+<span class="go">1  b  2</span>
+<span class="go">4  b  2</span>
+<span class="go">2  e  1</span>
+<span class="go">3  e  2</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="comparisons">
+<h2><span class="yiyi-st" id="yiyi-166">Comparisons</span></h2>
+<p><span class="yiyi-st" id="yiyi-167">在三种情况下可以比较分类数据与其他对象：</span></p>
+<blockquote>
+<div><ul class="simple">
+<li><span class="yiyi-st" id="yiyi-168">将等式（<code class="docutils literal"><span class="pre">==</span></code>和<code class="docutils literal"><span class="pre">!=</span></code>）与类别对象（列表，系列，数组，...）进行比较，其长度与分类数据相同。</span></li>
+<li><span class="yiyi-st" id="yiyi-169">all comparisons (<code class="docutils literal"><span class="pre">==</span></code>, <code class="docutils literal"><span class="pre">!=</span></code>, <code class="docutils literal"><span class="pre">&gt;</span></code>, <code class="docutils literal"><span class="pre">&gt;=</span></code>, <code class="docutils literal"><span class="pre">&lt;</span></code>, and <code class="docutils literal"><span class="pre">&lt;=</span></code>) of categorical data to another categorical Series, when <code class="docutils literal"><span class="pre">ordered==True</span></code> and the <cite>categories</cite> are the same.</span></li>
+<li><span class="yiyi-st" id="yiyi-170">分类数据与标量的所有比较。</span></li>
+</ul>
+</div></blockquote>
+<p><span class="yiyi-st" id="yiyi-171">所有其他比较，特别是具有不同类别的两个分类的“非等同”比较，或者具有任何类似列表的对象的分类，将引起TypeError。</span></p>
+<div class="admonition note">
+<p class="first admonition-title"><span class="yiyi-st" id="yiyi-172">注意</span></p>
+<p class="last"><span class="yiyi-st" id="yiyi-173">对分类数据与<cite>系列</cite>，<cite>np.array</cite>，<cite>列表</cite>或具有不同类别或排序的分类数据的任何“不等同”比较<cite>TypeError</cite>，因为自定义类别排序可以用两种方式解释：一种考虑到排序，一种没有。</span></p>
+</div>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [85]: </span><span class="n">cat</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">])</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s2">&quot;category&quot;</span><span class="p">,</span> <span class="n">categories</span><span class="o">=</span><span class="p">[</span><span class="mi">3</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="n">ordered</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+<span class="gp">In [86]: </span><span class="n">cat_base</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">([</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">])</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s2">&quot;category&quot;</span><span class="p">,</span> <span class="n">categories</span><span class="o">=</span><span class="p">[</span><span class="mi">3</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="n">ordered</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+<span class="gp">In [87]: </span><span class="n">cat_base2</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">([</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">])</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s2">&quot;category&quot;</span><span class="p">,</span> <span class="n">ordered</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+<span class="gp">In [88]: </span><span class="n">cat</span>
+<span class="gr">Out[88]: </span>
+<span class="go">0    1</span>
+<span class="go">1    2</span>
+<span class="go">2    3</span>
+<span class="go">dtype: category</span>
+<span class="go">Categories (3, int64): [3 &lt; 2 &lt; 1]</span>
+
+<span class="gp">In [89]: </span><span class="n">cat_base</span>
+<span class="gr">Out[89]: </span>
+<span class="go">0    2</span>
+<span class="go">1    2</span>
+<span class="go">2    2</span>
+<span class="go">dtype: category</span>
+<span class="go">Categories (3, int64): [3 &lt; 2 &lt; 1]</span>
+
+<span class="gp">In [90]: </span><span class="n">cat_base2</span>
+<span class="gr">Out[90]: </span>
+<span class="go">0    2</span>
+<span class="go">1    2</span>
+<span class="go">2    2</span>
+<span class="go">dtype: category</span>
+<span class="go">Categories (1, int64): [2]</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-174">比较具有相同类别和排序或标量作品的分类：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [91]: </span><span class="n">cat</span> <span class="o">&gt;</span> <span class="n">cat_base</span>
+<span class="gr">Out[91]: </span>
+<span class="go">0     True</span>
+<span class="go">1    False</span>
+<span class="go">2    False</span>
+<span class="go">dtype: bool</span>
+
+<span class="gp">In [92]: </span><span class="n">cat</span> <span class="o">&gt;</span> <span class="mi">2</span>
+<span class="gr">Out[92]: </span>
+<span class="go">0     True</span>
+<span class="go">1    False</span>
+<span class="go">2    False</span>
+<span class="go">dtype: bool</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-175">平等比较与任何相同长度和标量的类似列表对象一起使用：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [93]: </span><span class="n">cat</span> <span class="o">==</span> <span class="n">cat_base</span>
+<span class="gr">Out[93]: </span>
+<span class="go">0    False</span>
+<span class="go">1     True</span>
+<span class="go">2    False</span>
+<span class="go">dtype: bool</span>
+
+<span class="gp">In [94]: </span><span class="n">cat</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">])</span>
+<span class="gr">Out[94]: </span>
+<span class="go">0    True</span>
+<span class="go">1    True</span>
+<span class="go">2    True</span>
+<span class="go">dtype: bool</span>
+
+<span class="gp">In [95]: </span><span class="n">cat</span> <span class="o">==</span> <span class="mi">2</span>
+<span class="gr">Out[95]: </span>
+<span class="go">0    False</span>
+<span class="go">1     True</span>
+<span class="go">2    False</span>
+<span class="go">dtype: bool</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-176">这不工作，因为类别不一样：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [96]: </span><span class="k">try</span><span class="p">:</span>
+<span class="gp">   ....:</span>     <span class="n">cat</span> <span class="o">&gt;</span> <span class="n">cat_base2</span>
+<span class="gp">   ....:</span> <span class="k">except</span> <span class="ne">TypeError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+<span class="gp">   ....:</span>      <span class="k">print</span><span class="p">(</span><span class="s2">&quot;TypeError: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
+<span class="gp">   ....:</span> 
+<span class="go">TypeError: Categoricals can only be compared if &apos;categories&apos; are the same</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-177">如果要对类别序列与不是分类数据的类似列表对象执行“非等同”比较，则需要显式并将分类数据转换回原始值：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [97]: </span><span class="n">base</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">])</span>
+
+<span class="gp">In [98]: </span><span class="k">try</span><span class="p">:</span>
+<span class="gp">   ....:</span>     <span class="n">cat</span> <span class="o">&gt;</span> <span class="n">base</span>
+<span class="gp">   ....:</span> <span class="k">except</span> <span class="ne">TypeError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+<span class="gp">   ....:</span>      <span class="k">print</span><span class="p">(</span><span class="s2">&quot;TypeError: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
+<span class="gp">   ....:</span> 
+<span class="go">TypeError: Cannot compare a Categorical for op __gt__ with type &lt;type &apos;numpy.ndarray&apos;&gt;.</span>
+<span class="go">If you want to compare values, use &apos;np.asarray(cat) &lt;op&gt; other&apos;.</span>
+
+<span class="gp">In [99]: </span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">cat</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">base</span>
+<span class="gr">Out[99]: </span><span class="n">array</span><span class="p">([</span><span class="bp">False</span><span class="p">,</span> <span class="bp">False</span><span class="p">,</span> <span class="bp">False</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="operations">
+<h2><span class="yiyi-st" id="yiyi-178">Operations</span></h2>
+<p><span class="yiyi-st" id="yiyi-179">除了<code class="docutils literal"><span class="pre">Series.min()</span></code>，<code class="docutils literal"><span class="pre">Series.max()</span></code>和<code class="docutils literal"><span class="pre">Series.mode()</span></code>，以下操作对于分类数据是可能的：</span></p>
+<p><span class="yiyi-st" id="yiyi-180"><cite>Series.value_counts()</cite>的<cite>系列</cite>方法将使用所有类别，即使数据中不存在某些类别：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [100]: </span><span class="n">s</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">Categorical</span><span class="p">([</span><span class="s2">&quot;a&quot;</span><span class="p">,</span><span class="s2">&quot;b&quot;</span><span class="p">,</span><span class="s2">&quot;c&quot;</span><span class="p">,</span><span class="s2">&quot;c&quot;</span><span class="p">],</span> <span class="n">categories</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;c&quot;</span><span class="p">,</span><span class="s2">&quot;a&quot;</span><span class="p">,</span><span class="s2">&quot;b&quot;</span><span class="p">,</span><span class="s2">&quot;d&quot;</span><span class="p">]))</span>
+
+<span class="gp">In [101]: </span><span class="n">s</span><span class="o">.</span><span class="n">value_counts</span><span class="p">()</span>
+<span class="gr">Out[101]: </span>
+<span class="go">c    2</span>
+<span class="go">b    1</span>
+<span class="go">a    1</span>
+<span class="go">d    0</span>
+<span class="go">dtype: int64</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-181">Groupby还将显示“未使用”类别：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [102]: </span><span class="n">cats</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Categorical</span><span class="p">([</span><span class="s2">&quot;a&quot;</span><span class="p">,</span><span class="s2">&quot;b&quot;</span><span class="p">,</span><span class="s2">&quot;b&quot;</span><span class="p">,</span><span class="s2">&quot;b&quot;</span><span class="p">,</span><span class="s2">&quot;c&quot;</span><span class="p">,</span><span class="s2">&quot;c&quot;</span><span class="p">,</span><span class="s2">&quot;c&quot;</span><span class="p">],</span> <span class="n">categories</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;a&quot;</span><span class="p">,</span><span class="s2">&quot;b&quot;</span><span class="p">,</span><span class="s2">&quot;c&quot;</span><span class="p">,</span><span class="s2">&quot;d&quot;</span><span class="p">])</span>
+
+<span class="gp">In [103]: </span><span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s2">&quot;cats&quot;</span><span class="p">:</span><span class="n">cats</span><span class="p">,</span><span class="s2">&quot;values&quot;</span><span class="p">:[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">]})</span>
+
+<span class="gp">In [104]: </span><span class="n">df</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s2">&quot;cats&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+<span class="gr">Out[104]: </span>
+<span class="go">      values</span>
+<span class="go">cats        </span>
+<span class="go">a        1.0</span>
+<span class="go">b        2.0</span>
+<span class="go">c        4.0</span>
+<span class="go">d        NaN</span>
+
+<span class="gp">In [105]: </span><span class="n">cats2</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Categorical</span><span class="p">([</span><span class="s2">&quot;a&quot;</span><span class="p">,</span><span class="s2">&quot;a&quot;</span><span class="p">,</span><span class="s2">&quot;b&quot;</span><span class="p">,</span><span class="s2">&quot;b&quot;</span><span class="p">],</span> <span class="n">categories</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;a&quot;</span><span class="p">,</span><span class="s2">&quot;b&quot;</span><span class="p">,</span><span class="s2">&quot;c&quot;</span><span class="p">])</span>
+
+<span class="gp">In [106]: </span><span class="n">df2</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s2">&quot;cats&quot;</span><span class="p">:</span><span class="n">cats2</span><span class="p">,</span><span class="s2">&quot;B&quot;</span><span class="p">:[</span><span class="s2">&quot;c&quot;</span><span class="p">,</span><span class="s2">&quot;d&quot;</span><span class="p">,</span><span class="s2">&quot;c&quot;</span><span class="p">,</span><span class="s2">&quot;d&quot;</span><span class="p">],</span> <span class="s2">&quot;values&quot;</span><span class="p">:[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">]})</span>
+
+<span class="gp">In [107]: </span><span class="n">df2</span><span class="o">.</span><span class="n">groupby</span><span class="p">([</span><span class="s2">&quot;cats&quot;</span><span class="p">,</span><span class="s2">&quot;B&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+<span class="gr">Out[107]: </span>
+<span class="go">        values</span>
+<span class="go">cats B        </span>
+<span class="go">a    c     1.0</span>
+<span class="go">     d     2.0</span>
+<span class="go">b    c     3.0</span>
+<span class="go">     d     4.0</span>
+<span class="go">c    c     NaN</span>
+<span class="go">     d     NaN</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-182">数据透视表：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [108]: </span><span class="n">raw_cat</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Categorical</span><span class="p">([</span><span class="s2">&quot;a&quot;</span><span class="p">,</span><span class="s2">&quot;a&quot;</span><span class="p">,</span><span class="s2">&quot;b&quot;</span><span class="p">,</span><span class="s2">&quot;b&quot;</span><span class="p">],</span> <span class="n">categories</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;a&quot;</span><span class="p">,</span><span class="s2">&quot;b&quot;</span><span class="p">,</span><span class="s2">&quot;c&quot;</span><span class="p">])</span>
+
+<span class="gp">In [109]: </span><span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s2">&quot;A&quot;</span><span class="p">:</span><span class="n">raw_cat</span><span class="p">,</span><span class="s2">&quot;B&quot;</span><span class="p">:[</span><span class="s2">&quot;c&quot;</span><span class="p">,</span><span class="s2">&quot;d&quot;</span><span class="p">,</span><span class="s2">&quot;c&quot;</span><span class="p">,</span><span class="s2">&quot;d&quot;</span><span class="p">],</span> <span class="s2">&quot;values&quot;</span><span class="p">:[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">]})</span>
+
+<span class="gp">In [110]: </span><span class="n">pd</span><span class="o">.</span><span class="n">pivot_table</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="s1">&apos;values&apos;</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="p">[</span><span class="s1">&apos;A&apos;</span><span class="p">,</span> <span class="s1">&apos;B&apos;</span><span class="p">])</span>
+<span class="gr">Out[110]: </span>
+<span class="go">A  B</span>
+<span class="go">a  c    1.0</span>
+<span class="go">   d    2.0</span>
+<span class="go">b  c    3.0</span>
+<span class="go">   d    4.0</span>
+<span class="go">c  c    NaN</span>
+<span class="go">   d    NaN</span>
+<span class="go">Name: values, dtype: float64</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="data-munging">
+<h2><span class="yiyi-st" id="yiyi-183">Data munging</span></h2>
+<p><span class="yiyi-st" id="yiyi-184">优化的pandas数据访问方法<code class="docutils literal"><span class="pre">.loc</span></code>，<code class="docutils literal"><span class="pre">.iloc</span></code>，<code class="docutils literal"><span class="pre">.ix</span></code> <code class="docutils literal"><span class="pre">.at</span></code>和<code class="docutils literal"><span class="pre">.iat</span></code>，正常工作。</span><span class="yiyi-st" id="yiyi-185">唯一的区别是返回类型（用于获取），并且只能分配<cite>类别</cite>中的值。</span></p>
+<div class="section" id="getting">
+<h3><span class="yiyi-st" id="yiyi-186">Getting</span></h3>
+<p><span class="yiyi-st" id="yiyi-187">如果切片操作返回<cite>DataFrame</cite>或类型<cite>系列</cite>的列，则会保留<code class="docutils literal"><span class="pre">category</span></code> dtype。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [111]: </span><span class="n">idx</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Index</span><span class="p">([</span><span class="s2">&quot;h&quot;</span><span class="p">,</span><span class="s2">&quot;i&quot;</span><span class="p">,</span><span class="s2">&quot;j&quot;</span><span class="p">,</span><span class="s2">&quot;k&quot;</span><span class="p">,</span><span class="s2">&quot;l&quot;</span><span class="p">,</span><span class="s2">&quot;m&quot;</span><span class="p">,</span><span class="s2">&quot;n&quot;</span><span class="p">,])</span>
+
+<span class="gp">In [112]: </span><span class="n">cats</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">([</span><span class="s2">&quot;a&quot;</span><span class="p">,</span><span class="s2">&quot;b&quot;</span><span class="p">,</span><span class="s2">&quot;b&quot;</span><span class="p">,</span><span class="s2">&quot;b&quot;</span><span class="p">,</span><span class="s2">&quot;c&quot;</span><span class="p">,</span><span class="s2">&quot;c&quot;</span><span class="p">,</span><span class="s2">&quot;c&quot;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">&quot;category&quot;</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">idx</span><span class="p">)</span>
+
+<span class="gp">In [113]: </span><span class="n">values</span><span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">]</span>
+
+<span class="gp">In [114]: </span><span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s2">&quot;cats&quot;</span><span class="p">:</span><span class="n">cats</span><span class="p">,</span><span class="s2">&quot;values&quot;</span><span class="p">:</span><span class="n">values</span><span class="p">},</span> <span class="n">index</span><span class="o">=</span><span class="n">idx</span><span class="p">)</span>
+
+<span class="gp">In [115]: </span><span class="n">df</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">2</span><span class="p">:</span><span class="mi">4</span><span class="p">,:]</span>
+<span class="gr">Out[115]: </span>
+<span class="go">  cats  values</span>
+<span class="go">j    b       2</span>
+<span class="go">k    b       2</span>
+
+<span class="gp">In [116]: </span><span class="n">df</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">2</span><span class="p">:</span><span class="mi">4</span><span class="p">,:]</span><span class="o">.</span><span class="n">dtypes</span>
+<span class="gr">Out[116]: </span>
+<span class="go">cats      category</span>
+<span class="go">values       int64</span>
+<span class="go">dtype: object</span>
+
+<span class="gp">In [117]: </span><span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="s2">&quot;h&quot;</span><span class="p">:</span><span class="s2">&quot;j&quot;</span><span class="p">,</span><span class="s2">&quot;cats&quot;</span><span class="p">]</span>
+<span class="gr">Out[117]: </span>
+<span class="go">h    a</span>
+<span class="go">i    b</span>
+<span class="go">j    b</span>
+<span class="go">Name: cats, dtype: category</span>
+<span class="go">Categories (3, object): [a, b, c]</span>
+
+<span class="gp">In [118]: </span><span class="n">df</span><span class="o">.</span><span class="n">ix</span><span class="p">[</span><span class="s2">&quot;h&quot;</span><span class="p">:</span><span class="s2">&quot;j&quot;</span><span class="p">,</span><span class="mi">0</span><span class="p">:</span><span class="mi">1</span><span class="p">]</span>
+<span class="gr">Out[118]: </span>
+<span class="go">  cats</span>
+<span class="go">h    a</span>
+<span class="go">i    b</span>
+<span class="go">j    b</span>
+
+<span class="gp">In [119]: </span><span class="n">df</span><span class="p">[</span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;cats&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;b&quot;</span><span class="p">]</span>
+<span class="gr">Out[119]: </span>
+<span class="go">  cats  values</span>
+<span class="go">i    b       2</span>
+<span class="go">j    b       2</span>
+<span class="go">k    b       2</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-188">未保留类别类型的示例是，如果您只需要一行：生成的<cite>Series</cite>是dtype <code class="docutils literal"><span class="pre">object</span></code>：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="c"># get the complete &quot;h&quot; row as a Series</span>
+<span class="gp">In [120]: </span><span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="s2">&quot;h&quot;</span><span class="p">,</span> <span class="p">:]</span>
+<span class="gr">Out[120]: </span>
+<span class="go">cats      a</span>
+<span class="go">values    1</span>
+<span class="go">Name: h, dtype: object</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-189">从分类数据返回单个项目也将返回值，而不是长度为“1”的分类。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [121]: </span><span class="n">df</span><span class="o">.</span><span class="n">iat</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span>
+<span class="gr">Out[121]: </span><span class="s1">&apos;a&apos;</span>
+
+<span class="gp">In [122]: </span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;cats&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">cat</span><span class="o">.</span><span class="n">categories</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">,</span><span class="s2">&quot;y&quot;</span><span class="p">,</span><span class="s2">&quot;z&quot;</span><span class="p">]</span>
+
+<span class="gp">In [123]: </span><span class="n">df</span><span class="o">.</span><span class="n">at</span><span class="p">[</span><span class="s2">&quot;h&quot;</span><span class="p">,</span><span class="s2">&quot;cats&quot;</span><span class="p">]</span> <span class="c1"># returns a string</span>
+<span class="gr">Out[123]: </span><span class="s1">&apos;x&apos;</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title"><span class="yiyi-st" id="yiyi-190">注意</span></p>
+<p class="last"><span class="yiyi-st" id="yiyi-191">这与R的<cite>因子</cite>函数不同，其中<code class="docutils literal"><span class="pre">factor(c(1,2,3))[1]</span></code>返回单个值<cite>。</cite></span></p>
+</div>
+<p><span class="yiyi-st" id="yiyi-192">要获取类型<code class="docutils literal"><span class="pre">category</span></code>类型的单个值<cite>Series</cite>，请传入具有单个值的列表：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [124]: </span><span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[[</span><span class="s2">&quot;h&quot;</span><span class="p">],</span><span class="s2">&quot;cats&quot;</span><span class="p">]</span>
+<span class="gr">Out[124]: </span>
+<span class="go">h    x</span>
+<span class="go">Name: cats, dtype: category</span>
+<span class="go">Categories (3, object): [x, y, z]</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="string-and-datetime-accessors">
+<h3><span class="yiyi-st" id="yiyi-193">String and datetime accessors</span></h3>
+<div class="versionadded">
+<p><span class="yiyi-st" id="yiyi-194"><span class="versionmodified">版本0.17.1中的新功能。</span></span></p>
+</div>
+<p><span class="yiyi-st" id="yiyi-195">如果<code class="docutils literal"><span class="pre">s.cat.categories</span></code>是适当类型，则访问器<code class="docutils literal"><span class="pre">.dt</span></code>和<code class="docutils literal"><span class="pre">.str</span></code></span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [125]: </span><span class="n">str_s</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="s1">&apos;aabb&apos;</span><span class="p">))</span>
+
+<span class="gp">In [126]: </span><span class="n">str_cat</span> <span class="o">=</span> <span class="n">str_s</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">&apos;category&apos;</span><span class="p">)</span>
+
+<span class="gp">In [127]: </span><span class="n">str_cat</span>
+<span class="gr">Out[127]: </span>
+<span class="go">0    a</span>
+<span class="go">1    a</span>
+<span class="go">2    b</span>
+<span class="go">3    b</span>
+<span class="go">dtype: category</span>
+<span class="go">Categories (2, object): [a, b]</span>
+
+<span class="gp">In [128]: </span><span class="n">str_cat</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">contains</span><span class="p">(</span><span class="s2">&quot;a&quot;</span><span class="p">)</span>
+<span class="gr">Out[128]: </span>
+<span class="go">0     True</span>
+<span class="go">1     True</span>
+<span class="go">2    False</span>
+<span class="go">3    False</span>
+<span class="go">dtype: bool</span>
+
+<span class="gp">In [129]: </span><span class="n">date_s</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">date_range</span><span class="p">(</span><span class="s1">&apos;1/1/2015&apos;</span><span class="p">,</span> <span class="n">periods</span><span class="o">=</span><span class="mi">5</span><span class="p">))</span>
+
+<span class="gp">In [130]: </span><span class="n">date_cat</span> <span class="o">=</span> <span class="n">date_s</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">&apos;category&apos;</span><span class="p">)</span>
+
+<span class="gp">In [131]: </span><span class="n">date_cat</span>
+<span class="gr">Out[131]: </span>
+<span class="go">0   2015-01-01</span>
+<span class="go">1   2015-01-02</span>
+<span class="go">2   2015-01-03</span>
+<span class="go">3   2015-01-04</span>
+<span class="go">4   2015-01-05</span>
+<span class="go">dtype: category</span>
+<span class="go">Categories (5, datetime64[ns]): [2015-01-01, 2015-01-02, 2015-01-03, 2015-01-04, 2015-01-05]</span>
+
+<span class="gp">In [132]: </span><span class="n">date_cat</span><span class="o">.</span><span class="n">dt</span><span class="o">.</span><span class="n">day</span>
+<span class="gr">Out[132]: </span>
+<span class="go">0    1</span>
+<span class="go">1    2</span>
+<span class="go">2    3</span>
+<span class="go">3    4</span>
+<span class="go">4    5</span>
+<span class="go">dtype: int64</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title"><span class="yiyi-st" id="yiyi-196">注意</span></p>
+<p class="last"><span class="yiyi-st" id="yiyi-197">The returned <code class="docutils literal"><span class="pre">Series</span></code> (or <code class="docutils literal"><span class="pre">DataFrame</span></code>) is of the same type as if you used the <code class="docutils literal"><span class="pre">.str.&lt;method&gt;</span></code> / <code class="docutils literal"><span class="pre">.dt.&lt;method&gt;</span></code> on a <code class="docutils literal"><span class="pre">Series</span></code> of that type (and not of type <code class="docutils literal"><span class="pre">category</span></code>! </span><span class="yiyi-st" id="yiyi-198">）。</span></p>
+</div>
+<p><span class="yiyi-st" id="yiyi-199">这意味着，从<code class="docutils literal"><span class="pre">Series</span></code>的访问器上的方法和属性返回的值以及此<code class="docutils literal"><span class="pre">Series</span></code>的访问器上的方法和属性的返回值都转换为类型之一<cite>类别</cite>将相等：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [133]: </span><span class="n">ret_s</span> <span class="o">=</span> <span class="n">str_s</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">contains</span><span class="p">(</span><span class="s2">&quot;a&quot;</span><span class="p">)</span>
+
+<span class="gp">In [134]: </span><span class="n">ret_cat</span> <span class="o">=</span> <span class="n">str_cat</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">contains</span><span class="p">(</span><span class="s2">&quot;a&quot;</span><span class="p">)</span>
+
+<span class="gp">In [135]: </span><span class="n">ret_s</span><span class="o">.</span><span class="n">dtype</span> <span class="o">==</span> <span class="n">ret_cat</span><span class="o">.</span><span class="n">dtype</span>
+<span class="gr">Out[135]: </span><span class="bp">True</span>
+
+<span class="gp">In [136]: </span><span class="n">ret_s</span> <span class="o">==</span> <span class="n">ret_cat</span>
+<span class="gr">Out[136]: </span>
+<span class="go">0    True</span>
+<span class="go">1    True</span>
+<span class="go">2    True</span>
+<span class="go">3    True</span>
+<span class="go">dtype: bool</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title"><span class="yiyi-st" id="yiyi-200">注意</span></p>
+<p class="last"><span class="yiyi-st" id="yiyi-201">工作在<code class="docutils literal"><span class="pre">categories</span></code>上完成，然后构建新的<code class="docutils literal"><span class="pre">Series</span></code>。</span><span class="yiyi-st" id="yiyi-202">如果你有一个<code class="docutils literal"><span class="pre">Series</span></code>类型字符串，其中很多元素被重复（即，<code class="docutils literal"><span class="pre">Series</span></code>中的唯一元素的数量比<code class="docutils literal"><span class="pre">Series</span></code>的长度）。</span><span class="yiyi-st" id="yiyi-203">在这种情况下，将原始<code class="docutils literal"><span class="pre">Series</span></code>转换为<code class="docutils literal"><span class="pre">category</span></code>之一并使用<code class="docutils literal"><span class="pre">.str.&lt;method&gt;</span></code>或<code class="docutils literal"><span class="pre">.dt.&lt;property&gt;</span></code>。</span></p>
+</div>
+</div>
+<div class="section" id="setting">
+<h3><span class="yiyi-st" id="yiyi-204">Setting</span></h3>
+<p><span class="yiyi-st" id="yiyi-205">在分类列（或<cite>系列</cite>）中设置值可以工作，只要该值包含在<cite>类别</cite>中：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [137]: </span><span class="n">idx</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Index</span><span class="p">([</span><span class="s2">&quot;h&quot;</span><span class="p">,</span><span class="s2">&quot;i&quot;</span><span class="p">,</span><span class="s2">&quot;j&quot;</span><span class="p">,</span><span class="s2">&quot;k&quot;</span><span class="p">,</span><span class="s2">&quot;l&quot;</span><span class="p">,</span><span class="s2">&quot;m&quot;</span><span class="p">,</span><span class="s2">&quot;n&quot;</span><span class="p">])</span>
+
+<span class="gp">In [138]: </span><span class="n">cats</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Categorical</span><span class="p">([</span><span class="s2">&quot;a&quot;</span><span class="p">,</span><span class="s2">&quot;a&quot;</span><span class="p">,</span><span class="s2">&quot;a&quot;</span><span class="p">,</span><span class="s2">&quot;a&quot;</span><span class="p">,</span><span class="s2">&quot;a&quot;</span><span class="p">,</span><span class="s2">&quot;a&quot;</span><span class="p">,</span><span class="s2">&quot;a&quot;</span><span class="p">],</span> <span class="n">categories</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;a&quot;</span><span class="p">,</span><span class="s2">&quot;b&quot;</span><span class="p">])</span>
+
+<span class="gp">In [139]: </span><span class="n">values</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span>
+
+<span class="gp">In [140]: </span><span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s2">&quot;cats&quot;</span><span class="p">:</span><span class="n">cats</span><span class="p">,</span><span class="s2">&quot;values&quot;</span><span class="p">:</span><span class="n">values</span><span class="p">},</span> <span class="n">index</span><span class="o">=</span><span class="n">idx</span><span class="p">)</span>
+
+<span class="gp">In [141]: </span><span class="n">df</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">2</span><span class="p">:</span><span class="mi">4</span><span class="p">,:]</span> <span class="o">=</span> <span class="p">[[</span><span class="s2">&quot;b&quot;</span><span class="p">,</span><span class="mi">2</span><span class="p">],[</span><span class="s2">&quot;b&quot;</span><span class="p">,</span><span class="mi">2</span><span class="p">]]</span>
+
+<span class="gp">In [142]: </span><span class="n">df</span>
+<span class="gr">Out[142]: </span>
+<span class="go">  cats  values</span>
+<span class="go">h    a       1</span>
+<span class="go">i    a       1</span>
+<span class="go">j    b       2</span>
+<span class="go">k    b       2</span>
+<span class="go">l    a       1</span>
+<span class="go">m    a       1</span>
+<span class="go">n    a       1</span>
+
+<span class="gp">In [143]: </span><span class="k">try</span><span class="p">:</span>
+<span class="gp">   .....:</span>     <span class="n">df</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">2</span><span class="p">:</span><span class="mi">4</span><span class="p">,:]</span> <span class="o">=</span> <span class="p">[[</span><span class="s2">&quot;c&quot;</span><span class="p">,</span><span class="mi">3</span><span class="p">],[</span><span class="s2">&quot;c&quot;</span><span class="p">,</span><span class="mi">3</span><span class="p">]]</span>
+<span class="gp">   .....:</span> <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+<span class="gp">   .....:</span>     <span class="k">print</span><span class="p">(</span><span class="s2">&quot;ValueError: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
+<span class="gp">   .....:</span> 
+<span class="go">ValueError: Cannot setitem on a Categorical with a new category, set the categories first</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-206">通过指定分类数据设置值还将检查<cite>类别</cite>是否匹配：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [144]: </span><span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="s2">&quot;j&quot;</span><span class="p">:</span><span class="s2">&quot;k&quot;</span><span class="p">,</span><span class="s2">&quot;cats&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Categorical</span><span class="p">([</span><span class="s2">&quot;a&quot;</span><span class="p">,</span><span class="s2">&quot;a&quot;</span><span class="p">],</span> <span class="n">categories</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;a&quot;</span><span class="p">,</span><span class="s2">&quot;b&quot;</span><span class="p">])</span>
+
+<span class="gp">In [145]: </span><span class="n">df</span>
+<span class="gr">Out[145]: </span>
+<span class="go">  cats  values</span>
+<span class="go">h    a       1</span>
+<span class="go">i    a       1</span>
+<span class="go">j    a       2</span>
+<span class="go">k    a       2</span>
+<span class="go">l    a       1</span>
+<span class="go">m    a       1</span>
+<span class="go">n    a       1</span>
+
+<span class="gp">In [146]: </span><span class="k">try</span><span class="p">:</span>
+<span class="gp">   .....:</span>     <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="s2">&quot;j&quot;</span><span class="p">:</span><span class="s2">&quot;k&quot;</span><span class="p">,</span><span class="s2">&quot;cats&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Categorical</span><span class="p">([</span><span class="s2">&quot;b&quot;</span><span class="p">,</span><span class="s2">&quot;b&quot;</span><span class="p">],</span> <span class="n">categories</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;a&quot;</span><span class="p">,</span><span class="s2">&quot;b&quot;</span><span class="p">,</span><span class="s2">&quot;c&quot;</span><span class="p">])</span>
+<span class="gp">   .....:</span> <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+<span class="gp">   .....:</span>     <span class="k">print</span><span class="p">(</span><span class="s2">&quot;ValueError: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
+<span class="gp">   .....:</span> 
+<span class="go">ValueError: Cannot set a Categorical with another, without identical categories</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-207">为其他类型的列的某些部分分配<cite>分类</cite>将使用以下值：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [147]: </span><span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s2">&quot;a&quot;</span><span class="p">:[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="s2">&quot;b&quot;</span><span class="p">:[</span><span class="s2">&quot;a&quot;</span><span class="p">,</span><span class="s2">&quot;a&quot;</span><span class="p">,</span><span class="s2">&quot;a&quot;</span><span class="p">,</span><span class="s2">&quot;a&quot;</span><span class="p">,</span><span class="s2">&quot;a&quot;</span><span class="p">]})</span>
+
+<span class="gp">In [148]: </span><span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="mi">2</span><span class="p">,</span><span class="s2">&quot;a&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Categorical</span><span class="p">([</span><span class="s2">&quot;b&quot;</span><span class="p">,</span><span class="s2">&quot;b&quot;</span><span class="p">],</span> <span class="n">categories</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;a&quot;</span><span class="p">,</span><span class="s2">&quot;b&quot;</span><span class="p">])</span>
+
+<span class="gp">In [149]: </span><span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="mi">2</span><span class="p">:</span><span class="mi">3</span><span class="p">,</span><span class="s2">&quot;b&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Categorical</span><span class="p">([</span><span class="s2">&quot;b&quot;</span><span class="p">,</span><span class="s2">&quot;b&quot;</span><span class="p">],</span> <span class="n">categories</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;a&quot;</span><span class="p">,</span><span class="s2">&quot;b&quot;</span><span class="p">])</span>
+
+<span class="gp">In [150]: </span><span class="n">df</span>
+<span class="gr">Out[150]: </span>
+<span class="go">   a  b</span>
+<span class="go">0  1  a</span>
+<span class="go">1  b  a</span>
+<span class="go">2  b  b</span>
+<span class="go">3  1  b</span>
+<span class="go">4  1  a</span>
+
+<span class="gp">In [151]: </span><span class="n">df</span><span class="o">.</span><span class="n">dtypes</span>
+<span class="gr">Out[151]: </span>
+<span class="go">a    object</span>
+<span class="go">b    object</span>
+<span class="go">dtype: object</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="merging">
+<h3><span class="yiyi-st" id="yiyi-208">Merging</span></h3>
+<p><span class="yiyi-st" id="yiyi-209">您可以将包含分类数据的两个<cite>DataFrames</cite>合并在一起，但这些分类的类别需要相同：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [152]: </span><span class="n">cat</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">([</span><span class="s2">&quot;a&quot;</span><span class="p">,</span><span class="s2">&quot;b&quot;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">&quot;category&quot;</span><span class="p">)</span>
+
+<span class="gp">In [153]: </span><span class="n">vals</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">]</span>
+
+<span class="gp">In [154]: </span><span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s2">&quot;cats&quot;</span><span class="p">:</span><span class="n">cat</span><span class="p">,</span> <span class="s2">&quot;vals&quot;</span><span class="p">:</span><span class="n">vals</span><span class="p">})</span>
+
+<span class="gp">In [155]: </span><span class="n">res</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">df</span><span class="p">,</span><span class="n">df</span><span class="p">])</span>
+
+<span class="gp">In [156]: </span><span class="n">res</span>
+<span class="gr">Out[156]: </span>
+<span class="go">  cats  vals</span>
+<span class="go">0    a     1</span>
+<span class="go">1    b     2</span>
+<span class="go">0    a     1</span>
+<span class="go">1    b     2</span>
+
+<span class="gp">In [157]: </span><span class="n">res</span><span class="o">.</span><span class="n">dtypes</span>
+<span class="gr">Out[157]: </span>
+<span class="go">cats    category</span>
+<span class="go">vals       int64</span>
+<span class="go">dtype: object</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-210">在这种情况下，类别不一样，因此会出现错误：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [158]: </span><span class="n">df_different</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+<span class="gp">In [159]: </span><span class="n">df_different</span><span class="p">[</span><span class="s2">&quot;cats&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">cat</span><span class="o">.</span><span class="n">categories</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;c&quot;</span><span class="p">,</span><span class="s2">&quot;d&quot;</span><span class="p">]</span>
+
+<span class="gp">In [160]: </span><span class="k">try</span><span class="p">:</span>
+<span class="gp">   .....:</span>     <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">df</span><span class="p">,</span><span class="n">df_different</span><span class="p">])</span>
+<span class="gp">   .....:</span> <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+<span class="gp">   .....:</span>     <span class="k">print</span><span class="p">(</span><span class="s2">&quot;ValueError: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
+<span class="gp">   .....:</span> 
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-211">这同样适用于<code class="docutils literal"><span class="pre">df.append(df_different)</span></code>。</span></p>
+</div>
+<div class="section" id="unioning">
+<span id="categorical-union"></span><h3><span class="yiyi-st" id="yiyi-212">Unioning</span></h3>
+<div class="versionadded">
+<p><span class="yiyi-st" id="yiyi-213"><span class="versionmodified">版本0.19.0中的新功能。</span></span></p>
+</div>
+<p><span class="yiyi-st" id="yiyi-214">如果要组合不一定具有相同类别的类别，<code class="docutils literal"><span class="pre">union_categoricals</span></code>函数将组合类似列表的类别。</span><span class="yiyi-st" id="yiyi-215">新类别将是合并的类别的并集。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [161]: </span><span class="kn">from</span> <span class="nn">pandas.types.concat</span> <span class="kn">import</span> <span class="n">union_categoricals</span>
+
+<span class="gp">In [162]: </span><span class="n">a</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Categorical</span><span class="p">([</span><span class="s2">&quot;b&quot;</span><span class="p">,</span> <span class="s2">&quot;c&quot;</span><span class="p">])</span>
+
+<span class="gp">In [163]: </span><span class="n">b</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Categorical</span><span class="p">([</span><span class="s2">&quot;a&quot;</span><span class="p">,</span> <span class="s2">&quot;b&quot;</span><span class="p">])</span>
+
+<span class="gp">In [164]: </span><span class="n">union_categoricals</span><span class="p">([</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">])</span>
+<span class="gr">Out[164]: </span>
+<span class="go">[b, c, a, b]</span>
+<span class="go">Categories (3, object): [b, c, a]</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-216">默认情况下，生成的类别将按照在数据中显示的顺序排列。</span><span class="yiyi-st" id="yiyi-217">如果要对类别进行排序，请使用<code class="docutils literal"><span class="pre">sort_categories=True</span></code>参数。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [165]: </span><span class="n">union_categoricals</span><span class="p">([</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">],</span> <span class="n">sort_categories</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="gr">Out[165]: </span>
+<span class="go">[b, c, a, b]</span>
+<span class="go">Categories (3, object): [a, b, c]</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-218"><code class="docutils literal"><span class="pre">union_categoricals</span></code>也适用于组合相同类别和顺序信息的两个分类（例如，您也可以<code class="docutils literal"><span class="pre">append</span></code>）的“简单”情况。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [166]: </span><span class="n">a</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Categorical</span><span class="p">([</span><span class="s2">&quot;a&quot;</span><span class="p">,</span> <span class="s2">&quot;b&quot;</span><span class="p">],</span> <span class="n">ordered</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+<span class="gp">In [167]: </span><span class="n">b</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Categorical</span><span class="p">([</span><span class="s2">&quot;a&quot;</span><span class="p">,</span> <span class="s2">&quot;b&quot;</span><span class="p">,</span> <span class="s2">&quot;a&quot;</span><span class="p">],</span> <span class="n">ordered</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+<span class="gp">In [168]: </span><span class="n">union_categoricals</span><span class="p">([</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">])</span>
+<span class="gr">Out[168]: </span>
+<span class="go">[a, b, a, b, a]</span>
+<span class="go">Categories (2, object): [a &lt; b]</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-219">以下引发<code class="docutils literal"><span class="pre">TypeError</span></code>，因为类别是有序的并且不相同。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [1]: </span><span class="n">a</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Categorical</span><span class="p">([</span><span class="s2">&quot;a&quot;</span><span class="p">,</span> <span class="s2">&quot;b&quot;</span><span class="p">],</span> <span class="n">ordered</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="gp">In [2]: </span><span class="n">b</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Categorical</span><span class="p">([</span><span class="s2">&quot;a&quot;</span><span class="p">,</span> <span class="s2">&quot;b&quot;</span><span class="p">,</span> <span class="s2">&quot;c&quot;</span><span class="p">],</span> <span class="n">ordered</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="gp">In [3]: </span><span class="n">union_categoricals</span><span class="p">([</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">])</span>
+<span class="go">Out[3]:</span>
+<span class="go">TypeError: to union ordered Categoricals, all categories must be the same</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-220"><code class="docutils literal"><span class="pre">union_categoricals</span></code>也适用于包含分类数据的<code class="docutils literal"><span class="pre">CategoricalIndex</span></code>或<code class="docutils literal"><span class="pre">Series</span></code>，但请注意，生成的数组将始终是一个简单的<code class="docutils literal"><span class="pre">Categorical</span></code></span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [169]: </span><span class="n">a</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">([</span><span class="s2">&quot;b&quot;</span><span class="p">,</span> <span class="s2">&quot;c&quot;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&apos;category&apos;</span><span class="p">)</span>
+
+<span class="gp">In [170]: </span><span class="n">b</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">([</span><span class="s2">&quot;a&quot;</span><span class="p">,</span> <span class="s2">&quot;b&quot;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&apos;category&apos;</span><span class="p">)</span>
+
+<span class="gp">In [171]: </span><span class="n">union_categoricals</span><span class="p">([</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">])</span>
+<span class="gr">Out[171]: </span>
+<span class="go">[b, c, a, b]</span>
+<span class="go">Categories (3, object): [b, c, a]</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title"><span class="yiyi-st" id="yiyi-221">注意</span></p>
+<p><span class="yiyi-st" id="yiyi-222"><code class="docutils literal"><span class="pre">union_categoricals</span></code>可以在合并分类时重新编码类别的整数代码。</span><span class="yiyi-st" id="yiyi-223">这可能是你想要的，但如果你依赖于类别的确切编号，请注意。</span></p>
+<div class="last highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [172]: </span><span class="n">c1</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Categorical</span><span class="p">([</span><span class="s2">&quot;b&quot;</span><span class="p">,</span> <span class="s2">&quot;c&quot;</span><span class="p">])</span>
+
+<span class="gp">In [173]: </span><span class="n">c2</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Categorical</span><span class="p">([</span><span class="s2">&quot;a&quot;</span><span class="p">,</span> <span class="s2">&quot;b&quot;</span><span class="p">])</span>
+
+<span class="gp">In [174]: </span><span class="n">c1</span>
+<span class="gr">Out[174]: </span>
+<span class="go">[b, c]</span>
+<span class="go">Categories (2, object): [b, c]</span>
+
+<span class="c"># &quot;b&quot; is coded to 0</span>
+<span class="gp">In [175]: </span><span class="n">c1</span><span class="o">.</span><span class="n">codes</span>
+<span class="gr">Out[175]: </span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">int8</span><span class="p">)</span>
+
+<span class="gp">In [176]: </span><span class="n">c2</span>
+<span class="gr">Out[176]: </span>
+<span class="go">[a, b]</span>
+<span class="go">Categories (2, object): [a, b]</span>
+
+<span class="c"># &quot;b&quot; is coded to 1</span>
+<span class="gp">In [177]: </span><span class="n">c2</span><span class="o">.</span><span class="n">codes</span>
+<span class="gr">Out[177]: </span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">int8</span><span class="p">)</span>
+
+<span class="gp">In [178]: </span><span class="n">c</span> <span class="o">=</span> <span class="n">union_categoricals</span><span class="p">([</span><span class="n">c1</span><span class="p">,</span> <span class="n">c2</span><span class="p">])</span>
+
+<span class="gp">In [179]: </span><span class="n">c</span>
+<span class="gr">Out[179]: </span>
+<span class="go">[b, c, a, b]</span>
+<span class="go">Categories (3, object): [b, c, a]</span>
+
+<span class="c"># &quot;b&quot; is coded to 0 throughout, same as c1, different from c2</span>
+<span class="gp">In [180]: </span><span class="n">c</span><span class="o">.</span><span class="n">codes</span>
+<span class="gr">Out[180]: </span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">int8</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="concatenation">
+<span id="categorical-concat"></span><h3><span class="yiyi-st" id="yiyi-224">Concatenation</span></h3>
+<p><span class="yiyi-st" id="yiyi-225">本节介绍<code class="docutils literal"><span class="pre">category</span></code> dtype特有的连接。</span><span class="yiyi-st" id="yiyi-226">有关一般说明，请参阅<a class="reference internal" href="merging.html#merging-concat"><span class="std std-ref">Concatenating objects</span></a>。</span></p>
+<p><span class="yiyi-st" id="yiyi-227">默认情况下，包含相同类别的<code class="docutils literal"><span class="pre">Series</span></code>或<code class="docutils literal"><span class="pre">DataFrame</span></code>连接会导致<code class="docutils literal"><span class="pre">category</span></code> dtype，否则会导致<code class="docutils literal"><span class="pre">object</span></code> dtype 。</span><span class="yiyi-st" id="yiyi-228">使用<code class="docutils literal"><span class="pre">.astype</span></code>或<code class="docutils literal"><span class="pre">union_categoricals</span></code>可获取<code class="docutils literal"><span class="pre">category</span></code>结果。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="c"># same categories</span>
+<span class="gp">In [181]: </span><span class="n">s1</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">([</span><span class="s1">&apos;a&apos;</span><span class="p">,</span> <span class="s1">&apos;b&apos;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&apos;category&apos;</span><span class="p">)</span>
+
+<span class="gp">In [182]: </span><span class="n">s2</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">([</span><span class="s1">&apos;a&apos;</span><span class="p">,</span> <span class="s1">&apos;b&apos;</span><span class="p">,</span> <span class="s1">&apos;a&apos;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&apos;category&apos;</span><span class="p">)</span>
+
+<span class="gp">In [183]: </span><span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">s1</span><span class="p">,</span> <span class="n">s2</span><span class="p">])</span>
+<span class="gr">Out[183]: </span>
+<span class="go">0    a</span>
+<span class="go">1    b</span>
+<span class="go">0    a</span>
+<span class="go">1    b</span>
+<span class="go">2    a</span>
+<span class="go">dtype: category</span>
+<span class="go">Categories (2, object): [a, b]</span>
+
+<span class="c"># different categories</span>
+<span class="gp">In [184]: </span><span class="n">s3</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">([</span><span class="s1">&apos;b&apos;</span><span class="p">,</span> <span class="s1">&apos;c&apos;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&apos;category&apos;</span><span class="p">)</span>
+
+<span class="gp">In [185]: </span><span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">s1</span><span class="p">,</span> <span class="n">s3</span><span class="p">])</span>
+<span class="gr">Out[185]: </span>
+<span class="go">0    a</span>
+<span class="go">1    b</span>
+<span class="go">0    b</span>
+<span class="go">1    c</span>
+<span class="go">dtype: object</span>
+
+<span class="gp">In [186]: </span><span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">s1</span><span class="p">,</span> <span class="n">s3</span><span class="p">])</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">&apos;category&apos;</span><span class="p">)</span>
+<span class="gr">Out[186]: </span>
+<span class="go">0    a</span>
+<span class="go">1    b</span>
+<span class="go">0    b</span>
+<span class="go">1    c</span>
+<span class="go">dtype: category</span>
+<span class="go">Categories (3, object): [a, b, c]</span>
+
+<span class="gp">In [187]: </span><span class="n">union_categoricals</span><span class="p">([</span><span class="n">s1</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">s3</span><span class="o">.</span><span class="n">values</span><span class="p">])</span>
+<span class="gr">Out[187]: </span>
+<span class="go">[a, b, b, c]</span>
+<span class="go">Categories (3, object): [a, b, c]</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-229">下表总结了<code class="docutils literal"><span class="pre">Categoricals</span></code>相关并置的结果。</span></p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="11%">
+<col width="60%">
+<col width="30%">
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head"><span class="yiyi-st" id="yiyi-230">arg1</span></th>
+<th class="head"><span class="yiyi-st" id="yiyi-231">arg2</span></th>
+<th class="head"><span class="yiyi-st" id="yiyi-232">结果</span></th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><span class="yiyi-st" id="yiyi-233">类别</span></td>
+<td><span class="yiyi-st" id="yiyi-234">类别（相同类别）</span></td>
+<td><span class="yiyi-st" id="yiyi-235">类别</span></td>
+</tr>
+<tr class="row-odd"><td><span class="yiyi-st" id="yiyi-236">类别</span></td>
+<td><span class="yiyi-st" id="yiyi-237">类别（不同类别，均未排序）</span></td>
+<td><span class="yiyi-st" id="yiyi-238">对象（dtype被推断）</span></td>
+</tr>
+<tr class="row-even"><td><span class="yiyi-st" id="yiyi-239">类别</span></td>
+<td><span class="yiyi-st" id="yiyi-240">类别（不同类别，任一个是有序的）</span></td>
+<td><span class="yiyi-st" id="yiyi-241">对象（dtype被推断）</span></td>
+</tr>
+<tr class="row-odd"><td><span class="yiyi-st" id="yiyi-242">类别</span></td>
+<td><span class="yiyi-st" id="yiyi-243">不是类别</span></td>
+<td><span class="yiyi-st" id="yiyi-244">对象（dtype被推断）</span></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="getting-data-in-out">
+<h2><span class="yiyi-st" id="yiyi-245">Getting Data In/Out</span></h2>
+<div class="versionadded">
+<p><span class="yiyi-st" id="yiyi-246"><span class="versionmodified">版本0.15.2中的新功能。</span></span></p>
+</div>
+<p><span class="yiyi-st" id="yiyi-247">将数据（<cite>系列</cite>，<cite>帧</cite>）写入到包含<code class="docutils literal"><span class="pre">category</span></code> dtype的HDF存储中，在0.15.2中实现。</span><span class="yiyi-st" id="yiyi-248">有关示例和警告，请参见<a class="reference internal" href="io.html#io-hdf5-categorical"><span class="std std-ref">here</span></a>。</span></p>
+<p><span class="yiyi-st" id="yiyi-249">在0.15.2中实现向<em>Stata</em>格式文件写入数据和从中读取数据。</span><span class="yiyi-st" id="yiyi-250">有关示例和警告，请参见<a class="reference internal" href="io.html#io-stata-categorical"><span class="std std-ref">here</span></a>。</span></p>
+<p><span class="yiyi-st" id="yiyi-251">写入CSV文件将转换数据，有效地删除有关分类（类别和排序）的任何信息。</span><span class="yiyi-st" id="yiyi-252">因此，如果您读回CSV文件，则必须将相关列转换回<cite>类别</cite>，并分配正确的类别和类别顺序。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [188]: </span><span class="n">s</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">Categorical</span><span class="p">([</span><span class="s1">&apos;a&apos;</span><span class="p">,</span> <span class="s1">&apos;b&apos;</span><span class="p">,</span> <span class="s1">&apos;b&apos;</span><span class="p">,</span> <span class="s1">&apos;a&apos;</span><span class="p">,</span> <span class="s1">&apos;a&apos;</span><span class="p">,</span> <span class="s1">&apos;d&apos;</span><span class="p">]))</span>
+
+<span class="c"># rename the categories</span>
+<span class="gp">In [189]: </span><span class="n">s</span><span class="o">.</span><span class="n">cat</span><span class="o">.</span><span class="n">categories</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;very good&quot;</span><span class="p">,</span> <span class="s2">&quot;good&quot;</span><span class="p">,</span> <span class="s2">&quot;bad&quot;</span><span class="p">]</span>
+
+<span class="c"># reorder the categories and add missing categories</span>
+<span class="gp">In [190]: </span><span class="n">s</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">cat</span><span class="o">.</span><span class="n">set_categories</span><span class="p">([</span><span class="s2">&quot;very bad&quot;</span><span class="p">,</span> <span class="s2">&quot;bad&quot;</span><span class="p">,</span> <span class="s2">&quot;medium&quot;</span><span class="p">,</span> <span class="s2">&quot;good&quot;</span><span class="p">,</span> <span class="s2">&quot;very good&quot;</span><span class="p">])</span>
+
+<span class="gp">In [191]: </span><span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s2">&quot;cats&quot;</span><span class="p">:</span><span class="n">s</span><span class="p">,</span> <span class="s2">&quot;vals&quot;</span><span class="p">:[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">6</span><span class="p">]})</span>
+
+<span class="gp">In [192]: </span><span class="n">csv</span> <span class="o">=</span> <span class="n">StringIO</span><span class="p">()</span>
+
+<span class="gp">In [193]: </span><span class="n">df</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">csv</span><span class="p">)</span>
+
+<span class="gp">In [194]: </span><span class="n">df2</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">StringIO</span><span class="p">(</span><span class="n">csv</span><span class="o">.</span><span class="n">getvalue</span><span class="p">()))</span>
+
+<span class="gp">In [195]: </span><span class="n">df2</span><span class="o">.</span><span class="n">dtypes</span>
+<span class="gr">Out[195]: </span>
+<span class="go">Unnamed: 0     int64</span>
+<span class="go">cats          object</span>
+<span class="go">vals           int64</span>
+<span class="go">dtype: object</span>
+
+<span class="gp">In [196]: </span><span class="n">df2</span><span class="p">[</span><span class="s2">&quot;cats&quot;</span><span class="p">]</span>
+<span class="gr">Out[196]: </span>
+<span class="go">0    very good</span>
+<span class="go">1         good</span>
+<span class="go">2         good</span>
+<span class="go">3    very good</span>
+<span class="go">4    very good</span>
+<span class="go">5          bad</span>
+<span class="go">Name: cats, dtype: object</span>
+
+<span class="c"># Redo the category</span>
+<span class="gp">In [197]: </span><span class="n">df2</span><span class="p">[</span><span class="s2">&quot;cats&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df2</span><span class="p">[</span><span class="s2">&quot;cats&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s2">&quot;category&quot;</span><span class="p">)</span>
+
+<span class="gp">In [198]: </span><span class="n">df2</span><span class="p">[</span><span class="s2">&quot;cats&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">cat</span><span class="o">.</span><span class="n">set_categories</span><span class="p">([</span><span class="s2">&quot;very bad&quot;</span><span class="p">,</span> <span class="s2">&quot;bad&quot;</span><span class="p">,</span> <span class="s2">&quot;medium&quot;</span><span class="p">,</span> <span class="s2">&quot;good&quot;</span><span class="p">,</span> <span class="s2">&quot;very good&quot;</span><span class="p">],</span>
+<span class="gp">   .....:</span>                                <span class="n">inplace</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="gp">   .....:</span> 
+
+<span class="gp">In [199]: </span><span class="n">df2</span><span class="o">.</span><span class="n">dtypes</span>
+<span class="gr">Out[199]: </span>
+<span class="go">Unnamed: 0       int64</span>
+<span class="go">cats          category</span>
+<span class="go">vals             int64</span>
+<span class="go">dtype: object</span>
+
+<span class="gp">In [200]: </span><span class="n">df2</span><span class="p">[</span><span class="s2">&quot;cats&quot;</span><span class="p">]</span>
+<span class="gr">Out[200]: </span>
+<span class="go">0    very good</span>
+<span class="go">1         good</span>
+<span class="go">2         good</span>
+<span class="go">3    very good</span>
+<span class="go">4    very good</span>
+<span class="go">5          bad</span>
+<span class="go">Name: cats, dtype: category</span>
+<span class="go">Categories (5, object): [very bad, bad, medium, good, very good]</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-253">这同样适用于使用<code class="docutils literal"><span class="pre">to_sql</span></code>写入SQL数据库。</span></p>
+</div>
+<div class="section" id="missing-data">
+<h2><span class="yiyi-st" id="yiyi-254">Missing Data</span></h2>
+<p><span class="yiyi-st" id="yiyi-255">pandas主要使用值<cite>np.nan</cite>来表示缺失的数据。</span><span class="yiyi-st" id="yiyi-256">它默认不包括在计算中。</span><span class="yiyi-st" id="yiyi-257">请参阅<a class="reference internal" href="missing_data.html#missing-data"><span class="std std-ref">Missing Data section</span></a>。</span></p>
+<p><span class="yiyi-st" id="yiyi-258">Missing values should <strong>not</strong> be included in the Categorical’s <code class="docutils literal"><span class="pre">categories</span></code>, only in the <code class="docutils literal"><span class="pre">values</span></code>. </span><span class="yiyi-st" id="yiyi-259">相反，应当理解NaN是不同的，并且总是一种可能性。</span><span class="yiyi-st" id="yiyi-260">使用分类的<code class="docutils literal"><span class="pre">codes</span></code>时，缺少的值将始终具有<code class="docutils literal"><span class="pre">-1</span></code>的代码。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [201]: </span><span class="n">s</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">([</span><span class="s2">&quot;a&quot;</span><span class="p">,</span> <span class="s2">&quot;b&quot;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="s2">&quot;a&quot;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">&quot;category&quot;</span><span class="p">)</span>
+
+<span class="c"># only two categories</span>
+<span class="gp">In [202]: </span><span class="n">s</span>
+<span class="gr">Out[202]: </span>
+<span class="go">0      a</span>
+<span class="go">1      b</span>
+<span class="go">2    NaN</span>
+<span class="go">3      a</span>
+<span class="go">dtype: category</span>
+<span class="go">Categories (2, object): [a, b]</span>
+
+<span class="gp">In [203]: </span><span class="n">s</span><span class="o">.</span><span class="n">cat</span><span class="o">.</span><span class="n">codes</span>
+<span class="gr">Out[203]: </span>
+<span class="go">0    0</span>
+<span class="go">1    1</span>
+<span class="go">2   -1</span>
+<span class="go">3    0</span>
+<span class="go">dtype: int8</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-261">处理缺失数据的方法，例如<a class="reference internal" href="generated/pandas.Series.isnull.html#pandas.Series.isnull" title="pandas.Series.isnull"><code class="xref py py-meth docutils literal"><span class="pre">isnull()</span></code></a>，<a class="reference internal" href="generated/pandas.Series.fillna.html#pandas.Series.fillna" title="pandas.Series.fillna"><code class="xref py py-meth docutils literal"><span class="pre">fillna()</span></code></a>，<a class="reference internal" href="generated/pandas.Series.dropna.html#pandas.Series.dropna" title="pandas.Series.dropna"><code class="xref py py-meth docutils literal"><span class="pre">dropna()</span></code></a></span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [204]: </span><span class="n">s</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">([</span><span class="s2">&quot;a&quot;</span><span class="p">,</span> <span class="s2">&quot;b&quot;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">&quot;category&quot;</span><span class="p">)</span>
+
+<span class="gp">In [205]: </span><span class="n">s</span>
+<span class="gr">Out[205]: </span>
+<span class="go">0      a</span>
+<span class="go">1      b</span>
+<span class="go">2    NaN</span>
+<span class="go">dtype: category</span>
+<span class="go">Categories (2, object): [a, b]</span>
+
+<span class="gp">In [206]: </span><span class="n">pd</span><span class="o">.</span><span class="n">isnull</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+<span class="gr">Out[206]: </span>
+<span class="go">0    False</span>
+<span class="go">1    False</span>
+<span class="go">2     True</span>
+<span class="go">dtype: bool</span>
+
+<span class="gp">In [207]: </span><span class="n">s</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="s2">&quot;a&quot;</span><span class="p">)</span>
+<span class="gr">Out[207]: </span>
+<span class="go">0    a</span>
+<span class="go">1    b</span>
+<span class="go">2    a</span>
+<span class="go">dtype: category</span>
+<span class="go">Categories (2, object): [a, b]</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="differences-to-r-s-factor">
+<h2><span class="yiyi-st" id="yiyi-262">Differences to R’s <cite>factor</cite></span></h2>
+<p><span class="yiyi-st" id="yiyi-263">可以观察到以下与R的因子函数的差异：</span></p>
+<ul class="simple">
+<li><span class="yiyi-st" id="yiyi-264">R的<cite>级别</cite>被命名为<cite>类别</cite></span></li>
+<li><span class="yiyi-st" id="yiyi-265">R的<cite>级别</cite>始终为字符串类型，而pandas中的<cite>类别</cite>可以是任何类型。</span></li>
+<li><span class="yiyi-st" id="yiyi-266">在创建时无法指定标签。</span><span class="yiyi-st" id="yiyi-267">之后使用<code class="docutils literal"><span class="pre">s.cat.rename_categories(new_labels)</span></code>。</span></li>
+<li><span class="yiyi-st" id="yiyi-268">与R的<cite>因子</cite>函数相反，使用分类数据作为创建新类别序列的唯一输入，<em>不会</em>删除未使用的类别，但创建一个新的类别序列，通过一个！</span></li>
+<li><span class="yiyi-st" id="yiyi-269">R允许在其<cite>级别</cite>（pandas&apos;<cite>类别</cite>）中包含缺失值。</span><span class="yiyi-st" id="yiyi-270">Pandas不允许<cite>NaN</cite>类别，但是缺少的值仍然可以在<cite>值</cite>中。</span></li>
+</ul>
+</div>
+<div class="section" id="gotchas">
+<h2><span class="yiyi-st" id="yiyi-271">Gotchas</span></h2>
+<div class="section" id="memory-usage">
+<span id="categorical-rfactor"></span><h3><span class="yiyi-st" id="yiyi-272">Memory Usage</span></h3>
+<p id="categorical-memory"><span class="yiyi-st" id="yiyi-273"><code class="docutils literal"><span class="pre">Categorical</span></code>的内存使用量与类别数量乘以数据长度成正比。</span><span class="yiyi-st" id="yiyi-274">相反，<code class="docutils literal"><span class="pre">object</span></code> dtype是一个常数乘以数据长度。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [208]: </span><span class="n">s</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">([</span><span class="s1">&apos;foo&apos;</span><span class="p">,</span><span class="s1">&apos;bar&apos;</span><span class="p">]</span><span class="o">*</span><span class="mi">1000</span><span class="p">)</span>
+
+<span class="c"># object dtype</span>
+<span class="gp">In [209]: </span><span class="n">s</span><span class="o">.</span><span class="n">nbytes</span>
+<span class="gr">Out[209]: </span><span class="mi">16000</span>
+
+<span class="c"># category dtype</span>
+<span class="gp">In [210]: </span><span class="n">s</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">&apos;category&apos;</span><span class="p">)</span><span class="o">.</span><span class="n">nbytes</span>
+<span class="gr">Out[210]: </span><span class="mi">2016</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title"><span class="yiyi-st" id="yiyi-275">注意</span></p>
+<p><span class="yiyi-st" id="yiyi-276">如果类别数接近数据长度，则<code class="docutils literal"><span class="pre">Categorical</span></code>将使用与等同的<code class="docutils literal"><span class="pre">object</span></code> dtype表示近似相同或更多的存储器。</span></p>
+<div class="last highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [211]: </span><span class="n">s</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">([</span><span class="s1">&apos;foo</span><span class="si">%04d</span><span class="s1">&apos;</span> <span class="o">%</span> <span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2000</span><span class="p">)])</span>
+
+<span class="c"># object dtype</span>
+<span class="gp">In [212]: </span><span class="n">s</span><span class="o">.</span><span class="n">nbytes</span>
+<span class="gr">Out[212]: </span><span class="mi">16000</span>
+
+<span class="c"># category dtype</span>
+<span class="gp">In [213]: </span><span class="n">s</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">&apos;category&apos;</span><span class="p">)</span><span class="o">.</span><span class="n">nbytes</span>
+<span class="gr">Out[213]: </span><span class="mi">20000</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="old-style-constructor-usage">
+<h3><span class="yiyi-st" id="yiyi-277">Old style constructor usage</span></h3>
+<p><span class="yiyi-st" id="yiyi-278">在早于pandas 0.15的版本中，可以通过传递预先计算的<cite>代码</cite>（称为<cite>标签</cite>）而不是类别值来构建<cite>分类</cite>。</span><span class="yiyi-st" id="yiyi-279"><cite>代码</cite>被解释为指向<cite>-1</cite>作为<cite>NaN</cite>的类别的指针。</span><span class="yiyi-st" id="yiyi-280">这种类型的构造函数用法由特殊构造函数<a class="reference internal" href="generated/pandas.Categorical.from_codes.html#pandas.Categorical.from_codes" title="pandas.Categorical.from_codes"><code class="xref py py-func docutils literal"><span class="pre">Categorical.from_codes()</span></code></a>替换。</span></p>
+<p><span class="yiyi-st" id="yiyi-281">不幸的是，在一些特殊情况下，使用代码假定旧样式构造函数使用将与当前的熊猫版本，将导致一些微妙的错误：</span></p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">cat</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Categorical</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># old version</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cat</span><span class="o">.</span><span class="n">get_values</span><span class="p">()</span>
+<span class="go">array([2, 3], dtype=int64)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># new version</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cat</span><span class="o">.</span><span class="n">get_values</span><span class="p">()</span>
+<span class="go">array([1, 2], dtype=int64)</span>
+</pre></div>
+</div>
+<div class="admonition warning">
+<p class="first admonition-title"><span class="yiyi-st" id="yiyi-282">警告</span></p>
+<p class="last"><span class="yiyi-st" id="yiyi-283">如果您对旧版本的pandas使用<cite>分类</cite>，请在升级前审核您的代码，并更改代码以使用<a class="reference internal" href="generated/pandas.Categorical.from_codes.html#pandas.Categorical.from_codes" title="pandas.Categorical.from_codes"><code class="xref py py-func docutils literal"><span class="pre">from_codes()</span></code></a>构造函数。</span></p>
+</div>
+</div>
+<div class="section" id="categorical-is-not-a-numpy-array">
+<h3><span class="yiyi-st" id="yiyi-284"><cite>Categorical</cite> is not a <cite>numpy</cite> array</span></h3>
+<p><span class="yiyi-st" id="yiyi-285">目前，分类数据和底层<cite>分类</cite>实现为python对象，而不是低级<cite>numpy</cite>数组dtype。</span><span class="yiyi-st" id="yiyi-286">这导致一些问题。</span></p>
+<p><span class="yiyi-st" id="yiyi-287"><cite>numpy</cite>本身不知道新的<cite>dtype</cite>：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [214]: </span><span class="k">try</span><span class="p">:</span>
+<span class="gp">   .....:</span>     <span class="n">np</span><span class="o">.</span><span class="n">dtype</span><span class="p">(</span><span class="s2">&quot;category&quot;</span><span class="p">)</span>
+<span class="gp">   .....:</span> <span class="k">except</span> <span class="ne">TypeError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+<span class="gp">   .....:</span>     <span class="k">print</span><span class="p">(</span><span class="s2">&quot;TypeError: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
+<span class="gp">   .....:</span> 
+<span class="go">TypeError: data type &quot;category&quot; not understood</span>
+
+<span class="gp">In [215]: </span><span class="n">dtype</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Categorical</span><span class="p">([</span><span class="s2">&quot;a&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">dtype</span>
+
+<span class="gp">In [216]: </span><span class="k">try</span><span class="p">:</span>
+<span class="gp">   .....:</span>     <span class="n">np</span><span class="o">.</span><span class="n">dtype</span><span class="p">(</span><span class="n">dtype</span><span class="p">)</span>
+<span class="gp">   .....:</span> <span class="k">except</span> <span class="ne">TypeError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+<span class="gp">   .....:</span>      <span class="k">print</span><span class="p">(</span><span class="s2">&quot;TypeError: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
+<span class="gp">   .....:</span> 
+<span class="go">TypeError: data type not understood</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-288">Dtype比较工作：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [217]: </span><span class="n">dtype</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">str_</span>
+<span class="gr">Out[217]: </span><span class="bp">False</span>
+
+<span class="gp">In [218]: </span><span class="n">np</span><span class="o">.</span><span class="n">str_</span> <span class="o">==</span> <span class="n">dtype</span>
+<span class="gr">Out[218]: </span><span class="bp">False</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-289">要检查系列是否包含分类数据，使用pandas 0.16或更高版本，请使用<code class="docutils literal"><span class="pre">hasattr（s，</span> <span class="pre">&apos;cat&apos;）</span> </code></span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [219]: </span><span class="nb">hasattr</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">([</span><span class="s1">&apos;a&apos;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&apos;category&apos;</span><span class="p">),</span> <span class="s1">&apos;cat&apos;</span><span class="p">)</span>
+<span class="gr">Out[219]: </span><span class="bp">True</span>
+
+<span class="gp">In [220]: </span><span class="nb">hasattr</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">([</span><span class="s1">&apos;a&apos;</span><span class="p">]),</span> <span class="s1">&apos;cat&apos;</span><span class="p">)</span>
+<span class="gr">Out[220]: </span><span class="bp">False</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-290">在类型<code class="docutils literal"><span class="pre">category</span></code>的<cite>系列</cite>上使用<cite>numpy</cite>功能不应该工作，因为<cite>分类</cite>不是数字数据<code class="docutils literal"><span class="pre">.categories</span></code>是数字的情况）。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [221]: </span><span class="n">s</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">Categorical</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">]))</span>
+
+<span class="gp">In [222]: </span><span class="k">try</span><span class="p">:</span>
+<span class="gp">   .....:</span>     <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+<span class="gp">   .....:</span> <span class="k">except</span> <span class="ne">TypeError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+<span class="gp">   .....:</span>      <span class="k">print</span><span class="p">(</span><span class="s2">&quot;TypeError: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
+<span class="gp">   .....:</span> 
+<span class="go">TypeError: Categorical cannot perform the operation sum</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title"><span class="yiyi-st" id="yiyi-291">注意</span></p>
+<p class="last"><span class="yiyi-st" id="yiyi-292">如果这样的功能工作，请在<a class="reference external" href="https://github.com/pandas-dev/pandas">https://github.com/pandas-dev/pandas</a>提交错误！</span></p>
+</div>
+</div>
+<div class="section" id="dtype-in-apply">
+<h3><span class="yiyi-st" id="yiyi-293">dtype in apply</span></h3>
+<p><span class="yiyi-st" id="yiyi-294">Pandas目前在应用函数中不保留dtype：如果沿行应用，您将获得<code class="docutils literal"><span class="pre">object</span></code> <cite>dtype</cite>的<cite>系列</cite> - &gt;获取一个元素将返回一个基本类型），沿列应用也将转换为对象。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [223]: </span><span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s2">&quot;a&quot;</span><span class="p">:[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">],</span>
+<span class="gp">   .....:</span>                    <span class="s2">&quot;b&quot;</span><span class="p">:[</span><span class="s2">&quot;a&quot;</span><span class="p">,</span><span class="s2">&quot;b&quot;</span><span class="p">,</span><span class="s2">&quot;c&quot;</span><span class="p">,</span><span class="s2">&quot;d&quot;</span><span class="p">],</span>
+<span class="gp">   .....:</span>                    <span class="s2">&quot;cats&quot;</span><span class="p">:</span><span class="n">pd</span><span class="o">.</span><span class="n">Categorical</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">2</span><span class="p">])})</span>
+<span class="gp">   .....:</span> 
+
+<span class="gp">In [224]: </span><span class="n">df</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">row</span><span class="p">:</span> <span class="nb">type</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s2">&quot;cats&quot;</span><span class="p">]),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="gr">Out[224]: </span>
+<span class="go">0    &lt;type &apos;int&apos;&gt;</span>
+<span class="go">1    &lt;type &apos;int&apos;&gt;</span>
+<span class="go">2    &lt;type &apos;int&apos;&gt;</span>
+<span class="go">3    &lt;type &apos;int&apos;&gt;</span>
+<span class="go">dtype: object</span>
+
+<span class="gp">In [225]: </span><span class="n">df</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">col</span><span class="p">:</span> <span class="n">col</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="gr">Out[225]: </span>
+<span class="go">a       object</span>
+<span class="go">b       object</span>
+<span class="go">cats    object</span>
+<span class="go">dtype: object</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="categorical-index">
+<h3><span class="yiyi-st" id="yiyi-295">Categorical Index</span></h3>
+<div class="versionadded">
+<p><span class="yiyi-st" id="yiyi-296"><span class="versionmodified">版本0.16.1中的新功能。</span></span></p>
+</div>
+<p><span class="yiyi-st" id="yiyi-297">在版本0.16.1中引入了新的<code class="docutils literal"><span class="pre">CategoricalIndex</span></code>索引类型。</span><span class="yiyi-st" id="yiyi-298">有关详细说明，请参阅<a class="reference internal" href="advanced.html#indexing-categoricalindex"><span class="std std-ref">advanced indexing docs</span></a>。</span></p>
+<p><span class="yiyi-st" id="yiyi-299">设置索引，将创建<code class="docutils literal"><span class="pre">CategoricalIndex</span></code></span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [226]: </span><span class="n">cats</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Categorical</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">],</span> <span class="n">categories</span><span class="o">=</span><span class="p">[</span><span class="mi">4</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">1</span><span class="p">])</span>
+
+<span class="gp">In [227]: </span><span class="n">strings</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;a&quot;</span><span class="p">,</span><span class="s2">&quot;b&quot;</span><span class="p">,</span><span class="s2">&quot;c&quot;</span><span class="p">,</span><span class="s2">&quot;d&quot;</span><span class="p">]</span>
+
+<span class="gp">In [228]: </span><span class="n">values</span> <span class="o">=</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span>
+
+<span class="gp">In [229]: </span><span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s2">&quot;strings&quot;</span><span class="p">:</span><span class="n">strings</span><span class="p">,</span> <span class="s2">&quot;values&quot;</span><span class="p">:</span><span class="n">values</span><span class="p">},</span> <span class="n">index</span><span class="o">=</span><span class="n">cats</span><span class="p">)</span>
+
+<span class="gp">In [230]: </span><span class="n">df</span><span class="o">.</span><span class="n">index</span>
+<span class="gr">Out[230]: </span><span class="n">CategoricalIndex</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">],</span> <span class="n">categories</span><span class="o">=</span><span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">ordered</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&apos;category&apos;</span><span class="p">)</span>
+
+<span class="c"># This now sorts by the categories order</span>
+<span class="gp">In [231]: </span><span class="n">df</span><span class="o">.</span><span class="n">sort_index</span><span class="p">()</span>
+<span class="gr">Out[231]: </span>
+<span class="go">  strings  values</span>
+<span class="go">4       d       1</span>
+<span class="go">2       b       2</span>
+<span class="go">3       c       3</span>
+<span class="go">1       a       4</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-300">In previous versions (<0.16.1) there="" is="" no="" index="" of="" type="" <code="" class="docutils literal"><span class="pre">category</span>, so setting the index to categorical column will convert the categorical data to a “normal” dtype first and therefore remove any custom ordering of the categories.</0.16.1)></span></p>
+</div>
+<div class="section" id="side-effects">
+<h3><span class="yiyi-st" id="yiyi-301">Side Effects</span></h3>
+<p><span class="yiyi-st" id="yiyi-302">从<cite>分类</cite>构造<cite>系列</cite>将不会复制输入<cite>分类</cite>。</span><span class="yiyi-st" id="yiyi-303">这意味着更改<cite>系列</cite>将在大多数情况下更改原始<cite>分类</cite>：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [232]: </span><span class="n">cat</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Categorical</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">10</span><span class="p">],</span> <span class="n">categories</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">10</span><span class="p">])</span>
+
+<span class="gp">In [233]: </span><span class="n">s</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">cat</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;cat&quot;</span><span class="p">)</span>
+
+<span class="gp">In [234]: </span><span class="n">cat</span>
+<span class="gr">Out[234]: </span>
+<span class="go">[1, 2, 3, 10]</span>
+<span class="go">Categories (5, int64): [1, 2, 3, 4, 10]</span>
+
+<span class="gp">In [235]: </span><span class="n">s</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="mi">10</span>
+
+<span class="gp">In [236]: </span><span class="n">cat</span>
+<span class="gr">Out[236]: </span>
+<span class="go">[10, 10, 3, 10]</span>
+<span class="go">Categories (5, int64): [1, 2, 3, 4, 10]</span>
+
+<span class="gp">In [237]: </span><span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+
+<span class="gp">In [238]: </span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;cat&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">cat</span><span class="o">.</span><span class="n">categories</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">]</span>
+
+<span class="gp">In [239]: </span><span class="n">cat</span>
+<span class="gr">Out[239]: </span>
+<span class="go">[5, 5, 3, 5]</span>
+<span class="go">Categories (5, int64): [1, 2, 3, 4, 5]</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-304">使用<code class="docutils literal"><span class="pre">copy=True</span></code>可防止此类行为或仅仅不重复使用<cite>分类</cite>：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [240]: </span><span class="n">cat</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Categorical</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">10</span><span class="p">],</span> <span class="n">categories</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">10</span><span class="p">])</span>
+
+<span class="gp">In [241]: </span><span class="n">s</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">cat</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;cat&quot;</span><span class="p">,</span> <span class="n">copy</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+<span class="gp">In [242]: </span><span class="n">cat</span>
+<span class="gr">Out[242]: </span>
+<span class="go">[1, 2, 3, 10]</span>
+<span class="go">Categories (5, int64): [1, 2, 3, 4, 10]</span>
+
+<span class="gp">In [243]: </span><span class="n">s</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="mi">10</span>
+
+<span class="gp">In [244]: </span><span class="n">cat</span>
+<span class="gr">Out[244]: </span>
+<span class="go">[1, 2, 3, 10]</span>
+<span class="go">Categories (5, int64): [1, 2, 3, 4, 10]</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title"><span class="yiyi-st" id="yiyi-305">注意</span></p>
+<p class="last"><span class="yiyi-st" id="yiyi-306">在某些情况下，当你提供一个<cite>numpy</cite>数组而不是<cite>分类</cite>：使用一个int数组（例如<code class="docutils literal"><span class="pre">np.array([1,2,3,4])</span></code>）将显示相同的行为，同时使用字符串数组（例如<code class="docutils literal"><span class="pre">np.array([&quot;a&quot;,&quot;b&quot;,&quot;c&quot;,&quot;a&quot;])</span></code></span></p>
+</div>
+</div>
+</div>

@@ -1,0 +1,1194 @@
+
+<span id="computation"></span><h1><span class="yiyi-st" id="yiyi-66">Computational tools</span></h1>
+        <blockquote>
+        <p>原文：<a href="http://pandas.pydata.org/pandas-docs/stable/computation.html">http://pandas.pydata.org/pandas-docs/stable/computation.html</a></p>
+        <p>译者：<a href="https://github.com/wizardforcel">飞龙</a> <a href="http://usyiyi.cn/">UsyiyiCN</a></p>
+        <p>校对：（虚位以待）</p>
+        </blockquote>
+    
+<div class="section" id="statistical-functions">
+<h2><span class="yiyi-st" id="yiyi-67">Statistical Functions</span></h2>
+<div class="section" id="percent-change">
+<span id="computation-pct-change"></span><h3><span class="yiyi-st" id="yiyi-68">Percent Change</span></h3>
+<p><span class="yiyi-st" id="yiyi-69"><code class="docutils literal"><span class="pre">Series</span></code>，<code class="docutils literal"><span class="pre">DataFrame</span></code>和<code class="docutils literal"><span class="pre">Panel</span></code>都有一个方法<code class="docutils literal"><span class="pre">pct_change</span></code>，用于计算给定时间段内的百分比变化（在之前使用<code class="docutils literal"><span class="pre">fill_method</span></code>填充NA / null值<em>）。</em></span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [1]: </span><span class="n">ser</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">8</span><span class="p">))</span>
+
+<span class="gp">In [2]: </span><span class="n">ser</span><span class="o">.</span><span class="n">pct_change</span><span class="p">()</span>
+<span class="gr">Out[2]: </span>
+<span class="go">0         NaN</span>
+<span class="go">1   -1.602976</span>
+<span class="go">2    4.334938</span>
+<span class="go">3   -0.247456</span>
+<span class="go">4   -2.067345</span>
+<span class="go">5   -1.142903</span>
+<span class="go">6   -1.688214</span>
+<span class="go">7   -9.759729</span>
+<span class="go">dtype: float64</span>
+</pre></div>
+</div>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [3]: </span><span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
+
+<span class="gp">In [4]: </span><span class="n">df</span><span class="o">.</span><span class="n">pct_change</span><span class="p">(</span><span class="n">periods</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+<span class="gr">Out[4]: </span>
+<span class="go">          0         1         2         3</span>
+<span class="go">0       NaN       NaN       NaN       NaN</span>
+<span class="go">1       NaN       NaN       NaN       NaN</span>
+<span class="go">2       NaN       NaN       NaN       NaN</span>
+<span class="go">3 -0.218320 -1.054001  1.987147 -0.510183</span>
+<span class="go">4 -0.439121 -1.816454  0.649715 -4.822809</span>
+<span class="go">5 -0.127833 -3.042065 -5.866604 -1.776977</span>
+<span class="go">6 -2.596833 -1.959538 -2.111697 -3.798900</span>
+<span class="go">7 -0.117826 -2.169058  0.036094 -0.067696</span>
+<span class="go">8  2.492606 -1.357320 -1.205802 -1.558697</span>
+<span class="go">9 -1.012977  2.324558 -1.003744 -0.371806</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="covariance">
+<span id="computation-covariance"></span><h3><span class="yiyi-st" id="yiyi-70">Covariance</span></h3>
+<p><span class="yiyi-st" id="yiyi-71"><code class="docutils literal"><span class="pre">Series</span></code>对象具有方法<code class="docutils literal"><span class="pre">cov</span></code>以计算系列之间的协方差（不包括NA /空值）。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [5]: </span><span class="n">s1</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">1000</span><span class="p">))</span>
+
+<span class="gp">In [6]: </span><span class="n">s2</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">1000</span><span class="p">))</span>
+
+<span class="gp">In [7]: </span><span class="n">s1</span><span class="o">.</span><span class="n">cov</span><span class="p">(</span><span class="n">s2</span><span class="p">)</span>
+<span class="gr">Out[7]: </span><span class="mf">0.00068010881743108746</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-72">类似地，<code class="docutils literal"><span class="pre">DataFrame</span></code>具有方法<code class="docutils literal"><span class="pre">cov</span></code>以计算DataFrame中的系列之间的成对协方差，也不包括NA /空值。</span></p>
+<div class="admonition note" id="computation-covariance-caveats">
+<p class="first admonition-title"><span class="yiyi-st" id="yiyi-73">注意</span></p>
+<p class="last"><span class="yiyi-st" id="yiyi-74">假设丢失的数据随机丢失，这导致对无偏差的协方差矩阵的估计。</span><span class="yiyi-st" id="yiyi-75">然而，对于许多应用，该估计可能是不可接受的，因为估计的协方差矩阵不能保证为正半定。</span><span class="yiyi-st" id="yiyi-76">这可以导致具有大于1的绝对值的估计相关，和/或不可逆协方差矩阵。</span><span class="yiyi-st" id="yiyi-77">有关详细信息，请参阅<a class="reference external" href="http://en.wikipedia.org/w/index.php?title=Estimation_of_covariance_matrices">协方差矩阵估计</a>。</span></p>
+</div>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [8]: </span><span class="n">frame</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span> <span class="mi">5</span><span class="p">),</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&apos;a&apos;</span><span class="p">,</span> <span class="s1">&apos;b&apos;</span><span class="p">,</span> <span class="s1">&apos;c&apos;</span><span class="p">,</span> <span class="s1">&apos;d&apos;</span><span class="p">,</span> <span class="s1">&apos;e&apos;</span><span class="p">])</span>
+
+<span class="gp">In [9]: </span><span class="n">frame</span><span class="o">.</span><span class="n">cov</span><span class="p">()</span>
+<span class="gr">Out[9]: </span>
+<span class="go">          a         b         c         d         e</span>
+<span class="go">a  1.000882 -0.003177 -0.002698 -0.006889  0.031912</span>
+<span class="go">b -0.003177  1.024721  0.000191  0.009212  0.000857</span>
+<span class="go">c -0.002698  0.000191  0.950735 -0.031743 -0.005087</span>
+<span class="go">d -0.006889  0.009212 -0.031743  1.002983 -0.047952</span>
+<span class="go">e  0.031912  0.000857 -0.005087 -0.047952  1.042487</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-78"><code class="docutils literal"><span class="pre">DataFrame.cov</span></code>还支持可选的<code class="docutils literal"><span class="pre">min_periods</span></code>关键字，该关键字指定每个列对所需的最小观测值数，以获得有效的结果。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [10]: </span><span class="n">frame</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&apos;a&apos;</span><span class="p">,</span> <span class="s1">&apos;b&apos;</span><span class="p">,</span> <span class="s1">&apos;c&apos;</span><span class="p">])</span>
+
+<span class="gp">In [11]: </span><span class="n">frame</span><span class="o">.</span><span class="n">ix</span><span class="p">[:</span><span class="mi">5</span><span class="p">,</span> <span class="s1">&apos;a&apos;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+
+<span class="gp">In [12]: </span><span class="n">frame</span><span class="o">.</span><span class="n">ix</span><span class="p">[</span><span class="mi">5</span><span class="p">:</span><span class="mi">10</span><span class="p">,</span> <span class="s1">&apos;b&apos;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+
+<span class="gp">In [13]: </span><span class="n">frame</span><span class="o">.</span><span class="n">cov</span><span class="p">()</span>
+<span class="gr">Out[13]: </span>
+<span class="go">          a         b         c</span>
+<span class="go">a  1.210090 -0.430629  0.018002</span>
+<span class="go">b -0.430629  1.240960  0.347188</span>
+<span class="go">c  0.018002  0.347188  1.301149</span>
+
+<span class="gp">In [14]: </span><span class="n">frame</span><span class="o">.</span><span class="n">cov</span><span class="p">(</span><span class="n">min_periods</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>
+<span class="gr">Out[14]: </span>
+<span class="go">          a         b         c</span>
+<span class="go">a  1.210090       NaN  0.018002</span>
+<span class="go">b       NaN  1.240960  0.347188</span>
+<span class="go">c  0.018002  0.347188  1.301149</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="correlation">
+<span id="computation-correlation"></span><h3><span class="yiyi-st" id="yiyi-79">Correlation</span></h3>
+<p><span class="yiyi-st" id="yiyi-80">提供了用于计算相关性的几种方法：</span></p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="20%">
+<col width="80%">
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head"><span class="yiyi-st" id="yiyi-81">方法名称</span></th>
+<th class="head"><span class="yiyi-st" id="yiyi-82">描述</span></th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><span class="yiyi-st" id="yiyi-83"><code class="docutils literal"><span class="pre">pearson</span> <span class="pre">（默认）</span></code></span></td>
+<td><span class="yiyi-st" id="yiyi-84">标准相关系数</span></td>
+</tr>
+<tr class="row-odd"><td><span class="yiyi-st" id="yiyi-85"><code class="docutils literal"><span class="pre">kendall</span></code></span></td>
+<td><span class="yiyi-st" id="yiyi-86">Kendall Tau相关系数</span></td>
+</tr>
+<tr class="row-even"><td><span class="yiyi-st" id="yiyi-87"><code class="docutils literal"><span class="pre">spearman</span></code></span></td>
+<td><span class="yiyi-st" id="yiyi-88">斯皮尔曼等级相关系数</span></td>
+</tr>
+</tbody>
+</table>
+<p><span class="yiyi-st" id="yiyi-89">所有这些目前使用成对完全观察来计算。</span></p>
+<div class="admonition note">
+<p class="first admonition-title"><span class="yiyi-st" id="yiyi-90">注意</span></p>
+<p class="last"><span class="yiyi-st" id="yiyi-91">请参阅与<a class="reference internal" href="#computation-covariance"><span class="std std-ref">covariance section</span></a>中计算相关矩阵的此方法相关联的<a class="reference internal" href="#computation-covariance-caveats"><span class="std std-ref">caveats</span></a>。</span></p>
+</div>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [15]: </span><span class="n">frame</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span> <span class="mi">5</span><span class="p">),</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&apos;a&apos;</span><span class="p">,</span> <span class="s1">&apos;b&apos;</span><span class="p">,</span> <span class="s1">&apos;c&apos;</span><span class="p">,</span> <span class="s1">&apos;d&apos;</span><span class="p">,</span> <span class="s1">&apos;e&apos;</span><span class="p">])</span>
+
+<span class="gp">In [16]: </span><span class="n">frame</span><span class="o">.</span><span class="n">ix</span><span class="p">[::</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+
+<span class="c"># Series with Series</span>
+<span class="gp">In [17]: </span><span class="n">frame</span><span class="p">[</span><span class="s1">&apos;a&apos;</span><span class="p">]</span><span class="o">.</span><span class="n">corr</span><span class="p">(</span><span class="n">frame</span><span class="p">[</span><span class="s1">&apos;b&apos;</span><span class="p">])</span>
+<span class="gr">Out[17]: </span><span class="mf">0.013479040400098775</span>
+
+<span class="gp">In [18]: </span><span class="n">frame</span><span class="p">[</span><span class="s1">&apos;a&apos;</span><span class="p">]</span><span class="o">.</span><span class="n">corr</span><span class="p">(</span><span class="n">frame</span><span class="p">[</span><span class="s1">&apos;b&apos;</span><span class="p">],</span> <span class="n">method</span><span class="o">=</span><span class="s1">&apos;spearman&apos;</span><span class="p">)</span>
+<span class="gr">Out[18]: </span><span class="o">-</span><span class="mf">0.0072898851595406371</span>
+
+<span class="c"># Pairwise correlation of DataFrame columns</span>
+<span class="gp">In [19]: </span><span class="n">frame</span><span class="o">.</span><span class="n">corr</span><span class="p">()</span>
+<span class="gr">Out[19]: </span>
+<span class="go">          a         b         c         d         e</span>
+<span class="go">a  1.000000  0.013479 -0.049269 -0.042239 -0.028525</span>
+<span class="go">b  0.013479  1.000000 -0.020433 -0.011139  0.005654</span>
+<span class="go">c -0.049269 -0.020433  1.000000  0.018587 -0.054269</span>
+<span class="go">d -0.042239 -0.011139  0.018587  1.000000 -0.017060</span>
+<span class="go">e -0.028525  0.005654 -0.054269 -0.017060  1.000000</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-92">请注意，非数字列将从相关性计算中自动排除。</span></p>
+<p><span class="yiyi-st" id="yiyi-93">像<code class="docutils literal"><span class="pre">cov</span></code>，<code class="docutils literal"><span class="pre">corr</span></code>也支持可选的<code class="docutils literal"><span class="pre">min_periods</span></code>关键字：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [20]: </span><span class="n">frame</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&apos;a&apos;</span><span class="p">,</span> <span class="s1">&apos;b&apos;</span><span class="p">,</span> <span class="s1">&apos;c&apos;</span><span class="p">])</span>
+
+<span class="gp">In [21]: </span><span class="n">frame</span><span class="o">.</span><span class="n">ix</span><span class="p">[:</span><span class="mi">5</span><span class="p">,</span> <span class="s1">&apos;a&apos;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+
+<span class="gp">In [22]: </span><span class="n">frame</span><span class="o">.</span><span class="n">ix</span><span class="p">[</span><span class="mi">5</span><span class="p">:</span><span class="mi">10</span><span class="p">,</span> <span class="s1">&apos;b&apos;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+
+<span class="gp">In [23]: </span><span class="n">frame</span><span class="o">.</span><span class="n">corr</span><span class="p">()</span>
+<span class="gr">Out[23]: </span>
+<span class="go">          a         b         c</span>
+<span class="go">a  1.000000 -0.076520  0.160092</span>
+<span class="go">b -0.076520  1.000000  0.135967</span>
+<span class="go">c  0.160092  0.135967  1.000000</span>
+
+<span class="gp">In [24]: </span><span class="n">frame</span><span class="o">.</span><span class="n">corr</span><span class="p">(</span><span class="n">min_periods</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>
+<span class="gr">Out[24]: </span>
+<span class="go">          a         b         c</span>
+<span class="go">a  1.000000       NaN  0.160092</span>
+<span class="go">b       NaN  1.000000  0.135967</span>
+<span class="go">c  0.160092  0.135967  1.000000</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-94">在DataFrame上实现相关方法<code class="docutils literal"><span class="pre">corrwith</span></code>，以计算不同DataFrame对象中包含的类似标记的系列之间的相关性。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [25]: </span><span class="n">index</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&apos;a&apos;</span><span class="p">,</span> <span class="s1">&apos;b&apos;</span><span class="p">,</span> <span class="s1">&apos;c&apos;</span><span class="p">,</span> <span class="s1">&apos;d&apos;</span><span class="p">,</span> <span class="s1">&apos;e&apos;</span><span class="p">]</span>
+
+<span class="gp">In [26]: </span><span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&apos;one&apos;</span><span class="p">,</span> <span class="s1">&apos;two&apos;</span><span class="p">,</span> <span class="s1">&apos;three&apos;</span><span class="p">,</span> <span class="s1">&apos;four&apos;</span><span class="p">]</span>
+
+<span class="gp">In [27]: </span><span class="n">df1</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="n">index</span><span class="o">=</span><span class="n">index</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">columns</span><span class="p">)</span>
+
+<span class="gp">In [28]: </span><span class="n">df2</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="n">index</span><span class="o">=</span><span class="n">index</span><span class="p">[:</span><span class="mi">4</span><span class="p">],</span> <span class="n">columns</span><span class="o">=</span><span class="n">columns</span><span class="p">)</span>
+
+<span class="gp">In [29]: </span><span class="n">df1</span><span class="o">.</span><span class="n">corrwith</span><span class="p">(</span><span class="n">df2</span><span class="p">)</span>
+<span class="gr">Out[29]: </span>
+<span class="go">one     -0.125501</span>
+<span class="go">two     -0.493244</span>
+<span class="go">three    0.344056</span>
+<span class="go">four     0.004183</span>
+<span class="go">dtype: float64</span>
+
+<span class="gp">In [30]: </span><span class="n">df2</span><span class="o">.</span><span class="n">corrwith</span><span class="p">(</span><span class="n">df1</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="gr">Out[30]: </span>
+<span class="go">a   -0.675817</span>
+<span class="go">b    0.458296</span>
+<span class="go">c    0.190809</span>
+<span class="go">d   -0.186275</span>
+<span class="go">e         NaN</span>
+<span class="go">dtype: float64</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="data-ranking">
+<span id="computation-ranking"></span><h3><span class="yiyi-st" id="yiyi-95">Data ranking</span></h3>
+<p><span class="yiyi-st" id="yiyi-96"><code class="docutils literal"><span class="pre">rank</span></code>方法生成数据排名，其中系统分配了组的排名的平均值（默认情况下）：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [31]: </span><span class="n">s</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">5</span><span class="p">),</span> <span class="n">index</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="s1">&apos;abcde&apos;</span><span class="p">))</span>
+
+<span class="gp">In [32]: </span><span class="n">s</span><span class="p">[</span><span class="s1">&apos;d&apos;</span><span class="p">]</span> <span class="o">=</span> <span class="n">s</span><span class="p">[</span><span class="s1">&apos;b&apos;</span><span class="p">]</span> <span class="c1"># so there&apos;s a tie</span>
+
+<span class="gp">In [33]: </span><span class="n">s</span><span class="o">.</span><span class="n">rank</span><span class="p">()</span>
+<span class="gr">Out[33]: </span>
+<span class="go">a    5.0</span>
+<span class="go">b    2.5</span>
+<span class="go">c    1.0</span>
+<span class="go">d    2.5</span>
+<span class="go">e    4.0</span>
+<span class="go">dtype: float64</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-97"><code class="docutils literal"><span class="pre">rank</span></code>也是DataFrame方法，可以对行（<code class="docutils literal"><span class="pre">axis=0</span></code>）或列（<code class="docutils literal"><span class="pre">axis=1</span></code>）排序。</span><span class="yiyi-st" id="yiyi-98"><code class="docutils literal"><span class="pre">NaN</span></code>值从排名中排除。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [34]: </span><span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">6</span><span class="p">))</span>
+
+<span class="gp">In [35]: </span><span class="n">df</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="mi">2</span><span class="p">][:</span><span class="mi">5</span><span class="p">]</span> <span class="c1"># some ties</span>
+
+<span class="gp">In [36]: </span><span class="n">df</span>
+<span class="gr">Out[36]: </span>
+<span class="go">          0         1         2         3         4         5</span>
+<span class="go">0 -0.904948 -1.163537 -1.457187  0.135463 -1.457187  0.294650</span>
+<span class="go">1 -0.976288 -0.244652 -0.748406 -0.999601 -0.748406 -0.800809</span>
+<span class="go">2  0.401965  1.460840  1.256057  1.308127  1.256057  0.876004</span>
+<span class="go">3  0.205954  0.369552 -0.669304  0.038378 -0.669304  1.140296</span>
+<span class="go">4 -0.477586 -0.730705 -1.129149 -0.601463 -1.129149 -0.211196</span>
+<span class="go">5 -1.092970 -0.689246  0.908114  0.204848       NaN  0.463347</span>
+<span class="go">6  0.376892  0.959292  0.095572 -0.593740       NaN -0.069180</span>
+<span class="go">7 -1.002601  1.957794 -0.120708  0.094214       NaN -1.467422</span>
+<span class="go">8 -0.547231  0.664402 -0.519424 -0.073254       NaN -1.263544</span>
+<span class="go">9 -0.250277 -0.237428 -1.056443  0.419477       NaN  1.375064</span>
+
+<span class="gp">In [37]: </span><span class="n">df</span><span class="o">.</span><span class="n">rank</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="gr">Out[37]: </span>
+<span class="go">     0    1    2    3    4    5</span>
+<span class="go">0  4.0  3.0  1.5  5.0  1.5  6.0</span>
+<span class="go">1  2.0  6.0  4.5  1.0  4.5  3.0</span>
+<span class="go">2  1.0  6.0  3.5  5.0  3.5  2.0</span>
+<span class="go">3  4.0  5.0  1.5  3.0  1.5  6.0</span>
+<span class="go">4  5.0  3.0  1.5  4.0  1.5  6.0</span>
+<span class="go">5  1.0  2.0  5.0  3.0  NaN  4.0</span>
+<span class="go">6  4.0  5.0  3.0  1.0  NaN  2.0</span>
+<span class="go">7  2.0  5.0  3.0  4.0  NaN  1.0</span>
+<span class="go">8  2.0  5.0  3.0  4.0  NaN  1.0</span>
+<span class="go">9  2.0  3.0  1.0  4.0  NaN  5.0</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-99"><code class="docutils literal"><span class="pre">rank</span></code>可选地采用参数<code class="docutils literal"><span class="pre">ascending</span></code>，其默认为真；当为假时，数据被反向排序，其中较大的值被分配较小的等级。</span></p>
+<p><span class="yiyi-st" id="yiyi-100"><code class="docutils literal"><span class="pre">rank</span></code>支持使用<code class="docutils literal"><span class="pre">method</span></code>参数指定的不同的打破方法：</span></p>
+<blockquote>
+<div><ul class="simple">
+<li><span class="yiyi-st" id="yiyi-101"><code class="docutils literal"><span class="pre">average</span></code>：绑定组的平均排名</span></li>
+<li><span class="yiyi-st" id="yiyi-102"><code class="docutils literal"><span class="pre">min</span></code>：组中的最低排名</span></li>
+<li><span class="yiyi-st" id="yiyi-103"><code class="docutils literal"><span class="pre">max</span></code>：组中的最高排名</span></li>
+<li><span class="yiyi-st" id="yiyi-104"><code class="docutils literal"><span class="pre">first</span></code>：按照它们在数组中显示的顺序分配的排名</span></li>
+</ul>
+</div></blockquote>
+</div>
+</div>
+<div class="section" id="window-functions">
+<span id="stats-moments"></span><h2><span class="yiyi-st" id="yiyi-105">Window Functions</span></h2>
+<div class="admonition warning">
+<p class="first admonition-title"><span class="yiyi-st" id="yiyi-106">警告</span></p>
+<p><span class="yiyi-st" id="yiyi-107">在版本0.18.0之前，<code class="docutils literal"><span class="pre">pd.rolling_*</span></code>，<code class="docutils literal"><span class="pre">pd.expanding_*</span></code>和<code class="docutils literal"><span class="pre">pd.ewm*</span></code>是模块级函数，现在已弃用。</span><span class="yiyi-st" id="yiyi-108">使用<code class="xref py py-class docutils literal"><span class="pre">Rolling</span></code>，<code class="xref py py-class docutils literal"><span class="pre">Expanding</span></code>和<code class="xref py py-class docutils literal"><span class="pre">EWM</span></code>替换这些。</span><span class="yiyi-st" id="yiyi-109">对象和相应的方法调用。</span></p>
+<p class="last"><span class="yiyi-st" id="yiyi-110">弃用警告将显示新语法，请参阅示例<a class="reference internal" href="whatsnew.html#whatsnew-0180-window-deprecations"><span class="std std-ref">here</span></a>您可以在此查看以前的文档<a class="reference external" href="http://pandas.pydata.org/pandas-docs/version/0.17.1/computation.html#moving-rolling-statistics-moments"></a></span></p>
+</div>
+<p><span class="yiyi-st" id="yiyi-111">对于处理数据，提供了许多用于计算公共<em>窗口</em>或<em>滚动 t&gt;统计的窗口函数。</em></span><span class="yiyi-st" id="yiyi-112">其中包括计数，总和，平均值，中值，相关性，方差，协方差，标准偏差，偏度和峰度。</span></p>
+<p><span class="yiyi-st" id="yiyi-113">从版本0.18.1开始，可以直接从DataFrameGroupBy对象中使用<code class="docutils literal"><span class="pre">rolling()</span></code>和<code class="docutils literal"><span class="pre">expanding()</span></code>函数，请参阅<a class="reference internal" href="groupby.html#groupby-transform-window-resample"><span class="std std-ref">groupby docs</span></a>。</span></p>
+<div class="admonition note">
+<p class="first admonition-title"><span class="yiyi-st" id="yiyi-114">注意</span></p>
+<p class="last"><span class="yiyi-st" id="yiyi-115">窗口统计的API非常类似于使用<code class="docutils literal"><span class="pre">GroupBy</span></code>对象的方式，请参阅文档<a class="reference internal" href="groupby.html#groupby"><span class="std std-ref">here</span></a></span></p>
+</div>
+<p><span class="yiyi-st" id="yiyi-116">我们通过相应的对象处理<code class="docutils literal"><span class="pre">rolling</span></code>，<code class="docutils literal"><span class="pre">expanding</span></code>和<code class="docutils literal"><span class="pre">指数式</span> <span class="pre">加权</span> <code class="xref py py-class docutils literal"><span class="pre">Rolling</span></code>，<code class="xref py py-class docutils literal"><span class="pre">Expanding</span></code>和<code class="xref py py-class docutils literal"><span class="pre">EWM</span></code>。</code></span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [38]: </span><span class="n">s</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">1000</span><span class="p">),</span> <span class="n">index</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">date_range</span><span class="p">(</span><span class="s1">&apos;1/1/2000&apos;</span><span class="p">,</span> <span class="n">periods</span><span class="o">=</span><span class="mi">1000</span><span class="p">))</span>
+
+<span class="gp">In [39]: </span><span class="n">s</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">cumsum</span><span class="p">()</span>
+
+<span class="gp">In [40]: </span><span class="n">s</span>
+<span class="gr">Out[40]: </span>
+<span class="go">2000-01-01    -0.268824</span>
+<span class="go">2000-01-02    -1.771855</span>
+<span class="go">2000-01-03    -0.818003</span>
+<span class="go">2000-01-04    -0.659244</span>
+<span class="go">2000-01-05    -1.942133</span>
+<span class="go">2000-01-06    -1.869391</span>
+<span class="go">2000-01-07     0.563674</span>
+<span class="go">                ...    </span>
+<span class="go">2002-09-20   -68.233054</span>
+<span class="go">2002-09-21   -66.765687</span>
+<span class="go">2002-09-22   -67.457323</span>
+<span class="go">2002-09-23   -69.253182</span>
+<span class="go">2002-09-24   -70.296818</span>
+<span class="go">2002-09-25   -70.844674</span>
+<span class="go">2002-09-26   -72.475016</span>
+<span class="go">Freq: D, dtype: float64</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-117">这些是从<code class="docutils literal"><span class="pre">Series</span></code>和<code class="docutils literal"><span class="pre">DataFrame</span></code>的方法创建的。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [41]: </span><span class="n">r</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">rolling</span><span class="p">(</span><span class="n">window</span><span class="o">=</span><span class="mi">60</span><span class="p">)</span>
+
+<span class="gp">In [42]: </span><span class="n">r</span>
+<span class="gr">Out[42]: </span><span class="n">Rolling</span> <span class="p">[</span><span class="n">window</span><span class="o">=</span><span class="mi">60</span><span class="p">,</span><span class="n">center</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">]</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-118">这些对象提供了可选方法和属性的制表完成。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [14]: </span><span class="n">r</span><span class="o">.</span>
+<span class="go">r.agg         r.apply       r.count       r.exclusions  r.max         r.median      r.name        r.skew        r.sum</span>
+<span class="go">r.aggregate   r.corr        r.cov         r.kurt        r.mean        r.min         r.quantile    r.std         r.var</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-119">通常这些方法都有相同的接口。</span><span class="yiyi-st" id="yiyi-120">他们都接受以下参数：</span></p>
+<ul class="simple">
+<li><span class="yiyi-st" id="yiyi-121"><code class="docutils literal"><span class="pre">window</span></code>：移动窗口的大小</span></li>
+<li><span class="yiyi-st" id="yiyi-122"><code class="docutils literal"><span class="pre">min_periods</span></code>：要求非空数据点的阈值（否则结果为NA）</span></li>
+<li><span class="yiyi-st" id="yiyi-123"><code class="docutils literal"><span class="pre">center</span></code>：boolean，是否将标签设置在中心（默认为False）</span></li>
+</ul>
+<div class="admonition warning">
+<p class="first admonition-title"><span class="yiyi-st" id="yiyi-124">警告</span></p>
+<p><span class="yiyi-st" id="yiyi-125">在0.18.0更改之前，<code class="docutils literal"><span class="pre">freq</span></code>和<code class="docutils literal"><span class="pre">how</span></code>参数在API中。</span><span class="yiyi-st" id="yiyi-126">这些在新的API中已弃用。</span><span class="yiyi-st" id="yiyi-127">您可以在创建窗口函数之前对输入进行简单重新采样。</span></p>
+<p class="last"><span class="yiyi-st" id="yiyi-128">例如，代替<code class="docutils literal"><span class="pre">s.rolling(window=5,freq=&apos;D&apos;).max()</span></code>在滚动5天窗口中获取最大值，可以使用<code class="docutils literal"><span class="pre">s.resample(&apos;D&apos;).max().rolling(window=5).max()</span></code>，首先将数据重新采样为每日数据，然后提供滚动5天窗口。</span></p>
+</div>
+<p><span class="yiyi-st" id="yiyi-129">然后，我们可以在这些<code class="docutils literal"><span class="pre">rolling</span></code>对象上调用方法。</span><span class="yiyi-st" id="yiyi-130">这些返回类似索引的对象：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [43]: </span><span class="n">r</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+<span class="gr">Out[43]: </span>
+<span class="go">2000-01-01          NaN</span>
+<span class="go">2000-01-02          NaN</span>
+<span class="go">2000-01-03          NaN</span>
+<span class="go">2000-01-04          NaN</span>
+<span class="go">2000-01-05          NaN</span>
+<span class="go">2000-01-06          NaN</span>
+<span class="go">2000-01-07          NaN</span>
+<span class="go">                ...    </span>
+<span class="go">2002-09-20   -62.694135</span>
+<span class="go">2002-09-21   -62.812190</span>
+<span class="go">2002-09-22   -62.914971</span>
+<span class="go">2002-09-23   -63.061867</span>
+<span class="go">2002-09-24   -63.213876</span>
+<span class="go">2002-09-25   -63.375074</span>
+<span class="go">2002-09-26   -63.539734</span>
+<span class="go">Freq: D, dtype: float64</span>
+</pre></div>
+</div>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [44]: </span><span class="n">s</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">style</span><span class="o">=</span><span class="s1">&apos;k--&apos;</span><span class="p">)</span>
+<span class="gr">Out[44]: </span><span class="o">&lt;</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">axes</span><span class="o">.</span><span class="n">_subplots</span><span class="o">.</span><span class="n">AxesSubplot</span> <span class="n">at</span> <span class="mh">0x7ff282080dd0</span><span class="o">&gt;</span>
+
+<span class="gp">In [45]: </span><span class="n">r</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">style</span><span class="o">=</span><span class="s1">&apos;k&apos;</span><span class="p">)</span>
+<span class="gr">Out[45]: </span><span class="o">&lt;</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">axes</span><span class="o">.</span><span class="n">_subplots</span><span class="o">.</span><span class="n">AxesSubplot</span> <span class="n">at</span> <span class="mh">0x7ff282080dd0</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<img alt="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/rolling_mean_ex.png" src="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/rolling_mean_ex.png">
+<p><span class="yiyi-st" id="yiyi-131">它们也可以应用于DataFrame对象。</span><span class="yiyi-st" id="yiyi-132">这实际上只是语法糖用于移动窗口运算符到所有的DataFrame的列：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [46]: </span><span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span>
+<span class="gp">   ....:</span>                   <span class="n">index</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">date_range</span><span class="p">(</span><span class="s1">&apos;1/1/2000&apos;</span><span class="p">,</span> <span class="n">periods</span><span class="o">=</span><span class="mi">1000</span><span class="p">),</span>
+<span class="gp">   ....:</span>                   <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&apos;A&apos;</span><span class="p">,</span> <span class="s1">&apos;B&apos;</span><span class="p">,</span> <span class="s1">&apos;C&apos;</span><span class="p">,</span> <span class="s1">&apos;D&apos;</span><span class="p">])</span>
+<span class="gp">   ....:</span> 
+
+<span class="gp">In [47]: </span><span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">cumsum</span><span class="p">()</span>
+
+<span class="gp">In [48]: </span><span class="n">df</span><span class="o">.</span><span class="n">rolling</span><span class="p">(</span><span class="n">window</span><span class="o">=</span><span class="mi">60</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">subplots</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="gr">Out[48]: </span>
+<span class="go">array([&lt;matplotlib.axes._subplots.AxesSubplot object at 0x7ff28c067210&gt;,</span>
+<span class="go">       &lt;matplotlib.axes._subplots.AxesSubplot object at 0x7ff27e03a0d0&gt;,</span>
+<span class="go">       &lt;matplotlib.axes._subplots.AxesSubplot object at 0x7ff280bca510&gt;,</span>
+<span class="go">       &lt;matplotlib.axes._subplots.AxesSubplot object at 0x7ff28155b910&gt;], dtype=object)</span>
+</pre></div>
+</div>
+<img alt="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/rolling_mean_frame.png" src="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/rolling_mean_frame.png">
+<div class="section" id="method-summary">
+<span id="stats-summary"></span><h3><span class="yiyi-st" id="yiyi-133">Method Summary</span></h3>
+<p><span class="yiyi-st" id="yiyi-134">我们提供了一些常见的统计功能：</span></p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="20%">
+<col width="80%">
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head"><span class="yiyi-st" id="yiyi-135">方法</span></th>
+<th class="head"><span class="yiyi-st" id="yiyi-136">描述</span></th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><span class="yiyi-st" id="yiyi-137"><a class="reference internal" href="generated/pandas.core.window.Rolling.count.html#pandas.core.window.Rolling.count" title="pandas.core.window.Rolling.count"><code class="xref py py-meth docutils literal"><span class="pre">count()</span></code></a></span></td>
+<td><span class="yiyi-st" id="yiyi-138">非零观察数</span></td>
+</tr>
+<tr class="row-odd"><td><span class="yiyi-st" id="yiyi-139"><a class="reference internal" href="generated/pandas.core.window.Rolling.sum.html#pandas.core.window.Rolling.sum" title="pandas.core.window.Rolling.sum"><code class="xref py py-meth docutils literal"><span class="pre">sum()</span></code></a></span></td>
+<td><span class="yiyi-st" id="yiyi-140">值的总和</span></td>
+</tr>
+<tr class="row-even"><td><span class="yiyi-st" id="yiyi-141"><a class="reference internal" href="generated/pandas.core.window.Rolling.mean.html#pandas.core.window.Rolling.mean" title="pandas.core.window.Rolling.mean"><code class="xref py py-meth docutils literal"><span class="pre">mean()</span></code></a></span></td>
+<td><span class="yiyi-st" id="yiyi-142">值的平均值</span></td>
+</tr>
+<tr class="row-odd"><td><span class="yiyi-st" id="yiyi-143"><a class="reference internal" href="generated/pandas.core.window.Rolling.median.html#pandas.core.window.Rolling.median" title="pandas.core.window.Rolling.median"><code class="xref py py-meth docutils literal"><span class="pre">median()</span></code></a></span></td>
+<td><span class="yiyi-st" id="yiyi-144">值的算术中值</span></td>
+</tr>
+<tr class="row-even"><td><span class="yiyi-st" id="yiyi-145"><a class="reference internal" href="generated/pandas.core.window.Rolling.min.html#pandas.core.window.Rolling.min" title="pandas.core.window.Rolling.min"><code class="xref py py-meth docutils literal"><span class="pre">min()</span></code></a></span></td>
+<td><span class="yiyi-st" id="yiyi-146">最低</span></td>
+</tr>
+<tr class="row-odd"><td><span class="yiyi-st" id="yiyi-147"><a class="reference internal" href="generated/pandas.core.window.Rolling.max.html#pandas.core.window.Rolling.max" title="pandas.core.window.Rolling.max"><code class="xref py py-meth docutils literal"><span class="pre">max()</span></code></a></span></td>
+<td><span class="yiyi-st" id="yiyi-148">最大值</span></td>
+</tr>
+<tr class="row-even"><td><span class="yiyi-st" id="yiyi-149"><a class="reference internal" href="generated/pandas.core.window.Rolling.std.html#pandas.core.window.Rolling.std" title="pandas.core.window.Rolling.std"><code class="xref py py-meth docutils literal"><span class="pre">std()</span></code></a></span></td>
+<td><span class="yiyi-st" id="yiyi-150">贝塞尔校正样本标准偏差</span></td>
+</tr>
+<tr class="row-odd"><td><span class="yiyi-st" id="yiyi-151"><a class="reference internal" href="generated/pandas.core.window.Rolling.var.html#pandas.core.window.Rolling.var" title="pandas.core.window.Rolling.var"><code class="xref py py-meth docutils literal"><span class="pre">var()</span></code></a></span></td>
+<td><span class="yiyi-st" id="yiyi-152">无偏差</span></td>
+</tr>
+<tr class="row-even"><td><span class="yiyi-st" id="yiyi-153"><a class="reference internal" href="generated/pandas.core.window.Rolling.skew.html#pandas.core.window.Rolling.skew" title="pandas.core.window.Rolling.skew"><code class="xref py py-meth docutils literal"><span class="pre">skew()</span></code></a></span></td>
+<td><span class="yiyi-st" id="yiyi-154">样品偏斜度（第三动量）</span></td>
+</tr>
+<tr class="row-odd"><td><span class="yiyi-st" id="yiyi-155"><a class="reference internal" href="generated/pandas.core.window.Rolling.kurt.html#pandas.core.window.Rolling.kurt" title="pandas.core.window.Rolling.kurt"><code class="xref py py-meth docutils literal"><span class="pre">kurt()</span></code></a></span></td>
+<td><span class="yiyi-st" id="yiyi-156">样品峰度（第4圈）</span></td>
+</tr>
+<tr class="row-even"><td><span class="yiyi-st" id="yiyi-157"><a class="reference internal" href="generated/pandas.core.window.Rolling.quantile.html#pandas.core.window.Rolling.quantile" title="pandas.core.window.Rolling.quantile"><code class="xref py py-meth docutils literal"><span class="pre">quantile()</span></code></a></span></td>
+<td><span class="yiyi-st" id="yiyi-158">样本分位数（值％）</span></td>
+</tr>
+<tr class="row-odd"><td><span class="yiyi-st" id="yiyi-159"><a class="reference internal" href="generated/pandas.core.window.Rolling.apply.html#pandas.core.window.Rolling.apply" title="pandas.core.window.Rolling.apply"><code class="xref py py-meth docutils literal"><span class="pre">apply()</span></code></a></span></td>
+<td><span class="yiyi-st" id="yiyi-160">通用适用</span></td>
+</tr>
+<tr class="row-even"><td><span class="yiyi-st" id="yiyi-161"><a class="reference internal" href="generated/pandas.core.window.Rolling.cov.html#pandas.core.window.Rolling.cov" title="pandas.core.window.Rolling.cov"><code class="xref py py-meth docutils literal"><span class="pre">cov()</span></code></a></span></td>
+<td><span class="yiyi-st" id="yiyi-162">无偏协方差（二元）</span></td>
+</tr>
+<tr class="row-odd"><td><span class="yiyi-st" id="yiyi-163"><a class="reference internal" href="generated/pandas.core.window.Rolling.corr.html#pandas.core.window.Rolling.corr" title="pandas.core.window.Rolling.corr"><code class="xref py py-meth docutils literal"><span class="pre">corr()</span></code></a></span></td>
+<td><span class="yiyi-st" id="yiyi-164">相关（二进制）</span></td>
+</tr>
+</tbody>
+</table>
+<p><span class="yiyi-st" id="yiyi-165"><a class="reference internal" href="generated/pandas.core.window.Rolling.apply.html#pandas.core.window.Rolling.apply" title="pandas.core.window.Rolling.apply"><code class="xref py py-meth docutils literal"><span class="pre">apply()</span></code></a>函数需要一个额外的<code class="docutils literal"><span class="pre">func</span></code>参数，并执行通用滚动计算。</span><span class="yiyi-st" id="yiyi-166"><code class="docutils literal"><span class="pre">func</span></code>参数应该是一个从ndarray输入生成单个值的单个函数。</span><span class="yiyi-st" id="yiyi-167">假设我们想要计算滚动平均绝对偏差：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [49]: </span><span class="n">mad</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">fabs</span><span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="n">x</span><span class="o">.</span><span class="n">mean</span><span class="p">())</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+
+<span class="gp">In [50]: </span><span class="n">s</span><span class="o">.</span><span class="n">rolling</span><span class="p">(</span><span class="n">window</span><span class="o">=</span><span class="mi">60</span><span class="p">)</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">mad</span><span class="p">)</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">style</span><span class="o">=</span><span class="s1">&apos;k&apos;</span><span class="p">)</span>
+<span class="gr">Out[50]: </span><span class="o">&lt;</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">axes</span><span class="o">.</span><span class="n">_subplots</span><span class="o">.</span><span class="n">AxesSubplot</span> <span class="n">at</span> <span class="mh">0x7ff2846d3ad0</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<img alt="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/rolling_apply_ex.png" src="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/rolling_apply_ex.png">
+</div>
+<div class="section" id="rolling-windows">
+<span id="stats-rolling-window"></span><h3><span class="yiyi-st" id="yiyi-168">Rolling Windows</span></h3>
+<p><span class="yiyi-st" id="yiyi-169">将<code class="docutils literal"><span class="pre">win_type</span></code>传递到<code class="docutils literal"><span class="pre">.rolling</span></code>生成通用滚动窗口计算，根据<code class="docutils literal"><span class="pre">win_type</span></code>进行加权。</span><span class="yiyi-st" id="yiyi-170">提供以下方法：</span></p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="20%">
+<col width="80%">
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head"><span class="yiyi-st" id="yiyi-171">方法</span></th>
+<th class="head"><span class="yiyi-st" id="yiyi-172">描述</span></th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><span class="yiyi-st" id="yiyi-173"><a class="reference internal" href="generated/pandas.core.window.Window.sum.html#pandas.core.window.Window.sum" title="pandas.core.window.Window.sum"><code class="xref py py-meth docutils literal"><span class="pre">sum()</span></code></a></span></td>
+<td><span class="yiyi-st" id="yiyi-174">值的总和</span></td>
+</tr>
+<tr class="row-odd"><td><span class="yiyi-st" id="yiyi-175"><a class="reference internal" href="generated/pandas.core.window.Window.mean.html#pandas.core.window.Window.mean" title="pandas.core.window.Window.mean"><code class="xref py py-meth docutils literal"><span class="pre">mean()</span></code></a></span></td>
+<td><span class="yiyi-st" id="yiyi-176">值的平均值</span></td>
+</tr>
+</tbody>
+</table>
+<p><span class="yiyi-st" id="yiyi-177">窗口中使用的权重由<code class="docutils literal"><span class="pre">win_type</span></code>关键字指定。</span><span class="yiyi-st" id="yiyi-178">公认类型的列表是：</span></p>
+<ul class="simple">
+<li><span class="yiyi-st" id="yiyi-179"><code class="docutils literal"><span class="pre">boxcar</span></code></span></li>
+<li><span class="yiyi-st" id="yiyi-180"><code class="docutils literal"><span class="pre">triang</span></code></span></li>
+<li><span class="yiyi-st" id="yiyi-181"><code class="docutils literal"><span class="pre">blackman</span></code></span></li>
+<li><span class="yiyi-st" id="yiyi-182"><code class="docutils literal"><span class="pre">hamming</span></code></span></li>
+<li><span class="yiyi-st" id="yiyi-183"><code class="docutils literal"><span class="pre">bartlett</span></code></span></li>
+<li><span class="yiyi-st" id="yiyi-184"><code class="docutils literal"><span class="pre">parzen</span></code></span></li>
+<li><span class="yiyi-st" id="yiyi-185"><code class="docutils literal"><span class="pre">bohman</span></code></span></li>
+<li><span class="yiyi-st" id="yiyi-186"><code class="docutils literal"><span class="pre">blackmanharris</span></code></span></li>
+<li><span class="yiyi-st" id="yiyi-187"><code class="docutils literal"><span class="pre">nuttall</span></code></span></li>
+<li><span class="yiyi-st" id="yiyi-188"><code class="docutils literal"><span class="pre">barthann</span></code></span></li>
+<li><span class="yiyi-st" id="yiyi-189"><code class="docutils literal"><span class="pre">kaiser</span></code>（需要测试版）</span></li>
+<li><span class="yiyi-st" id="yiyi-190"><code class="docutils literal"><span class="pre">gaussian</span></code>（needs std）</span></li>
+<li><span class="yiyi-st" id="yiyi-191"><code class="docutils literal"><span class="pre">general_gaussian</span></code>（需要功率，宽度）</span></li>
+<li><span class="yiyi-st" id="yiyi-192"><code class="docutils literal"><span class="pre">slepian</span></code>（需要宽度）。</span></li>
+</ul>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [51]: </span><span class="n">ser</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">10</span><span class="p">),</span> <span class="n">index</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">date_range</span><span class="p">(</span><span class="s1">&apos;1/1/2000&apos;</span><span class="p">,</span> <span class="n">periods</span><span class="o">=</span><span class="mi">10</span><span class="p">))</span>
+
+<span class="gp">In [52]: </span><span class="n">ser</span><span class="o">.</span><span class="n">rolling</span><span class="p">(</span><span class="n">window</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">win_type</span><span class="o">=</span><span class="s1">&apos;triang&apos;</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+<span class="gr">Out[52]: </span>
+<span class="go">2000-01-01         NaN</span>
+<span class="go">2000-01-02         NaN</span>
+<span class="go">2000-01-03         NaN</span>
+<span class="go">2000-01-04         NaN</span>
+<span class="go">2000-01-05   -1.037870</span>
+<span class="go">2000-01-06   -0.767705</span>
+<span class="go">2000-01-07   -0.383197</span>
+<span class="go">2000-01-08   -0.395513</span>
+<span class="go">2000-01-09   -0.558440</span>
+<span class="go">2000-01-10   -0.672416</span>
+<span class="go">Freq: D, dtype: float64</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-193">注意，<code class="docutils literal"><span class="pre">boxcar</span></code>窗口等效于<a class="reference internal" href="generated/pandas.core.window.Rolling.mean.html#pandas.core.window.Rolling.mean" title="pandas.core.window.Rolling.mean"><code class="xref py py-meth docutils literal"><span class="pre">mean()</span></code></a>。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [53]: </span><span class="n">ser</span><span class="o">.</span><span class="n">rolling</span><span class="p">(</span><span class="n">window</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">win_type</span><span class="o">=</span><span class="s1">&apos;boxcar&apos;</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+<span class="gr">Out[53]: </span>
+<span class="go">2000-01-01         NaN</span>
+<span class="go">2000-01-02         NaN</span>
+<span class="go">2000-01-03         NaN</span>
+<span class="go">2000-01-04         NaN</span>
+<span class="go">2000-01-05   -0.841164</span>
+<span class="go">2000-01-06   -0.779948</span>
+<span class="go">2000-01-07   -0.565487</span>
+<span class="go">2000-01-08   -0.502815</span>
+<span class="go">2000-01-09   -0.553755</span>
+<span class="go">2000-01-10   -0.472211</span>
+<span class="go">Freq: D, dtype: float64</span>
+
+<span class="gp">In [54]: </span><span class="n">ser</span><span class="o">.</span><span class="n">rolling</span><span class="p">(</span><span class="n">window</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+<span class="gr">Out[54]: </span>
+<span class="go">2000-01-01         NaN</span>
+<span class="go">2000-01-02         NaN</span>
+<span class="go">2000-01-03         NaN</span>
+<span class="go">2000-01-04         NaN</span>
+<span class="go">2000-01-05   -0.841164</span>
+<span class="go">2000-01-06   -0.779948</span>
+<span class="go">2000-01-07   -0.565487</span>
+<span class="go">2000-01-08   -0.502815</span>
+<span class="go">2000-01-09   -0.553755</span>
+<span class="go">2000-01-10   -0.472211</span>
+<span class="go">Freq: D, dtype: float64</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-194">对于某些窗口函数，必须指定其他参数：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [55]: </span><span class="n">ser</span><span class="o">.</span><span class="n">rolling</span><span class="p">(</span><span class="n">window</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">win_type</span><span class="o">=</span><span class="s1">&apos;gaussian&apos;</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">std</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
+<span class="gr">Out[55]: </span>
+<span class="go">2000-01-01         NaN</span>
+<span class="go">2000-01-02         NaN</span>
+<span class="go">2000-01-03         NaN</span>
+<span class="go">2000-01-04         NaN</span>
+<span class="go">2000-01-05   -1.309989</span>
+<span class="go">2000-01-06   -1.153000</span>
+<span class="go">2000-01-07    0.606382</span>
+<span class="go">2000-01-08   -0.681101</span>
+<span class="go">2000-01-09   -0.289724</span>
+<span class="go">2000-01-10   -0.996632</span>
+<span class="go">Freq: D, dtype: float64</span>
+</pre></div>
+</div>
+<div class="admonition note" id="stats-moments-normalization">
+<p class="first admonition-title"><span class="yiyi-st" id="yiyi-195">注意</span></p>
+<p><span class="yiyi-st" id="yiyi-196">对于具有<code class="docutils literal"><span class="pre">win_type</span></code>的<code class="docutils literal"><span class="pre">.sum()</span></code>，对于窗口的权重没有进行归一化。</span><span class="yiyi-st" id="yiyi-197">传递<code class="docutils literal"><span class="pre">[1，</span> <span class="pre">1，</span> <span class="pre">1]</span></code>的自定义权重将产生与传递<code class="docutils literal"> <span class="pre">[2，</span> <span class="pre">2，</span> <span class="pre">2]</span></code>。</span><span class="yiyi-st" id="yiyi-198">当传递<code class="docutils literal"><span class="pre">win_type</span></code>而不是显式地指定权重时，权重已经被归一化，使得最大权重为1。</span></p>
+<p class="last"><span class="yiyi-st" id="yiyi-199">相反，<code class="docutils literal"><span class="pre">.mean()</span></code>计算的性质使得权重相对于彼此被标准化。</span><span class="yiyi-st" id="yiyi-200"><code class="docutils literal"><span class="pre">[1，</span> <span class="pre">1，</span> <span class="pre">1]</span></code>和<code class="docutils literal"><span class="pre">[2， t5 &gt; <span class="pre">2，</span> <span class="pre">2]</span></span></code>产生相同的结果。</span></p>
+</div>
+</div>
+<div class="section" id="time-aware-rolling">
+<span id="stats-moments-ts"></span><h3><span class="yiyi-st" id="yiyi-201">Time-aware Rolling</span></h3>
+<div class="versionadded">
+<p><span class="yiyi-st" id="yiyi-202"><span class="versionmodified">版本0.19.0中的新功能。</span></span></p>
+</div>
+<p><span class="yiyi-st" id="yiyi-203">版本0.19.0中的新功能是将偏移量（或可转换）传递给<code class="docutils literal"><span class="pre">.rolling()</span></code>方法，并根据传递的时间窗口生成可变大小的窗口。</span><span class="yiyi-st" id="yiyi-204">对于每个时间点，这包括在指示的时间&#x394;内出现的所有先前值。</span></p>
+<p><span class="yiyi-st" id="yiyi-205">这对于非规则的时间频率指数特别有用。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [56]: </span><span class="n">dft</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s1">&apos;B&apos;</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="mi">4</span><span class="p">]},</span>
+<span class="gp">   ....:</span>                    <span class="n">index</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">date_range</span><span class="p">(</span><span class="s1">&apos;20130101 09:00:00&apos;</span><span class="p">,</span> <span class="n">periods</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="s1">&apos;s&apos;</span><span class="p">))</span>
+<span class="gp">   ....:</span> 
+
+<span class="gp">In [57]: </span><span class="n">dft</span>
+<span class="gr">Out[57]: </span>
+<span class="go">                       B</span>
+<span class="go">2013-01-01 09:00:00  0.0</span>
+<span class="go">2013-01-01 09:00:01  1.0</span>
+<span class="go">2013-01-01 09:00:02  2.0</span>
+<span class="go">2013-01-01 09:00:03  NaN</span>
+<span class="go">2013-01-01 09:00:04  4.0</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-206">这是一个常规的频率指数。</span><span class="yiyi-st" id="yiyi-207">使用整数窗口参数可以沿窗口频率滚动。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [58]: </span><span class="n">dft</span><span class="o">.</span><span class="n">rolling</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+<span class="gr">Out[58]: </span>
+<span class="go">                       B</span>
+<span class="go">2013-01-01 09:00:00  NaN</span>
+<span class="go">2013-01-01 09:00:01  1.0</span>
+<span class="go">2013-01-01 09:00:02  3.0</span>
+<span class="go">2013-01-01 09:00:03  NaN</span>
+<span class="go">2013-01-01 09:00:04  NaN</span>
+
+<span class="gp">In [59]: </span><span class="n">dft</span><span class="o">.</span><span class="n">rolling</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">min_periods</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+<span class="gr">Out[59]: </span>
+<span class="go">                       B</span>
+<span class="go">2013-01-01 09:00:00  0.0</span>
+<span class="go">2013-01-01 09:00:01  1.0</span>
+<span class="go">2013-01-01 09:00:02  3.0</span>
+<span class="go">2013-01-01 09:00:03  2.0</span>
+<span class="go">2013-01-01 09:00:04  4.0</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-208">指定偏移允许更直观地规定滚动频率。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [60]: </span><span class="n">dft</span><span class="o">.</span><span class="n">rolling</span><span class="p">(</span><span class="s1">&apos;2s&apos;</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+<span class="gr">Out[60]: </span>
+<span class="go">                       B</span>
+<span class="go">2013-01-01 09:00:00  0.0</span>
+<span class="go">2013-01-01 09:00:01  1.0</span>
+<span class="go">2013-01-01 09:00:02  3.0</span>
+<span class="go">2013-01-01 09:00:03  2.0</span>
+<span class="go">2013-01-01 09:00:04  4.0</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-209">使用非规则但仍然是单调的索引，使用整数窗口滚动不会赋予任何特殊的计算。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [61]: </span><span class="n">dft</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s1">&apos;B&apos;</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="mi">4</span><span class="p">]},</span>
+<span class="gp">   ....:</span>                    <span class="n">index</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Index</span><span class="p">([</span><span class="n">pd</span><span class="o">.</span><span class="n">Timestamp</span><span class="p">(</span><span class="s1">&apos;20130101 09:00:00&apos;</span><span class="p">),</span>
+<span class="gp">   ....:</span>                                      <span class="n">pd</span><span class="o">.</span><span class="n">Timestamp</span><span class="p">(</span><span class="s1">&apos;20130101 09:00:02&apos;</span><span class="p">),</span>
+<span class="gp">   ....:</span>                                      <span class="n">pd</span><span class="o">.</span><span class="n">Timestamp</span><span class="p">(</span><span class="s1">&apos;20130101 09:00:03&apos;</span><span class="p">),</span>
+<span class="gp">   ....:</span>                                      <span class="n">pd</span><span class="o">.</span><span class="n">Timestamp</span><span class="p">(</span><span class="s1">&apos;20130101 09:00:05&apos;</span><span class="p">),</span>
+<span class="gp">   ....:</span>                                      <span class="n">pd</span><span class="o">.</span><span class="n">Timestamp</span><span class="p">(</span><span class="s1">&apos;20130101 09:00:06&apos;</span><span class="p">)],</span>
+<span class="gp">   ....:</span>                                     <span class="n">name</span><span class="o">=</span><span class="s1">&apos;foo&apos;</span><span class="p">))</span>
+<span class="gp">   ....:</span> 
+
+<span class="gp">In [62]: </span><span class="n">dft</span>
+<span class="gr">Out[62]: </span>
+<span class="go">                       B</span>
+<span class="go">foo                     </span>
+<span class="go">2013-01-01 09:00:00  0.0</span>
+<span class="go">2013-01-01 09:00:02  1.0</span>
+<span class="go">2013-01-01 09:00:03  2.0</span>
+<span class="go">2013-01-01 09:00:05  NaN</span>
+<span class="go">2013-01-01 09:00:06  4.0</span>
+
+<span class="gp">In [63]: </span><span class="n">dft</span><span class="o">.</span><span class="n">rolling</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+<span class="gr">Out[63]: </span>
+<span class="go">                       B</span>
+<span class="go">foo                     </span>
+<span class="go">2013-01-01 09:00:00  NaN</span>
+<span class="go">2013-01-01 09:00:02  1.0</span>
+<span class="go">2013-01-01 09:00:03  3.0</span>
+<span class="go">2013-01-01 09:00:05  NaN</span>
+<span class="go">2013-01-01 09:00:06  NaN</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-210">使用时间规范为这个稀疏数据生成变量窗口。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [64]: </span><span class="n">dft</span><span class="o">.</span><span class="n">rolling</span><span class="p">(</span><span class="s1">&apos;2s&apos;</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+<span class="gr">Out[64]: </span>
+<span class="go">                       B</span>
+<span class="go">foo                     </span>
+<span class="go">2013-01-01 09:00:00  0.0</span>
+<span class="go">2013-01-01 09:00:02  1.0</span>
+<span class="go">2013-01-01 09:00:03  3.0</span>
+<span class="go">2013-01-01 09:00:05  NaN</span>
+<span class="go">2013-01-01 09:00:06  4.0</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-211">此外，我们现在允许一个可选的<code class="docutils literal"><span class="pre">on</span></code>参数在DataFrame中指定一个列（而不是索引的默认值）。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [65]: </span><span class="n">dft</span> <span class="o">=</span> <span class="n">dft</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
+
+<span class="gp">In [66]: </span><span class="n">dft</span>
+<span class="gr">Out[66]: </span>
+<span class="go">                  foo    B</span>
+<span class="go">0 2013-01-01 09:00:00  0.0</span>
+<span class="go">1 2013-01-01 09:00:02  1.0</span>
+<span class="go">2 2013-01-01 09:00:03  2.0</span>
+<span class="go">3 2013-01-01 09:00:05  NaN</span>
+<span class="go">4 2013-01-01 09:00:06  4.0</span>
+
+<span class="gp">In [67]: </span><span class="n">dft</span><span class="o">.</span><span class="n">rolling</span><span class="p">(</span><span class="s1">&apos;2s&apos;</span><span class="p">,</span> <span class="n">on</span><span class="o">=</span><span class="s1">&apos;foo&apos;</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+<span class="gr">Out[67]: </span>
+<span class="go">                  foo    B</span>
+<span class="go">0 2013-01-01 09:00:00  0.0</span>
+<span class="go">1 2013-01-01 09:00:02  1.0</span>
+<span class="go">2 2013-01-01 09:00:03  3.0</span>
+<span class="go">3 2013-01-01 09:00:05  NaN</span>
+<span class="go">4 2013-01-01 09:00:06  4.0</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="time-aware-rolling-vs-resampling">
+<span id="stats-moments-ts-versus-resampling"></span><h3><span class="yiyi-st" id="yiyi-212">Time-aware Rolling vs. Resampling</span></h3>
+<p><span class="yiyi-st" id="yiyi-213">使用<code class="docutils literal"><span class="pre">.rolling()</span></code>与基于时间的索引非常类似于<a class="reference internal" href="timeseries.html#timeseries-resampling"><span class="std std-ref">resampling</span></a>。</span><span class="yiyi-st" id="yiyi-214">它们都对时间索引的pandas对象进行操作和执行还原操作。</span></p>
+<p><span class="yiyi-st" id="yiyi-215">当使用带偏移的<code class="docutils literal"><span class="pre">.rolling()</span></code>时。</span><span class="yiyi-st" id="yiyi-216">偏移量是时间增量。</span><span class="yiyi-st" id="yiyi-217">采取后向时间窗口，并聚合该窗口中的所有值（包括端点，但不是开始点）。</span><span class="yiyi-st" id="yiyi-218">这是在结果中的那个点的新值。</span><span class="yiyi-st" id="yiyi-219">这些是在输入的每个点的时间空间中的可变大小的窗口。</span><span class="yiyi-st" id="yiyi-220">您将获得与输入相同大小的结果。</span></p>
+<p><span class="yiyi-st" id="yiyi-221">当使用带偏移量的<code class="docutils literal"><span class="pre">.resample()</span></code>时。</span><span class="yiyi-st" id="yiyi-222">构造一个新的索引，即偏移的频率。</span><span class="yiyi-st" id="yiyi-223">对于每个频率仓，在落入该仓中的向后时间查看窗口内的来自输入的聚合点。</span><span class="yiyi-st" id="yiyi-224">此聚合的结果是该频点的输出。</span><span class="yiyi-st" id="yiyi-225">窗口在频率空间中是固定大小尺寸。</span><span class="yiyi-st" id="yiyi-226">您的结果将具有在原始输入对象的最小值和最大值之间的常规频率的形状。</span></p>
+<p><span class="yiyi-st" id="yiyi-227">总而言之，<code class="docutils literal"><span class="pre">.rolling()</span></code>是基于时间的窗口操作，而<code class="docutils literal"><span class="pre">.resample()</span></code>是基于频率的窗口操作。</span></p>
+</div>
+<div class="section" id="centering-windows">
+<h3><span class="yiyi-st" id="yiyi-228">Centering Windows</span></h3>
+<p><span class="yiyi-st" id="yiyi-229">默认情况下，标签设置为窗口的右边缘，但是可以使用<code class="docutils literal"><span class="pre">center</span></code>关键字，因此可以将标签设置在中心。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [68]: </span><span class="n">ser</span><span class="o">.</span><span class="n">rolling</span><span class="p">(</span><span class="n">window</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+<span class="gr">Out[68]: </span>
+<span class="go">2000-01-01         NaN</span>
+<span class="go">2000-01-02         NaN</span>
+<span class="go">2000-01-03         NaN</span>
+<span class="go">2000-01-04         NaN</span>
+<span class="go">2000-01-05   -0.841164</span>
+<span class="go">2000-01-06   -0.779948</span>
+<span class="go">2000-01-07   -0.565487</span>
+<span class="go">2000-01-08   -0.502815</span>
+<span class="go">2000-01-09   -0.553755</span>
+<span class="go">2000-01-10   -0.472211</span>
+<span class="go">Freq: D, dtype: float64</span>
+
+<span class="gp">In [69]: </span><span class="n">ser</span><span class="o">.</span><span class="n">rolling</span><span class="p">(</span><span class="n">window</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">center</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+<span class="gr">Out[69]: </span>
+<span class="go">2000-01-01         NaN</span>
+<span class="go">2000-01-02         NaN</span>
+<span class="go">2000-01-03   -0.841164</span>
+<span class="go">2000-01-04   -0.779948</span>
+<span class="go">2000-01-05   -0.565487</span>
+<span class="go">2000-01-06   -0.502815</span>
+<span class="go">2000-01-07   -0.553755</span>
+<span class="go">2000-01-08   -0.472211</span>
+<span class="go">2000-01-09         NaN</span>
+<span class="go">2000-01-10         NaN</span>
+<span class="go">Freq: D, dtype: float64</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="binary-window-functions">
+<span id="stats-moments-binary"></span><h3><span class="yiyi-st" id="yiyi-230">Binary Window Functions</span></h3>
+<p><span class="yiyi-st" id="yiyi-231"><a class="reference internal" href="generated/pandas.core.window.Rolling.cov.html#pandas.core.window.Rolling.cov" title="pandas.core.window.Rolling.cov"><code class="xref py py-meth docutils literal"><span class="pre">cov()</span></code></a>和<a class="reference internal" href="generated/pandas.core.window.Rolling.corr.html#pandas.core.window.Rolling.corr" title="pandas.core.window.Rolling.corr"><code class="xref py py-meth docutils literal"><span class="pre">corr()</span></code></a>可以计算关于两个<code class="docutils literal"><span class="pre">Series</span></code>或<code class="docutils literal"><span class="pre">DataFrame/Series</span></code>或<code class="docutils literal"><span class="pre">DataFrame/DataFrame</span></code>。</span><span class="yiyi-st" id="yiyi-232">这里是每种情况下的行为：</span></p>
+<ul class="simple">
+<li><span class="yiyi-st" id="yiyi-233">两个<code class="docutils literal"><span class="pre">Series</span></code>：计算配对的统计信息。</span></li>
+<li><span class="yiyi-st" id="yiyi-234"><code class="docutils literal"><span class="pre">DataFrame/Series</span></code>：使用传递的Series计算DataFrame的每个列的统计信息，从而返回一个DataFrame。</span></li>
+<li><span class="yiyi-st" id="yiyi-235"><code class="docutils literal"><span class="pre">DataFrame/DataFrame</span></code>：默认情况下计算匹配列名称的统计信息，返回DataFrame。</span><span class="yiyi-st" id="yiyi-236">如果传递关键字参数<code class="docutils literal"><span class="pre">pairwise=True</span></code>，则计算每对列的统计量，返回<code class="docutils literal"><span class="pre">Panel</span></code>，其<code class="docutils literal"><span class="pre">items</span></code> （见<a class="reference internal" href="#stats-moments-corr-pairwise"><span class="std std-ref">the next section</span></a>）。</span></li>
+</ul>
+<p><span class="yiyi-st" id="yiyi-237">例如：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [70]: </span><span class="n">df2</span> <span class="o">=</span> <span class="n">df</span><span class="p">[:</span><span class="mi">20</span><span class="p">]</span>
+
+<span class="gp">In [71]: </span><span class="n">df2</span><span class="o">.</span><span class="n">rolling</span><span class="p">(</span><span class="n">window</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span><span class="o">.</span><span class="n">corr</span><span class="p">(</span><span class="n">df2</span><span class="p">[</span><span class="s1">&apos;B&apos;</span><span class="p">])</span>
+<span class="gr">Out[71]: </span>
+<span class="go">                   A    B         C         D</span>
+<span class="go">2000-01-01       NaN  NaN       NaN       NaN</span>
+<span class="go">2000-01-02       NaN  NaN       NaN       NaN</span>
+<span class="go">2000-01-03       NaN  NaN       NaN       NaN</span>
+<span class="go">2000-01-04       NaN  NaN       NaN       NaN</span>
+<span class="go">2000-01-05 -0.262853  1.0  0.334449  0.193380</span>
+<span class="go">2000-01-06 -0.083745  1.0 -0.521587 -0.556126</span>
+<span class="go">2000-01-07 -0.292940  1.0 -0.658532 -0.458128</span>
+<span class="go">...              ...  ...       ...       ...</span>
+<span class="go">2000-01-14  0.519499  1.0 -0.687277  0.192822</span>
+<span class="go">2000-01-15  0.048982  1.0  0.167669 -0.061463</span>
+<span class="go">2000-01-16  0.217190  1.0  0.167564 -0.326034</span>
+<span class="go">2000-01-17  0.641180  1.0 -0.164780 -0.111487</span>
+<span class="go">2000-01-18  0.130422  1.0  0.322833  0.632383</span>
+<span class="go">2000-01-19  0.317278  1.0  0.384528  0.813656</span>
+<span class="go">2000-01-20  0.293598  1.0  0.159538  0.742381</span>
+
+<span class="go">[20 rows x 4 columns]</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="computing-rolling-pairwise-covariances-and-correlations">
+<span id="stats-moments-corr-pairwise"></span><h3><span class="yiyi-st" id="yiyi-238">Computing rolling pairwise covariances and correlations</span></h3>
+<p><span class="yiyi-st" id="yiyi-239">在金融数据分析和其他领域中，通常对于时间序列的集合计算协方差和相关矩阵。</span><span class="yiyi-st" id="yiyi-240">通常，人们也对移动窗协方差和相关矩阵感兴趣。</span><span class="yiyi-st" id="yiyi-241">This can be done by passing the <code class="docutils literal"><span class="pre">pairwise</span></code> keyword argument, which in the case of <code class="docutils literal"><span class="pre">DataFrame</span></code> inputs will yield a <code class="docutils literal"><span class="pre">Panel</span></code> whose <code class="docutils literal"><span class="pre">items</span></code> are the dates in question. </span><span class="yiyi-st" id="yiyi-242">在单个DataFrame参数的情况下，甚至可以省略<code class="docutils literal"><span class="pre">pairwise</span></code>参数：</span></p>
+<div class="admonition note">
+<p class="first admonition-title"><span class="yiyi-st" id="yiyi-243">注意</span></p>
+<p class="last"><span class="yiyi-st" id="yiyi-244">将忽略缺少的值，并使用成对完全观察值计算每个条目。</span><span class="yiyi-st" id="yiyi-245">请参阅与此计算协方差和相关矩阵的方法相关联的<a class="reference internal" href="#computation-covariance-caveats"><span class="std std-ref">caveats</span></a>的<a class="reference internal" href="#computation-covariance"><span class="std std-ref">covariance section</span></a>。</span></p>
+</div>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [72]: </span><span class="n">covs</span> <span class="o">=</span> <span class="n">df</span><span class="p">[[</span><span class="s1">&apos;B&apos;</span><span class="p">,</span><span class="s1">&apos;C&apos;</span><span class="p">,</span><span class="s1">&apos;D&apos;</span><span class="p">]]</span><span class="o">.</span><span class="n">rolling</span><span class="p">(</span><span class="n">window</span><span class="o">=</span><span class="mi">50</span><span class="p">)</span><span class="o">.</span><span class="n">cov</span><span class="p">(</span><span class="n">df</span><span class="p">[[</span><span class="s1">&apos;A&apos;</span><span class="p">,</span><span class="s1">&apos;B&apos;</span><span class="p">,</span><span class="s1">&apos;C&apos;</span><span class="p">]],</span> <span class="n">pairwise</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+<span class="gp">In [73]: </span><span class="n">covs</span><span class="p">[</span><span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="o">-</span><span class="mi">50</span><span class="p">]]</span>
+<span class="gr">Out[73]: </span>
+<span class="go">          A         B          C</span>
+<span class="go">B  2.667506  1.671711   1.938634</span>
+<span class="go">C  8.513843  1.938634  10.556436</span>
+<span class="go">D -7.714737 -1.434529  -7.082653</span>
+</pre></div>
+</div>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [74]: </span><span class="n">correls</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">rolling</span><span class="p">(</span><span class="n">window</span><span class="o">=</span><span class="mi">50</span><span class="p">)</span><span class="o">.</span><span class="n">corr</span><span class="p">()</span>
+
+<span class="gp">In [75]: </span><span class="n">correls</span><span class="p">[</span><span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="o">-</span><span class="mi">50</span><span class="p">]]</span>
+<span class="gr">Out[75]: </span>
+<span class="go">          A         B         C         D</span>
+<span class="go">A  1.000000  0.604221  0.767429 -0.776170</span>
+<span class="go">B  0.604221  1.000000  0.461484 -0.381148</span>
+<span class="go">C  0.767429  0.461484  1.000000 -0.748863</span>
+<span class="go">D -0.776170 -0.381148 -0.748863  1.000000</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-246">您可以使用<code class="docutils literal"><span class="pre">.loc</span></code>索引有效地检索两列之间的相关性的时间序列：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [76]: </span><span class="n">correls</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="s1">&apos;A&apos;</span><span class="p">,</span> <span class="s1">&apos;C&apos;</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
+<span class="gr">Out[76]: </span><span class="o">&lt;</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">axes</span><span class="o">.</span><span class="n">_subplots</span><span class="o">.</span><span class="n">AxesSubplot</span> <span class="n">at</span> <span class="mh">0x7ff27e0f0c50</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<img alt="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/rolling_corr_pairwise_ex.png" src="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/rolling_corr_pairwise_ex.png">
+</div>
+</div>
+<div class="section" id="aggregation">
+<span id="stats-aggregate"></span><h2><span class="yiyi-st" id="yiyi-247">Aggregation</span></h2>
+<p><span class="yiyi-st" id="yiyi-248">一旦创建了<code class="docutils literal"><span class="pre">Rolling</span></code>，<code class="docutils literal"><span class="pre">Expanding</span></code>或<code class="docutils literal"><span class="pre">EWM</span></code>对象，就有几种方法可以对数据执行多个计算。</span><span class="yiyi-st" id="yiyi-249">这非常类似于<code class="docutils literal"><span class="pre">.groupby(...).agg</span></code>看到<a class="reference internal" href="groupby.html#groupby-aggregate"><span class="std std-ref">here</span></a>。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [77]: </span><span class="n">dfa</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
+<span class="gp">   ....:</span>                    <span class="n">index</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">date_range</span><span class="p">(</span><span class="s1">&apos;1/1/2000&apos;</span><span class="p">,</span> <span class="n">periods</span><span class="o">=</span><span class="mi">1000</span><span class="p">),</span>
+<span class="gp">   ....:</span>                    <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&apos;A&apos;</span><span class="p">,</span> <span class="s1">&apos;B&apos;</span><span class="p">,</span> <span class="s1">&apos;C&apos;</span><span class="p">])</span>
+<span class="gp">   ....:</span> 
+
+<span class="gp">In [78]: </span><span class="n">r</span> <span class="o">=</span> <span class="n">dfa</span><span class="o">.</span><span class="n">rolling</span><span class="p">(</span><span class="n">window</span><span class="o">=</span><span class="mi">60</span><span class="p">,</span><span class="n">min_periods</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+<span class="gp">In [79]: </span><span class="n">r</span>
+<span class="gr">Out[79]: </span><span class="n">Rolling</span> <span class="p">[</span><span class="n">window</span><span class="o">=</span><span class="mi">60</span><span class="p">,</span><span class="n">min_periods</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">center</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">]</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-250">我们可以通过传递一个函数到整个DataFrame，或通过标准的getitem选择一个系列（或多个系列）。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [80]: </span><span class="n">r</span><span class="o">.</span><span class="n">aggregate</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">)</span>
+<span class="gr">Out[80]: </span>
+<span class="go">                   A          B         C</span>
+<span class="go">2000-01-01  0.314226  -0.001675  0.071823</span>
+<span class="go">2000-01-02  1.206791   0.678918 -0.267817</span>
+<span class="go">2000-01-03  1.421701   0.600508 -0.445482</span>
+<span class="go">2000-01-04  1.912539  -0.759594  1.146974</span>
+<span class="go">2000-01-05  2.919639  -0.061759 -0.743617</span>
+<span class="go">2000-01-06  2.665637   1.298392 -0.803529</span>
+<span class="go">2000-01-07  2.513985   1.923089 -1.928308</span>
+<span class="go">...              ...        ...       ...</span>
+<span class="go">2002-09-20  1.447669 -12.360302  2.734381</span>
+<span class="go">2002-09-21  1.871783 -13.896542  3.086102</span>
+<span class="go">2002-09-22  2.540658 -12.594402  3.162542</span>
+<span class="go">2002-09-23  2.974674 -12.727703  3.861005</span>
+<span class="go">2002-09-24  1.391366 -13.584590  3.790683</span>
+<span class="go">2002-09-25  2.027313 -15.083214  3.377896</span>
+<span class="go">2002-09-26  1.290363 -13.569459  3.809884</span>
+
+<span class="go">[1000 rows x 3 columns]</span>
+
+<span class="gp">In [81]: </span><span class="n">r</span><span class="p">[</span><span class="s1">&apos;A&apos;</span><span class="p">]</span><span class="o">.</span><span class="n">aggregate</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">)</span>
+<span class="gr">Out[81]: </span>
+<span class="go">2000-01-01    0.314226</span>
+<span class="go">2000-01-02    1.206791</span>
+<span class="go">2000-01-03    1.421701</span>
+<span class="go">2000-01-04    1.912539</span>
+<span class="go">2000-01-05    2.919639</span>
+<span class="go">2000-01-06    2.665637</span>
+<span class="go">2000-01-07    2.513985</span>
+<span class="go">                ...   </span>
+<span class="go">2002-09-20    1.447669</span>
+<span class="go">2002-09-21    1.871783</span>
+<span class="go">2002-09-22    2.540658</span>
+<span class="go">2002-09-23    2.974674</span>
+<span class="go">2002-09-24    1.391366</span>
+<span class="go">2002-09-25    2.027313</span>
+<span class="go">2002-09-26    1.290363</span>
+<span class="go">Freq: D, Name: A, dtype: float64</span>
+
+<span class="gp">In [82]: </span><span class="n">r</span><span class="p">[[</span><span class="s1">&apos;A&apos;</span><span class="p">,</span><span class="s1">&apos;B&apos;</span><span class="p">]]</span><span class="o">.</span><span class="n">aggregate</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">)</span>
+<span class="gr">Out[82]: </span>
+<span class="go">                   A          B</span>
+<span class="go">2000-01-01  0.314226  -0.001675</span>
+<span class="go">2000-01-02  1.206791   0.678918</span>
+<span class="go">2000-01-03  1.421701   0.600508</span>
+<span class="go">2000-01-04  1.912539  -0.759594</span>
+<span class="go">2000-01-05  2.919639  -0.061759</span>
+<span class="go">2000-01-06  2.665637   1.298392</span>
+<span class="go">2000-01-07  2.513985   1.923089</span>
+<span class="go">...              ...        ...</span>
+<span class="go">2002-09-20  1.447669 -12.360302</span>
+<span class="go">2002-09-21  1.871783 -13.896542</span>
+<span class="go">2002-09-22  2.540658 -12.594402</span>
+<span class="go">2002-09-23  2.974674 -12.727703</span>
+<span class="go">2002-09-24  1.391366 -13.584590</span>
+<span class="go">2002-09-25  2.027313 -15.083214</span>
+<span class="go">2002-09-26  1.290363 -13.569459</span>
+
+<span class="go">[1000 rows x 2 columns]</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-251">正如您所看到的，聚合的结果将包含所选列，或者如果没有选择列，则包含所有列。</span></p>
+<div class="section" id="applying-multiple-functions-at-once">
+<span id="stats-aggregate-multifunc"></span><h3><span class="yiyi-st" id="yiyi-252">Applying multiple functions at once</span></h3>
+<p><span class="yiyi-st" id="yiyi-253">使用windowed系列，您还可以传递函数的列表或字典以进行聚合，输出DataFrame：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [83]: </span><span class="n">r</span><span class="p">[</span><span class="s1">&apos;A&apos;</span><span class="p">]</span><span class="o">.</span><span class="n">agg</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">])</span>
+<span class="gr">Out[83]: </span>
+<span class="go">                 sum      mean       std</span>
+<span class="go">2000-01-01  0.314226  0.314226       NaN</span>
+<span class="go">2000-01-02  1.206791  0.603396  0.408948</span>
+<span class="go">2000-01-03  1.421701  0.473900  0.365959</span>
+<span class="go">2000-01-04  1.912539  0.478135  0.298925</span>
+<span class="go">2000-01-05  2.919639  0.583928  0.350682</span>
+<span class="go">2000-01-06  2.665637  0.444273  0.464115</span>
+<span class="go">2000-01-07  2.513985  0.359141  0.479828</span>
+<span class="go">...              ...       ...       ...</span>
+<span class="go">2002-09-20  1.447669  0.024128  1.034827</span>
+<span class="go">2002-09-21  1.871783  0.031196  1.031417</span>
+<span class="go">2002-09-22  2.540658  0.042344  1.026341</span>
+<span class="go">2002-09-23  2.974674  0.049578  1.030021</span>
+<span class="go">2002-09-24  1.391366  0.023189  1.024793</span>
+<span class="go">2002-09-25  2.027313  0.033789  1.022099</span>
+<span class="go">2002-09-26  1.290363  0.021506  1.024751</span>
+
+<span class="go">[1000 rows x 3 columns]</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-254">如果传递了dict，则键将用于命名列。</span><span class="yiyi-st" id="yiyi-255">否则将使用函数的名称（存储在函数对象中）。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [84]: </span><span class="n">r</span><span class="p">[</span><span class="s1">&apos;A&apos;</span><span class="p">]</span><span class="o">.</span><span class="n">agg</span><span class="p">({</span><span class="s1">&apos;result1&apos;</span> <span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">,</span>
+<span class="gp">   ....:</span>             <span class="s1">&apos;result2&apos;</span> <span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">})</span>
+<span class="gp">   ....:</span> 
+<span class="gr">Out[84]: </span>
+<span class="go">             result2   result1</span>
+<span class="go">2000-01-01  0.314226  0.314226</span>
+<span class="go">2000-01-02  0.603396  1.206791</span>
+<span class="go">2000-01-03  0.473900  1.421701</span>
+<span class="go">2000-01-04  0.478135  1.912539</span>
+<span class="go">2000-01-05  0.583928  2.919639</span>
+<span class="go">2000-01-06  0.444273  2.665637</span>
+<span class="go">2000-01-07  0.359141  2.513985</span>
+<span class="go">...              ...       ...</span>
+<span class="go">2002-09-20  0.024128  1.447669</span>
+<span class="go">2002-09-21  0.031196  1.871783</span>
+<span class="go">2002-09-22  0.042344  2.540658</span>
+<span class="go">2002-09-23  0.049578  2.974674</span>
+<span class="go">2002-09-24  0.023189  1.391366</span>
+<span class="go">2002-09-25  0.033789  2.027313</span>
+<span class="go">2002-09-26  0.021506  1.290363</span>
+
+<span class="go">[1000 rows x 2 columns]</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-256">在寡居式DataFrame上，您可以传递要应用于每个列的函数列表，这将生成带有层次索引的聚合结果：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [85]: </span><span class="n">r</span><span class="o">.</span><span class="n">agg</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">])</span>
+<span class="gr">Out[85]: </span>
+<span class="go">                   A                    B                   C          </span>
+<span class="go">                 sum      mean        sum      mean       sum      mean</span>
+<span class="go">2000-01-01  0.314226  0.314226  -0.001675 -0.001675  0.071823  0.071823</span>
+<span class="go">2000-01-02  1.206791  0.603396   0.678918  0.339459 -0.267817 -0.133908</span>
+<span class="go">2000-01-03  1.421701  0.473900   0.600508  0.200169 -0.445482 -0.148494</span>
+<span class="go">2000-01-04  1.912539  0.478135  -0.759594 -0.189899  1.146974  0.286744</span>
+<span class="go">2000-01-05  2.919639  0.583928  -0.061759 -0.012352 -0.743617 -0.148723</span>
+<span class="go">2000-01-06  2.665637  0.444273   1.298392  0.216399 -0.803529 -0.133921</span>
+<span class="go">2000-01-07  2.513985  0.359141   1.923089  0.274727 -1.928308 -0.275473</span>
+<span class="go">...              ...       ...        ...       ...       ...       ...</span>
+<span class="go">2002-09-20  1.447669  0.024128 -12.360302 -0.206005  2.734381  0.045573</span>
+<span class="go">2002-09-21  1.871783  0.031196 -13.896542 -0.231609  3.086102  0.051435</span>
+<span class="go">2002-09-22  2.540658  0.042344 -12.594402 -0.209907  3.162542  0.052709</span>
+<span class="go">2002-09-23  2.974674  0.049578 -12.727703 -0.212128  3.861005  0.064350</span>
+<span class="go">2002-09-24  1.391366  0.023189 -13.584590 -0.226410  3.790683  0.063178</span>
+<span class="go">2002-09-25  2.027313  0.033789 -15.083214 -0.251387  3.377896  0.056298</span>
+<span class="go">2002-09-26  1.290363  0.021506 -13.569459 -0.226158  3.809884  0.063498</span>
+
+<span class="go">[1000 rows x 6 columns]</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-257">默认情况下，传递函数的dict具有不同的行为，请参见下一节。</span></p>
+</div>
+<div class="section" id="applying-different-functions-to-dataframe-columns">
+<h3><span class="yiyi-st" id="yiyi-258">Applying different functions to DataFrame columns</span></h3>
+<p><span class="yiyi-st" id="yiyi-259">通过将dict传递到<code class="docutils literal"><span class="pre">aggregate</span></code>，您可以对DataFrame的列应用不同的聚合：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [86]: </span><span class="n">r</span><span class="o">.</span><span class="n">agg</span><span class="p">({</span><span class="s1">&apos;A&apos;</span> <span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">,</span>
+<span class="gp">   ....:</span>        <span class="s1">&apos;B&apos;</span> <span class="p">:</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">ddof</span><span class="o">=</span><span class="mi">1</span><span class="p">)})</span>
+<span class="gp">   ....:</span> 
+<span class="gr">Out[86]: </span>
+<span class="go">                   A         B</span>
+<span class="go">2000-01-01  0.314226       NaN</span>
+<span class="go">2000-01-02  1.206791  0.482437</span>
+<span class="go">2000-01-03  1.421701  0.417825</span>
+<span class="go">2000-01-04  1.912539  0.851468</span>
+<span class="go">2000-01-05  2.919639  0.837474</span>
+<span class="go">2000-01-06  2.665637  0.935441</span>
+<span class="go">2000-01-07  2.513985  0.867770</span>
+<span class="go">...              ...       ...</span>
+<span class="go">2002-09-20  1.447669  1.084259</span>
+<span class="go">2002-09-21  1.871783  1.088368</span>
+<span class="go">2002-09-22  2.540658  1.084707</span>
+<span class="go">2002-09-23  2.974674  1.084936</span>
+<span class="go">2002-09-24  1.391366  1.079268</span>
+<span class="go">2002-09-25  2.027313  1.091334</span>
+<span class="go">2002-09-26  1.290363  1.060255</span>
+
+<span class="go">[1000 rows x 2 columns]</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-260">函数名也可以是字符串。</span><span class="yiyi-st" id="yiyi-261">为了使字符串有效，它必须在窗口对象上实现</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [87]: </span><span class="n">r</span><span class="o">.</span><span class="n">agg</span><span class="p">({</span><span class="s1">&apos;A&apos;</span> <span class="p">:</span> <span class="s1">&apos;sum&apos;</span><span class="p">,</span> <span class="s1">&apos;B&apos;</span> <span class="p">:</span> <span class="s1">&apos;std&apos;</span><span class="p">})</span>
+<span class="gr">Out[87]: </span>
+<span class="go">                   A         B</span>
+<span class="go">2000-01-01  0.314226       NaN</span>
+<span class="go">2000-01-02  1.206791  0.482437</span>
+<span class="go">2000-01-03  1.421701  0.417825</span>
+<span class="go">2000-01-04  1.912539  0.851468</span>
+<span class="go">2000-01-05  2.919639  0.837474</span>
+<span class="go">2000-01-06  2.665637  0.935441</span>
+<span class="go">2000-01-07  2.513985  0.867770</span>
+<span class="go">...              ...       ...</span>
+<span class="go">2002-09-20  1.447669  1.084259</span>
+<span class="go">2002-09-21  1.871783  1.088368</span>
+<span class="go">2002-09-22  2.540658  1.084707</span>
+<span class="go">2002-09-23  2.974674  1.084936</span>
+<span class="go">2002-09-24  1.391366  1.079268</span>
+<span class="go">2002-09-25  2.027313  1.091334</span>
+<span class="go">2002-09-26  1.290363  1.060255</span>
+
+<span class="go">[1000 rows x 2 columns]</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-262">此外，您可以传递嵌套dict以指示不同列上的不同聚合。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [88]: </span><span class="n">r</span><span class="o">.</span><span class="n">agg</span><span class="p">({</span><span class="s1">&apos;A&apos;</span> <span class="p">:</span> <span class="p">[</span><span class="s1">&apos;sum&apos;</span><span class="p">,</span><span class="s1">&apos;std&apos;</span><span class="p">],</span> <span class="s1">&apos;B&apos;</span> <span class="p">:</span> <span class="p">[</span><span class="s1">&apos;mean&apos;</span><span class="p">,</span><span class="s1">&apos;std&apos;</span><span class="p">]</span> <span class="p">})</span>
+<span class="gr">Out[88]: </span>
+<span class="go">                   A                   B          </span>
+<span class="go">                 sum       std      mean       std</span>
+<span class="go">2000-01-01  0.314226       NaN -0.001675       NaN</span>
+<span class="go">2000-01-02  1.206791  0.408948  0.339459  0.482437</span>
+<span class="go">2000-01-03  1.421701  0.365959  0.200169  0.417825</span>
+<span class="go">2000-01-04  1.912539  0.298925 -0.189899  0.851468</span>
+<span class="go">2000-01-05  2.919639  0.350682 -0.012352  0.837474</span>
+<span class="go">2000-01-06  2.665637  0.464115  0.216399  0.935441</span>
+<span class="go">2000-01-07  2.513985  0.479828  0.274727  0.867770</span>
+<span class="go">...              ...       ...       ...       ...</span>
+<span class="go">2002-09-20  1.447669  1.034827 -0.206005  1.084259</span>
+<span class="go">2002-09-21  1.871783  1.031417 -0.231609  1.088368</span>
+<span class="go">2002-09-22  2.540658  1.026341 -0.209907  1.084707</span>
+<span class="go">2002-09-23  2.974674  1.030021 -0.212128  1.084936</span>
+<span class="go">2002-09-24  1.391366  1.024793 -0.226410  1.079268</span>
+<span class="go">2002-09-25  2.027313  1.022099 -0.251387  1.091334</span>
+<span class="go">2002-09-26  1.290363  1.024751 -0.226158  1.060255</span>
+
+<span class="go">[1000 rows x 4 columns]</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="expanding-windows">
+<span id="stats-moments-expanding"></span><h2><span class="yiyi-st" id="yiyi-263">Expanding Windows</span></h2>
+<p><span class="yiyi-st" id="yiyi-264">滚动统计的一个常见替代方法是使用<em>展开</em>窗口，该窗口会生成带有在该时间点之前可用的所有数据的统计值。</span></p>
+<p><span class="yiyi-st" id="yiyi-265">这些跟随类似的<code class="docutils literal"><span class="pre">.rolling</span></code>界面，<code class="docutils literal"><span class="pre">.expanding</span></code>方法返回一个<code class="xref py py-class docutils literal"><span class="pre">Expanding</span></code>对象。</span></p>
+<p><span class="yiyi-st" id="yiyi-266">因为这些计算是滚动统计的特殊情况，所以它们在pandas中实现，使得以下两个调用是等效的：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [89]: </span><span class="n">df</span><span class="o">.</span><span class="n">rolling</span><span class="p">(</span><span class="n">window</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">df</span><span class="p">),</span> <span class="n">min_periods</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()[:</span><span class="mi">5</span><span class="p">]</span>
+<span class="gr">Out[89]: </span>
+<span class="go">                   A         B         C         D</span>
+<span class="go">2000-01-01 -1.388345  3.317290  0.344542 -0.036968</span>
+<span class="go">2000-01-02 -1.123132  3.622300  1.675867  0.595300</span>
+<span class="go">2000-01-03 -0.628502  3.626503  2.455240  1.060158</span>
+<span class="go">2000-01-04 -0.768740  3.888917  2.451354  1.281874</span>
+<span class="go">2000-01-05 -0.824034  4.108035  2.556112  1.140723</span>
+
+<span class="gp">In [90]: </span><span class="n">df</span><span class="o">.</span><span class="n">expanding</span><span class="p">(</span><span class="n">min_periods</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()[:</span><span class="mi">5</span><span class="p">]</span>
+<span class="gr">Out[90]: </span>
+<span class="go">                   A         B         C         D</span>
+<span class="go">2000-01-01 -1.388345  3.317290  0.344542 -0.036968</span>
+<span class="go">2000-01-02 -1.123132  3.622300  1.675867  0.595300</span>
+<span class="go">2000-01-03 -0.628502  3.626503  2.455240  1.060158</span>
+<span class="go">2000-01-04 -0.768740  3.888917  2.451354  1.281874</span>
+<span class="go">2000-01-05 -0.824034  4.108035  2.556112  1.140723</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-267">这些方法具有与<code class="docutils literal"><span class="pre">.rolling</span></code>方法类似的一组方法。</span></p>
+<div class="section" id="id1">
+<h3><span class="yiyi-st" id="yiyi-268">Method Summary</span></h3>
+<table border="1" class="docutils">
+<colgroup>
+<col width="20%">
+<col width="80%">
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head"><span class="yiyi-st" id="yiyi-269">功能</span></th>
+<th class="head"><span class="yiyi-st" id="yiyi-270">描述</span></th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><span class="yiyi-st" id="yiyi-271"><a class="reference internal" href="generated/pandas.core.window.Expanding.count.html#pandas.core.window.Expanding.count" title="pandas.core.window.Expanding.count"><code class="xref py py-meth docutils literal"><span class="pre">count()</span></code></a></span></td>
+<td><span class="yiyi-st" id="yiyi-272">非零观察数</span></td>
+</tr>
+<tr class="row-odd"><td><span class="yiyi-st" id="yiyi-273"><a class="reference internal" href="generated/pandas.core.window.Expanding.sum.html#pandas.core.window.Expanding.sum" title="pandas.core.window.Expanding.sum"><code class="xref py py-meth docutils literal"><span class="pre">sum()</span></code></a></span></td>
+<td><span class="yiyi-st" id="yiyi-274">值的总和</span></td>
+</tr>
+<tr class="row-even"><td><span class="yiyi-st" id="yiyi-275"><a class="reference internal" href="generated/pandas.core.window.Expanding.mean.html#pandas.core.window.Expanding.mean" title="pandas.core.window.Expanding.mean"><code class="xref py py-meth docutils literal"><span class="pre">mean()</span></code></a></span></td>
+<td><span class="yiyi-st" id="yiyi-276">值的平均值</span></td>
+</tr>
+<tr class="row-odd"><td><span class="yiyi-st" id="yiyi-277"><a class="reference internal" href="generated/pandas.core.window.Expanding.median.html#pandas.core.window.Expanding.median" title="pandas.core.window.Expanding.median"><code class="xref py py-meth docutils literal"><span class="pre">median()</span></code></a></span></td>
+<td><span class="yiyi-st" id="yiyi-278">值的算术中值</span></td>
+</tr>
+<tr class="row-even"><td><span class="yiyi-st" id="yiyi-279"><a class="reference internal" href="generated/pandas.core.window.Expanding.min.html#pandas.core.window.Expanding.min" title="pandas.core.window.Expanding.min"><code class="xref py py-meth docutils literal"><span class="pre">min()</span></code></a></span></td>
+<td><span class="yiyi-st" id="yiyi-280">最低</span></td>
+</tr>
+<tr class="row-odd"><td><span class="yiyi-st" id="yiyi-281"><a class="reference internal" href="generated/pandas.core.window.Expanding.max.html#pandas.core.window.Expanding.max" title="pandas.core.window.Expanding.max"><code class="xref py py-meth docutils literal"><span class="pre">max()</span></code></a></span></td>
+<td><span class="yiyi-st" id="yiyi-282">最大值</span></td>
+</tr>
+<tr class="row-even"><td><span class="yiyi-st" id="yiyi-283"><a class="reference internal" href="generated/pandas.core.window.Expanding.std.html#pandas.core.window.Expanding.std" title="pandas.core.window.Expanding.std"><code class="xref py py-meth docutils literal"><span class="pre">std()</span></code></a></span></td>
+<td><span class="yiyi-st" id="yiyi-284">无偏差标准偏差</span></td>
+</tr>
+<tr class="row-odd"><td><span class="yiyi-st" id="yiyi-285"><a class="reference internal" href="generated/pandas.core.window.Expanding.var.html#pandas.core.window.Expanding.var" title="pandas.core.window.Expanding.var"><code class="xref py py-meth docutils literal"><span class="pre">var()</span></code></a></span></td>
+<td><span class="yiyi-st" id="yiyi-286">无偏差</span></td>
+</tr>
+<tr class="row-even"><td><span class="yiyi-st" id="yiyi-287"><a class="reference internal" href="generated/pandas.core.window.Expanding.skew.html#pandas.core.window.Expanding.skew" title="pandas.core.window.Expanding.skew"><code class="xref py py-meth docutils literal"><span class="pre">skew()</span></code></a></span></td>
+<td><span class="yiyi-st" id="yiyi-288">无偏斜（第三动量）</span></td>
+</tr>
+<tr class="row-odd"><td><span class="yiyi-st" id="yiyi-289"><a class="reference internal" href="generated/pandas.core.window.Expanding.kurt.html#pandas.core.window.Expanding.kurt" title="pandas.core.window.Expanding.kurt"><code class="xref py py-meth docutils literal"><span class="pre">kurt()</span></code></a></span></td>
+<td><span class="yiyi-st" id="yiyi-290">无偏度峰度（第4圈）</span></td>
+</tr>
+<tr class="row-even"><td><span class="yiyi-st" id="yiyi-291"><a class="reference internal" href="generated/pandas.core.window.Expanding.quantile.html#pandas.core.window.Expanding.quantile" title="pandas.core.window.Expanding.quantile"><code class="xref py py-meth docutils literal"><span class="pre">quantile()</span></code></a></span></td>
+<td><span class="yiyi-st" id="yiyi-292">样本分位数（值％）</span></td>
+</tr>
+<tr class="row-odd"><td><span class="yiyi-st" id="yiyi-293"><a class="reference internal" href="generated/pandas.core.window.Expanding.apply.html#pandas.core.window.Expanding.apply" title="pandas.core.window.Expanding.apply"><code class="xref py py-meth docutils literal"><span class="pre">apply()</span></code></a></span></td>
+<td><span class="yiyi-st" id="yiyi-294">通用适用</span></td>
+</tr>
+<tr class="row-even"><td><span class="yiyi-st" id="yiyi-295"><a class="reference internal" href="generated/pandas.core.window.Expanding.cov.html#pandas.core.window.Expanding.cov" title="pandas.core.window.Expanding.cov"><code class="xref py py-meth docutils literal"><span class="pre">cov()</span></code></a></span></td>
+<td><span class="yiyi-st" id="yiyi-296">无偏协方差（二元）</span></td>
+</tr>
+<tr class="row-odd"><td><span class="yiyi-st" id="yiyi-297"><a class="reference internal" href="generated/pandas.core.window.Expanding.corr.html#pandas.core.window.Expanding.corr" title="pandas.core.window.Expanding.corr"><code class="xref py py-meth docutils literal"><span class="pre">corr()</span></code></a></span></td>
+<td><span class="yiyi-st" id="yiyi-298">相关（二进制）</span></td>
+</tr>
+</tbody>
+</table>
+<p><span class="yiyi-st" id="yiyi-299">除了不具有<code class="docutils literal"><span class="pre">window</span></code>参数，这些函数具有与它们的<code class="docutils literal"><span class="pre">.rolling</span></code>对等体相同的接口。</span><span class="yiyi-st" id="yiyi-300">像上面一样，它们都接受的参数是：</span></p>
+<ul class="simple">
+<li><span class="yiyi-st" id="yiyi-301"><code class="docutils literal"><span class="pre">min_periods</span></code>：要求的非空数据点的阈值。</span><span class="yiyi-st" id="yiyi-302">默认为计算统计所需的最小值。</span><span class="yiyi-st" id="yiyi-303">在看到<code class="docutils literal"><span class="pre">min_periods</span></code>非空数据点后，将不输出<code class="docutils literal"><span class="pre">NaNs</span></code>。</span></li>
+<li><span class="yiyi-st" id="yiyi-304"><code class="docutils literal"><span class="pre">center</span></code>：boolean，是否将标签设置在中心（默认为False）</span></li>
+</ul>
+<div class="admonition note">
+<p class="first admonition-title"><span class="yiyi-st" id="yiyi-305">注意</span></p>
+<p class="last"><span class="yiyi-st" id="yiyi-306"><code class="docutils literal"><span class="pre">.rolling</span></code>和<code class="docutils literal"><span class="pre">.expanding</span></code>方法的输出不返回<code class="docutils literal"><span class="pre">NaN</span></code>，如果至少有<code class="docutils literal"><span class="pre">min_periods</span></code> - 当前窗口中的空值。</span><span class="yiyi-st" id="yiyi-307">This differs from <code class="docutils literal"><span class="pre">cumsum</span></code>, <code class="docutils literal"><span class="pre">cumprod</span></code>, <code class="docutils literal"><span class="pre">cummax</span></code>, and <code class="docutils literal"><span class="pre">cummin</span></code>, which return <code class="docutils literal"><span class="pre">NaN</span></code> in the output wherever a <code class="docutils literal"><span class="pre">NaN</span></code> is encountered in the input.</span></p>
+</div>
+<p><span class="yiyi-st" id="yiyi-308">扩展窗口统计将比其滚动窗口对应更稳定（并且响应更少），因为增加的窗口大小减小了单个数据点的相对影响。</span><span class="yiyi-st" id="yiyi-309">例如，以下是上一个时间序列数据集的<a class="reference internal" href="generated/pandas.core.window.Expanding.mean.html#pandas.core.window.Expanding.mean" title="pandas.core.window.Expanding.mean"><code class="xref py py-meth docutils literal"><span class="pre">mean()</span></code></a>输出：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [91]: </span><span class="n">s</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">style</span><span class="o">=</span><span class="s1">&apos;k--&apos;</span><span class="p">)</span>
+<span class="gr">Out[91]: </span><span class="o">&lt;</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">axes</span><span class="o">.</span><span class="n">_subplots</span><span class="o">.</span><span class="n">AxesSubplot</span> <span class="n">at</span> <span class="mh">0x7ff29c7378d0</span><span class="o">&gt;</span>
+
+<span class="gp">In [92]: </span><span class="n">s</span><span class="o">.</span><span class="n">expanding</span><span class="p">()</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">style</span><span class="o">=</span><span class="s1">&apos;k&apos;</span><span class="p">)</span>
+<span class="gr">Out[92]: </span><span class="o">&lt;</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">axes</span><span class="o">.</span><span class="n">_subplots</span><span class="o">.</span><span class="n">AxesSubplot</span> <span class="n">at</span> <span class="mh">0x7ff29c7378d0</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<img alt="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/expanding_mean_frame.png" src="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/expanding_mean_frame.png">
+</div>
+</div>
+<div class="section" id="exponentially-weighted-windows">
+<span id="stats-moments-exponentially-weighted"></span><h2><span class="yiyi-st" id="yiyi-310">Exponentially Weighted Windows</span></h2>
+<p><span class="yiyi-st" id="yiyi-311">相关的一组函数是几个上述统计量的指数加权版本。</span><span class="yiyi-st" id="yiyi-312">通过<code class="docutils literal"><span class="pre">.ewm</span></code>方法访问与<code class="docutils literal"><span class="pre">.rolling</span></code>和<code class="docutils literal"><span class="pre">.expanding</span></code>类似的接口，以接收<code class="xref py py-class docutils literal"><span class="pre">EWM</span></code>对象。</span><span class="yiyi-st" id="yiyi-313">提供了许多扩展EW（指数加权）方法：</span></p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="20%">
+<col width="80%">
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head"><span class="yiyi-st" id="yiyi-314">功能</span></th>
+<th class="head"><span class="yiyi-st" id="yiyi-315">描述</span></th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><span class="yiyi-st" id="yiyi-316"><a class="reference internal" href="generated/pandas.core.window.EWM.mean.html#pandas.core.window.EWM.mean" title="pandas.core.window.EWM.mean"><code class="xref py py-meth docutils literal"><span class="pre">mean()</span></code></a></span></td>
+<td><span class="yiyi-st" id="yiyi-317">EW移动平均值</span></td>
+</tr>
+<tr class="row-odd"><td><span class="yiyi-st" id="yiyi-318"><a class="reference internal" href="generated/pandas.core.window.EWM.var.html#pandas.core.window.EWM.var" title="pandas.core.window.EWM.var"><code class="xref py py-meth docutils literal"><span class="pre">var()</span></code></a></span></td>
+<td><span class="yiyi-st" id="yiyi-319">EW移动方差</span></td>
+</tr>
+<tr class="row-even"><td><span class="yiyi-st" id="yiyi-320"><a class="reference internal" href="generated/pandas.core.window.EWM.std.html#pandas.core.window.EWM.std" title="pandas.core.window.EWM.std"><code class="xref py py-meth docutils literal"><span class="pre">std()</span></code></a></span></td>
+<td><span class="yiyi-st" id="yiyi-321">EW移动标准偏差</span></td>
+</tr>
+<tr class="row-odd"><td><span class="yiyi-st" id="yiyi-322"><a class="reference internal" href="generated/pandas.core.window.EWM.corr.html#pandas.core.window.EWM.corr" title="pandas.core.window.EWM.corr"><code class="xref py py-meth docutils literal"><span class="pre">corr()</span></code></a></span></td>
+<td><span class="yiyi-st" id="yiyi-323">EW移动相关</span></td>
+</tr>
+<tr class="row-even"><td><span class="yiyi-st" id="yiyi-324"><a class="reference internal" href="generated/pandas.core.window.EWM.cov.html#pandas.core.window.EWM.cov" title="pandas.core.window.EWM.cov"><code class="xref py py-meth docutils literal"><span class="pre">cov()</span></code></a></span></td>
+<td><span class="yiyi-st" id="yiyi-325">EW移动协方差</span></td>
+</tr>
+</tbody>
+</table>
+<p><span class="yiyi-st" id="yiyi-326">一般来说，加权移动平均值计算为</span></p>
+<div class="math">
+<p><span class="yiyi-st" id="yiyi-327"><span class="math">y_t = \ frac {\ sum_ {i = 0} ^ t w_i x_ {t-i}} {\ sum_ {i = 0} ^ t w_i}，</span></span></p>
+</div><p><span class="yiyi-st" id="yiyi-328">其中<span class="math">x_t</span>是输入，<span class="math">y_t</span>是结果。</span></p>
+<p><span class="yiyi-st" id="yiyi-329">EW函数支持指数权重的两种变体。</span><span class="yiyi-st" id="yiyi-330">默认值<code class="docutils literal"><span class="pre">adjust=True</span></code>使用权重<span class="math">w_i =（1  -  \ alpha）^ i</span></span></p>
+<div class="math">
+<p><span class="yiyi-st" id="yiyi-331"><span class="math">y_t = \ frac {x_t +（1-&#x3B1;alpha）x_ {t-1} +（1-&#x3B1;alpha）^ 2 x_ {t-2} + ... + x_ {0}} {1 +（1-&#x3B1;&#x3B1;）+（1-&#x3B1;&#x3B1;）^ 2 + ... +（1-&#x3B1;&#x3B1;）</span></span></p>
+</div><p><span class="yiyi-st" id="yiyi-332">当指定<code class="docutils literal"><span class="pre">adjust=False</span></code>时，移动平均值计算为</span></p>
+<div class="math">
+<p><span class="yiyi-st" id="yiyi-333"><span class="math">y_0＆amp； = x_0 \\ y_t＆amp； =（1  -  \ alpha）y_ {t-1} + \ alpha x_t，</span></span></p>
+</div><p><span class="yiyi-st" id="yiyi-334">这相当于使用权重</span></p>
+<div class="math">
+<p><span class="yiyi-st" id="yiyi-335"><span class="math">w_i = \ begin {cases} \ alpha（1  -  \ alpha）^ i＆amp； \ text {if} i </span></span></p>
+</div><div class="admonition note">
+<p class="first admonition-title"><span class="yiyi-st" id="yiyi-336">注意</span></p>
+<p><span class="yiyi-st" id="yiyi-337">这些方程有时用<span class="math">\ alpha&apos;= 1-\&#x3B1;</span>来表示，例如。</span></p>
+<div class="last math">
+<p><span class="yiyi-st" id="yiyi-338"><span class="math">y_t = \ alpha&apos;y_ {t-1} +（1  -  \ alpha&apos;）x_t。</span></span></p>
+</div></div>
+<p><span class="yiyi-st" id="yiyi-339">上述两种变体之间的区别出现是因为我们处理具有有限历史的系列。</span><span class="yiyi-st" id="yiyi-340">考虑一系列无限历史：</span></p>
+<div class="math">
+<p><span class="yiyi-st" id="yiyi-341"><span class="math">y_t = \ frac {x_t +（1-&#x3B1;alpha）x_ {t-1} +（1-&#x3B1;alpha）^ 2 x_ {t-2} + ...} {1 +（1  -  \ alpha ）+（1-&#x3B1;&#x3B1;）^ 2 + ...}</span></span></p>
+</div><p><span class="yiyi-st" id="yiyi-342">注意到分母是几何级数，其初始项等于1，比率为<span class="math">1  -  \ alpha</span></span></p>
+<div class="math">
+<p><span class="yiyi-st" id="yiyi-343"><span class="math">y_t＆amp； = \ frac {x_t +（1  -  \ alpha）x_ {t-1} +（1  -  \ alpha）^ 2 x_ {t-2} + ...} {\ frac {1} {1-（1-&#x3B1;）}} \\＆amp； = [x_t +（1-&#x3B1;）x_ {t-1} +（1-&#x3B1;&#x3B1;）^ 2 x_ {t-2} + ... ] \ alpha \\＆amp； = \ alpha x_t + [（1- \ alpha）x_ {t-1} +（1-\ alpha）^ 2 x_ {t-2} + ...] \ alpha \\＆amp； ； = \ alpha x_t +（1  -  \ alpha）[x_ {t-1} +（1  -  \ alpha）x_ {t-2} + ...] \ alpha \\＆amp； = \ alpha x_t + -  \ alpha）y_ {t-1}</span></span></p>
+</div><p><span class="yiyi-st" id="yiyi-344">其示出了上述两个变量对于无穷级数的等价。</span><span class="yiyi-st" id="yiyi-345">当<code class="docutils literal"><span class="pre">adjust=True</span></code>时，我们有<span class="math">y_0 = x_0</span>，从上面的最后一个表示中，我们有<span class="math">y_t = \ alpha x_t +（1  -  \ alpha）y_ { 1}</span>，因此假设<span class="math">x_0</span>不是普通值，而是直到该点的无限序列的指数加权矩。</span></p>
+<p><span class="yiyi-st" id="yiyi-346">必须有<span class="math">0 ，而自版本0.18.0以来，可以直接传递<span class="math">\ alpha</span>，通常更容易考虑<strong>span</strong> ，<strong>质心（com）</strong>或<strong>半衰期</strong></span></span></p>
+<div class="math">
+<p><span class="yiyi-st" id="yiyi-347"><span class="math">\ alpha = \ begin {cases} \ frac {2} {s + 1}，＆amp； \ text {for span} \ s \ geq 1 \\ \ frac {1} {1 + c}，＆amp； \ text {for center of mass} \ c \ geq 0 \\ 1  -  \ exp ^ {\ frac {\ log 0.5} {h}}，＆amp； \ text {for half-life} \ h＆gt； 0 \ end {cases}</span></span></p>
+</div><p><span class="yiyi-st" id="yiyi-348">必须精确地指定EW功能的<strong>span</strong>，<strong>质心</strong>，<strong>半衰期</strong>和<strong></strong></span></p>
+<ul class="simple">
+<li><span class="yiyi-st" id="yiyi-349"><strong>跨度</strong>对应于通常所称的“N日EW移动平均线”。</span></li>
+<li><span class="yiyi-st" id="yiyi-350"><strong>质心</strong>具有更多的物理解释，可以在跨度方面考虑：<span class="math">c =（s-1）/ 2</span>。</span></li>
+<li><span class="yiyi-st" id="yiyi-351"><strong>半衰期</strong>是指数权重减少到一半的时间段。</span></li>
+<li><span class="yiyi-st" id="yiyi-352"><strong>Alpha</strong>直接指定平滑因子。</span></li>
+</ul>
+<p><span class="yiyi-st" id="yiyi-353">以下是单变量时间序列的示例：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [93]: </span><span class="n">s</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">style</span><span class="o">=</span><span class="s1">&apos;k--&apos;</span><span class="p">)</span>
+<span class="gr">Out[93]: </span><span class="o">&lt;</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">axes</span><span class="o">.</span><span class="n">_subplots</span><span class="o">.</span><span class="n">AxesSubplot</span> <span class="n">at</span> <span class="mh">0x7ff29c73bdd0</span><span class="o">&gt;</span>
+
+<span class="gp">In [94]: </span><span class="n">s</span><span class="o">.</span><span class="n">ewm</span><span class="p">(</span><span class="n">span</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">style</span><span class="o">=</span><span class="s1">&apos;k&apos;</span><span class="p">)</span>
+<span class="gr">Out[94]: </span><span class="o">&lt;</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">axes</span><span class="o">.</span><span class="n">_subplots</span><span class="o">.</span><span class="n">AxesSubplot</span> <span class="n">at</span> <span class="mh">0x7ff29c73bdd0</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<img alt="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/ewma_ex.png" src="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/ewma_ex.png">
+<p><span class="yiyi-st" id="yiyi-354">EWM有一个<code class="docutils literal"><span class="pre">min_periods</span></code>参数，它具有与所有<code class="docutils literal"><span class="pre">.expanding</span></code>和<code class="docutils literal"><span class="pre">.rolling</span></code>方法相同的含义：将不设置输出值直到在（扩展）窗口中遇到至少<code class="docutils literal"><span class="pre">min_periods</span></code>个非空值。</span><span class="yiyi-st" id="yiyi-355">（这是从0.15.0之前的版本的变化，其中<code class="docutils literal"><span class="pre">min_periods</span></code>参数仅影响从第一个非空值开始的<code class="docutils literal"><span class="pre">min_periods</span></code>连续条目。）</span></p>
+<p><span class="yiyi-st" id="yiyi-356">EWM还有一个<code class="docutils literal"><span class="pre">ignore_na</span></code>参数，它决定了中间空值如何影响权重的计算。</span><span class="yiyi-st" id="yiyi-357">当<code class="docutils literal"><span class="pre">ignore_na=False</span></code>（默认值）时，将根据绝对位置计算权重，以使中间空值影响结果。</span><span class="yiyi-st" id="yiyi-358">当<code class="docutils literal"><span class="pre">ignore_na=True</span></code>（重现0.15.0之前的版本中的行为）时，通过忽略中间空值计算权重。</span><span class="yiyi-st" id="yiyi-359">For example, assuming <code class="docutils literal"><span class="pre">adjust=True</span></code>, if <code class="docutils literal"><span class="pre">ignore_na=False</span></code>, the weighted average of <code class="docutils literal"><span class="pre">3,</span> <span class="pre">NaN,</span> <span class="pre">5</span></code> would be calculated as</span></p>
+<div class="math">
+<p><span class="yiyi-st" id="yiyi-360"><span class="math">\ frac {（1- \ alpha）^ 2 \ cdot 3 + 1 \ cdot 5} {（1 \ alpha）^ 2 + 1}</span></span></p>
+</div><p><span class="yiyi-st" id="yiyi-361">而如果<code class="docutils literal"><span class="pre">ignore_na=True</span></code>，加权平均值将被计算为</span></p>
+<div class="math">
+<p><span class="yiyi-st" id="yiyi-362"><span class="math">\ frac {（1- \ alpha）\ cdot 3 + 1 \ cdot 5} {（1 \ alpha）+ 1}。</span></span></p>
+</div><p><span class="yiyi-st" id="yiyi-363"><code class="xref py py-meth docutils literal"><span class="pre">var()</span></code>，<code class="xref py py-meth docutils literal"><span class="pre">std()</span></code>和<code class="xref py py-meth docutils literal"><span class="pre">cov()</span></code>函数具有<code class="docutils literal"><span class="pre">bias</span></code>参数，结果应包含有偏见或无偏的统计。</span><span class="yiyi-st" id="yiyi-364">例如，如果<code class="docutils literal"><span class="pre">bias=True</span></code>，则<code class="docutils literal"><span class="pre">ewmvar(x)</span></code>计算为<code class="docutils literal"><span class="pre">ewmvar（x）</span> <span class="pre">=  t6 &gt; <span class="pre">ewma（x ** 2）</span> <span class="pre"> - </span> <span class="pre">ewma（x）** 2</span></span></code>而如果<code class="docutils literal"><span class="pre">bias=False</span></code>（默认值），偏置方差统计量通过去折叠因子</span></p>
+<div class="math">
+<p><span class="yiyi-st" id="yiyi-365"><span class="math">\ frac {\ left（\ sum_ {i = 0} ^ t w_i \ right）^ 2} {\ left（\ sum_ {i = 0} ^ t w_i \ right）^ 2  -  \ sum_ {i = 0} ^ t w_i ^ 2}。</span></span></p>
+</div><p><span class="yiyi-st" id="yiyi-366">（对于<span class="math">w_i = 1</span>，这减少到通常的<span class="math">N /（N-1）</span>因子，其中<span class="math">N = t + 1</span></span><span class="yiyi-st" id="yiyi-367">有关详细信息，请参阅<a class="reference external" href="http://en.wikipedia.org/wiki/Weighted_arithmetic_mean#Weighted_sample_variance">加权样本方差</a>。</span></p>
+</div>

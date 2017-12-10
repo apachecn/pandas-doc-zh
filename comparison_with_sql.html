@@ -1,0 +1,588 @@
+
+<span id="compare-with-sql"></span><h1><span class="yiyi-st" id="yiyi-61">Comparison with SQL</span></h1>
+        <blockquote>
+        <p>原文：<a href="http://pandas.pydata.org/pandas-docs/stable/comparison_with_sql.html">http://pandas.pydata.org/pandas-docs/stable/comparison_with_sql.html</a></p>
+        <p>译者：<a href="https://github.com/wizardforcel">飞龙</a> <a href="http://usyiyi.cn/">UsyiyiCN</a></p>
+        <p>校对：（虚位以待）</p>
+        </blockquote>
+    
+<p><span class="yiyi-st" id="yiyi-62">由于许多潜在的pandas用户对<a class="reference external" href="http://en.wikipedia.org/wiki/SQL">SQL</a>有一些熟悉，因此本页面将提供一些使用pandas执行各种SQL操作的示例。</span></p>
+<p><span class="yiyi-st" id="yiyi-63">如果你是新来的熊猫，你可能需要先阅读<a class="reference internal" href="10min.html#min"><span class="std std-ref">10 Minutes to pandas</span></a>，以熟悉自己的图书馆。</span></p>
+<p><span class="yiyi-st" id="yiyi-64">按照惯例，我们导入pandas和numpy如下：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [1]: </span><span class="kn">import</span> <span class="nn">pandas</span> <span class="kn">as</span> <span class="nn">pd</span>
+
+<span class="gp">In [2]: </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-65">大多数示例将使用在pandas测试中发现的<code class="docutils literal"><span class="pre">tips</span></code>数据集。</span><span class="yiyi-st" id="yiyi-66">我们将数据读入一个名为<cite>提示</cite>的DataFrame，并假设我们有一个具有相同名称和结构的数据库表。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [3]: </span><span class="n">url</span> <span class="o">=</span> <span class="s1">&apos;https://raw.github.com/pandas-dev/pandas/master/pandas/tests/data/tips.csv&apos;</span>
+
+<span class="gp">In [4]: </span><span class="n">tips</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+
+<span class="gp">In [5]: </span><span class="n">tips</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
+<span class="gr">Out[5]: </span>
+<span class="go">   total_bill   tip     sex smoker  day    time  size</span>
+<span class="go">0       16.99  1.01  Female     No  Sun  Dinner     2</span>
+<span class="go">1       10.34  1.66    Male     No  Sun  Dinner     3</span>
+<span class="go">2       21.01  3.50    Male     No  Sun  Dinner     3</span>
+<span class="go">3       23.68  3.31    Male     No  Sun  Dinner     2</span>
+<span class="go">4       24.59  3.61  Female     No  Sun  Dinner     4</span>
+</pre></div>
+</div>
+<div class="section" id="select">
+<h2><span class="yiyi-st" id="yiyi-67">SELECT</span></h2>
+<p><span class="yiyi-st" id="yiyi-68">在SQL中，使用逗号分隔的列选择列（或<code class="docutils literal"><span class="pre">*</span></code>选择所有列）进行选择：</span></p>
+<div class="highlight-sql"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="n">total_bill</span><span class="p">,</span> <span class="n">tip</span><span class="p">,</span> <span class="n">smoker</span><span class="p">,</span> <span class="n">time</span>
+<span class="k">FROM</span> <span class="n">tips</span>
+<span class="k">LIMIT</span> <span class="mi">5</span><span class="p">;</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-69">使用pandas，通过将列名列表传递到DataFrame来完成列选择：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [6]: </span><span class="n">tips</span><span class="p">[[</span><span class="s1">&apos;total_bill&apos;</span><span class="p">,</span> <span class="s1">&apos;tip&apos;</span><span class="p">,</span> <span class="s1">&apos;smoker&apos;</span><span class="p">,</span> <span class="s1">&apos;time&apos;</span><span class="p">]]</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+<span class="gr">Out[6]: </span>
+<span class="go">   total_bill   tip smoker    time</span>
+<span class="go">0       16.99  1.01     No  Dinner</span>
+<span class="go">1       10.34  1.66     No  Dinner</span>
+<span class="go">2       21.01  3.50     No  Dinner</span>
+<span class="go">3       23.68  3.31     No  Dinner</span>
+<span class="go">4       24.59  3.61     No  Dinner</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-70">调用没有列名称列表的DataFrame将显示所有列（类似于SQL的<code class="docutils literal"><span class="pre">*</span></code>）。</span></p>
+</div>
+<div class="section" id="where">
+<h2><span class="yiyi-st" id="yiyi-71">WHERE</span></h2>
+<p><span class="yiyi-st" id="yiyi-72">在SQL中的过滤是通过WHERE子句完成的。</span></p>
+<div class="highlight-sql"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">*</span>
+<span class="k">FROM</span> <span class="n">tips</span>
+<span class="k">WHERE</span> <span class="n">time</span> <span class="o">=</span> <span class="s1">&apos;Dinner&apos;</span>
+<span class="k">LIMIT</span> <span class="mi">5</span><span class="p">;</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-73">DataFrames可以以多种方式进行过滤；其中最直观的是使用<a class="reference external" href="http://pandas.pydata.org/pandas-docs/stable/indexing.html#boolean-indexing">布尔索引</a>。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [7]: </span><span class="n">tips</span><span class="p">[</span><span class="n">tips</span><span class="p">[</span><span class="s1">&apos;time&apos;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&apos;Dinner&apos;</span><span class="p">]</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+<span class="gr">Out[7]: </span>
+<span class="go">   total_bill   tip     sex smoker  day    time  size</span>
+<span class="go">0       16.99  1.01  Female     No  Sun  Dinner     2</span>
+<span class="go">1       10.34  1.66    Male     No  Sun  Dinner     3</span>
+<span class="go">2       21.01  3.50    Male     No  Sun  Dinner     3</span>
+<span class="go">3       23.68  3.31    Male     No  Sun  Dinner     2</span>
+<span class="go">4       24.59  3.61  Female     No  Sun  Dinner     4</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-74">上面的语句只是将一个<code class="docutils literal"><span class="pre">Series</span></code>的True / False对象传递给DataFrame，返回所有行为True。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [8]: </span><span class="n">is_dinner</span> <span class="o">=</span> <span class="n">tips</span><span class="p">[</span><span class="s1">&apos;time&apos;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&apos;Dinner&apos;</span>
+
+<span class="gp">In [9]: </span><span class="n">is_dinner</span><span class="o">.</span><span class="n">value_counts</span><span class="p">()</span>
+<span class="gr">Out[9]: </span>
+<span class="go">True     176</span>
+<span class="go">False     68</span>
+<span class="go">Name: time, dtype: int64</span>
+
+<span class="gp">In [10]: </span><span class="n">tips</span><span class="p">[</span><span class="n">is_dinner</span><span class="p">]</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+<span class="gr">Out[10]: </span>
+<span class="go">   total_bill   tip     sex smoker  day    time  size</span>
+<span class="go">0       16.99  1.01  Female     No  Sun  Dinner     2</span>
+<span class="go">1       10.34  1.66    Male     No  Sun  Dinner     3</span>
+<span class="go">2       21.01  3.50    Male     No  Sun  Dinner     3</span>
+<span class="go">3       23.68  3.31    Male     No  Sun  Dinner     2</span>
+<span class="go">4       24.59  3.61  Female     No  Sun  Dinner     4</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-75">就像SQL的OR和AND一样，可以使用|将多个条件传递给DataFrame （OR）和＆（AND）。</span></p>
+<div class="highlight-sql"><div class="highlight"><pre><span></span><span class="c1">-- tips of more than $5.00 at Dinner meals</span>
+<span class="k">SELECT</span> <span class="o">*</span>
+<span class="k">FROM</span> <span class="n">tips</span>
+<span class="k">WHERE</span> <span class="n">time</span> <span class="o">=</span> <span class="s1">&apos;Dinner&apos;</span> <span class="k">AND</span> <span class="n">tip</span> <span class="o">&gt;</span> <span class="mi">5</span><span class="p">.</span><span class="mi">00</span><span class="p">;</span>
+</pre></div>
+</div>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="c"># tips of more than $5.00 at Dinner meals</span>
+<span class="gp">In [11]: </span><span class="n">tips</span><span class="p">[(</span><span class="n">tips</span><span class="p">[</span><span class="s1">&apos;time&apos;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&apos;Dinner&apos;</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">tips</span><span class="p">[</span><span class="s1">&apos;tip&apos;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mf">5.00</span><span class="p">)]</span>
+<span class="gr">Out[11]: </span>
+<span class="go">     total_bill    tip     sex smoker  day    time  size</span>
+<span class="go">23        39.42   7.58    Male     No  Sat  Dinner     4</span>
+<span class="go">44        30.40   5.60    Male     No  Sun  Dinner     4</span>
+<span class="go">47        32.40   6.00    Male     No  Sun  Dinner     4</span>
+<span class="go">52        34.81   5.20  Female     No  Sun  Dinner     4</span>
+<span class="go">59        48.27   6.73    Male     No  Sat  Dinner     4</span>
+<span class="go">116       29.93   5.07    Male     No  Sun  Dinner     4</span>
+<span class="go">155       29.85   5.14  Female     No  Sun  Dinner     5</span>
+<span class="go">170       50.81  10.00    Male    Yes  Sat  Dinner     3</span>
+<span class="go">172        7.25   5.15    Male    Yes  Sun  Dinner     2</span>
+<span class="go">181       23.33   5.65    Male    Yes  Sun  Dinner     2</span>
+<span class="go">183       23.17   6.50    Male    Yes  Sun  Dinner     4</span>
+<span class="go">211       25.89   5.16    Male    Yes  Sat  Dinner     4</span>
+<span class="go">212       48.33   9.00    Male     No  Sat  Dinner     4</span>
+<span class="go">214       28.17   6.50  Female    Yes  Sat  Dinner     3</span>
+<span class="go">239       29.03   5.92    Male     No  Sat  Dinner     3</span>
+</pre></div>
+</div>
+<div class="highlight-sql"><div class="highlight"><pre><span></span><span class="c1">-- tips by parties of at least 5 diners OR bill total was more than $45</span>
+<span class="k">SELECT</span> <span class="o">*</span>
+<span class="k">FROM</span> <span class="n">tips</span>
+<span class="k">WHERE</span> <span class="k">size</span> <span class="o">&gt;=</span> <span class="mi">5</span> <span class="k">OR</span> <span class="n">total_bill</span> <span class="o">&gt;</span> <span class="mi">45</span><span class="p">;</span>
+</pre></div>
+</div>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="c"># tips by parties of at least 5 diners OR bill total was more than $45</span>
+<span class="gp">In [12]: </span><span class="n">tips</span><span class="p">[(</span><span class="n">tips</span><span class="p">[</span><span class="s1">&apos;size&apos;</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="mi">5</span><span class="p">)</span> <span class="o">|</span> <span class="p">(</span><span class="n">tips</span><span class="p">[</span><span class="s1">&apos;total_bill&apos;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">45</span><span class="p">)]</span>
+<span class="gr">Out[12]: </span>
+<span class="go">     total_bill    tip     sex smoker   day    time  size</span>
+<span class="go">59        48.27   6.73    Male     No   Sat  Dinner     4</span>
+<span class="go">125       29.80   4.20  Female     No  Thur   Lunch     6</span>
+<span class="go">141       34.30   6.70    Male     No  Thur   Lunch     6</span>
+<span class="go">142       41.19   5.00    Male     No  Thur   Lunch     5</span>
+<span class="go">143       27.05   5.00  Female     No  Thur   Lunch     6</span>
+<span class="go">155       29.85   5.14  Female     No   Sun  Dinner     5</span>
+<span class="go">156       48.17   5.00    Male     No   Sun  Dinner     6</span>
+<span class="go">170       50.81  10.00    Male    Yes   Sat  Dinner     3</span>
+<span class="go">182       45.35   3.50    Male    Yes   Sun  Dinner     3</span>
+<span class="go">185       20.69   5.00    Male     No   Sun  Dinner     5</span>
+<span class="go">187       30.46   2.00    Male    Yes   Sun  Dinner     5</span>
+<span class="go">212       48.33   9.00    Male     No   Sat  Dinner     4</span>
+<span class="go">216       28.15   3.00    Male    Yes   Sat  Dinner     5</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-76">使用<a class="reference internal" href="generated/pandas.Series.notnull.html#pandas.Series.notnull" title="pandas.Series.notnull"><code class="xref py py-meth docutils literal"><span class="pre">notnull()</span></code></a>和<a class="reference internal" href="generated/pandas.Series.isnull.html#pandas.Series.isnull" title="pandas.Series.isnull"><code class="xref py py-meth docutils literal"><span class="pre">isnull()</span></code></a>方法进行NULL检查。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [13]: </span><span class="n">frame</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s1">&apos;col1&apos;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&apos;A&apos;</span><span class="p">,</span> <span class="s1">&apos;B&apos;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">NaN</span><span class="p">,</span> <span class="s1">&apos;C&apos;</span><span class="p">,</span> <span class="s1">&apos;D&apos;</span><span class="p">],</span>
+<span class="gp">   ....:</span>                       <span class="s1">&apos;col2&apos;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&apos;F&apos;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">NaN</span><span class="p">,</span> <span class="s1">&apos;G&apos;</span><span class="p">,</span> <span class="s1">&apos;H&apos;</span><span class="p">,</span> <span class="s1">&apos;I&apos;</span><span class="p">]})</span>
+<span class="gp">   ....:</span> 
+
+<span class="gp">In [14]: </span><span class="n">frame</span>
+<span class="gr">Out[14]: </span>
+<span class="go">  col1 col2</span>
+<span class="go">0    A    F</span>
+<span class="go">1    B  NaN</span>
+<span class="go">2  NaN    G</span>
+<span class="go">3    C    H</span>
+<span class="go">4    D    I</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-77">假设我们有一个与我们的DataFrame结构相同的表。</span><span class="yiyi-st" id="yiyi-78">通过以下查询，我们只能看到<code class="docutils literal"><span class="pre">col2</span></code> IS NULL的记录：</span></p>
+<div class="highlight-sql"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">*</span>
+<span class="k">FROM</span> <span class="n">frame</span>
+<span class="k">WHERE</span> <span class="n">col2</span> <span class="k">IS</span> <span class="k">NULL</span><span class="p">;</span>
+</pre></div>
+</div>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [15]: </span><span class="n">frame</span><span class="p">[</span><span class="n">frame</span><span class="p">[</span><span class="s1">&apos;col2&apos;</span><span class="p">]</span><span class="o">.</span><span class="n">isnull</span><span class="p">()]</span>
+<span class="gr">Out[15]: </span>
+<span class="go">  col1 col2</span>
+<span class="go">1    B  NaN</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-79">使用<a class="reference internal" href="generated/pandas.Series.notnull.html#pandas.Series.notnull" title="pandas.Series.notnull"><code class="xref py py-meth docutils literal"><span class="pre">notnull()</span></code></a>可以处理<code class="docutils literal"><span class="pre">col1</span></code> IS NOT NULL的项目。</span></p>
+<div class="highlight-sql"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">*</span>
+<span class="k">FROM</span> <span class="n">frame</span>
+<span class="k">WHERE</span> <span class="n">col1</span> <span class="k">IS</span> <span class="k">NOT</span> <span class="k">NULL</span><span class="p">;</span>
+</pre></div>
+</div>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [16]: </span><span class="n">frame</span><span class="p">[</span><span class="n">frame</span><span class="p">[</span><span class="s1">&apos;col1&apos;</span><span class="p">]</span><span class="o">.</span><span class="n">notnull</span><span class="p">()]</span>
+<span class="gr">Out[16]: </span>
+<span class="go">  col1 col2</span>
+<span class="go">0    A    F</span>
+<span class="go">1    B  NaN</span>
+<span class="go">3    C    H</span>
+<span class="go">4    D    I</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="group-by">
+<h2><span class="yiyi-st" id="yiyi-80">GROUP BY</span></h2>
+<p><span class="yiyi-st" id="yiyi-81">在pandas中，SQL的GROUP BY操作使用类似命名的<a class="reference internal" href="generated/pandas.DataFrame.groupby.html#pandas.DataFrame.groupby" title="pandas.DataFrame.groupby"><code class="xref py py-meth docutils literal"><span class="pre">groupby()</span></code></a>方法执行。</span><span class="yiyi-st" id="yiyi-82"><a class="reference internal" href="generated/pandas.DataFrame.groupby.html#pandas.DataFrame.groupby" title="pandas.DataFrame.groupby"><code class="xref py py-meth docutils literal"><span class="pre">groupby()</span></code></a>通常指的是一个过程，其中我们要将数据集拆分成组，应用一些函数（通常是聚合），然后将组合在一起。</span></p>
+<p><span class="yiyi-st" id="yiyi-83">常见的SQL操作是获取数据集中每个组中的记录数。</span><span class="yiyi-st" id="yiyi-84">例如，一个查询获得我们按性别留下的提示数量：</span></p>
+<div class="highlight-sql"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="n">sex</span><span class="p">,</span> <span class="k">count</span><span class="p">(</span><span class="o">*</span><span class="p">)</span>
+<span class="k">FROM</span> <span class="n">tips</span>
+<span class="k">GROUP</span> <span class="k">BY</span> <span class="n">sex</span><span class="p">;</span>
+<span class="cm">/*</span>
+<span class="cm">Female     87</span>
+<span class="cm">Male      157</span>
+<span class="cm">*/</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-85">熊猫相当于：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [17]: </span><span class="n">tips</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s1">&apos;sex&apos;</span><span class="p">)</span><span class="o">.</span><span class="n">size</span><span class="p">()</span>
+<span class="gr">Out[17]: </span>
+<span class="go">sex</span>
+<span class="go">Female     87</span>
+<span class="go">Male      157</span>
+<span class="go">dtype: int64</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-86">注意，在pandas代码中，我们使用<a class="reference internal" href="generated/pandas.core.groupby.DataFrameGroupBy.size.html#pandas.core.groupby.DataFrameGroupBy.size" title="pandas.core.groupby.DataFrameGroupBy.size"><code class="xref py py-meth docutils literal"><span class="pre">size()</span></code></a>而不是<a class="reference internal" href="generated/pandas.core.groupby.DataFrameGroupBy.count.html#pandas.core.groupby.DataFrameGroupBy.count" title="pandas.core.groupby.DataFrameGroupBy.count"><code class="xref py py-meth docutils literal"><span class="pre">count()</span></code></a>。</span><span class="yiyi-st" id="yiyi-87">这是因为<a class="reference internal" href="generated/pandas.core.groupby.DataFrameGroupBy.count.html#pandas.core.groupby.DataFrameGroupBy.count" title="pandas.core.groupby.DataFrameGroupBy.count"><code class="xref py py-meth docutils literal"><span class="pre">count()</span></code></a>将函数应用于每个列，返回每个列中的<code class="docutils literal"><span class="pre"></span> <span class="pre">不是Null的个数记录</span> 。</code></span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [18]: </span><span class="n">tips</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s1">&apos;sex&apos;</span><span class="p">)</span><span class="o">.</span><span class="n">count</span><span class="p">()</span>
+<span class="gr">Out[18]: </span>
+<span class="go">        total_bill  tip  smoker  day  time  size</span>
+<span class="go">sex                                             </span>
+<span class="go">Female          87   87      87   87    87    87</span>
+<span class="go">Male           157  157     157  157   157   157</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-88">或者，我们可以将<a class="reference internal" href="generated/pandas.core.groupby.DataFrameGroupBy.count.html#pandas.core.groupby.DataFrameGroupBy.count" title="pandas.core.groupby.DataFrameGroupBy.count"><code class="xref py py-meth docutils literal"><span class="pre">count()</span></code></a>方法应用于单独的列：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [19]: </span><span class="n">tips</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s1">&apos;sex&apos;</span><span class="p">)[</span><span class="s1">&apos;total_bill&apos;</span><span class="p">]</span><span class="o">.</span><span class="n">count</span><span class="p">()</span>
+<span class="gr">Out[19]: </span>
+<span class="go">sex</span>
+<span class="go">Female     87</span>
+<span class="go">Male      157</span>
+<span class="go">Name: total_bill, dtype: int64</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-89">也可以一次应用多个功能。</span><span class="yiyi-st" id="yiyi-90">例如，假设我们希望查看提示量与星期几不同 -  <a class="reference internal" href="generated/pandas.core.groupby.DataFrameGroupBy.agg.html#pandas.core.groupby.DataFrameGroupBy.agg" title="pandas.core.groupby.DataFrameGroupBy.agg"><code class="xref py py-meth docutils literal"><span class="pre">agg()</span></code></a>允许您将字典传递到已分组的DataFrame，指明哪些函数应用于特定列。</span></p>
+<div class="highlight-sql"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="k">day</span><span class="p">,</span> <span class="k">AVG</span><span class="p">(</span><span class="n">tip</span><span class="p">),</span> <span class="k">COUNT</span><span class="p">(</span><span class="o">*</span><span class="p">)</span>
+<span class="k">FROM</span> <span class="n">tips</span>
+<span class="k">GROUP</span> <span class="k">BY</span> <span class="k">day</span><span class="p">;</span>
+<span class="cm">/*</span>
+<span class="cm">Fri   2.734737   19</span>
+<span class="cm">Sat   2.993103   87</span>
+<span class="cm">Sun   3.255132   76</span>
+<span class="cm">Thur  2.771452   62</span>
+<span class="cm">*/</span>
+</pre></div>
+</div>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [20]: </span><span class="n">tips</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s1">&apos;day&apos;</span><span class="p">)</span><span class="o">.</span><span class="n">agg</span><span class="p">({</span><span class="s1">&apos;tip&apos;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">,</span> <span class="s1">&apos;day&apos;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">size</span><span class="p">})</span>
+<span class="gr">Out[20]: </span>
+<span class="go">           tip  day</span>
+<span class="go">day                </span>
+<span class="go">Fri   2.734737   19</span>
+<span class="go">Sat   2.993103   87</span>
+<span class="go">Sun   3.255132   76</span>
+<span class="go">Thur  2.771452   62</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-91">通过将列列表传递到<a class="reference internal" href="generated/pandas.DataFrame.groupby.html#pandas.DataFrame.groupby" title="pandas.DataFrame.groupby"><code class="xref py py-meth docutils literal"><span class="pre">groupby()</span></code></a>方法来对多个列进行分组。</span></p>
+<div class="highlight-sql"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="n">smoker</span><span class="p">,</span> <span class="k">day</span><span class="p">,</span> <span class="k">COUNT</span><span class="p">(</span><span class="o">*</span><span class="p">),</span> <span class="k">AVG</span><span class="p">(</span><span class="n">tip</span><span class="p">)</span>
+<span class="k">FROM</span> <span class="n">tips</span>
+<span class="k">GROUP</span> <span class="k">BY</span> <span class="n">smoker</span><span class="p">,</span> <span class="k">day</span><span class="p">;</span>
+<span class="cm">/*</span>
+<span class="cm">smoker day</span>
+<span class="cm">No     Fri      4  2.812500</span>
+<span class="cm">       Sat     45  3.102889</span>
+<span class="cm">       Sun     57  3.167895</span>
+<span class="cm">       Thur    45  2.673778</span>
+<span class="cm">Yes    Fri     15  2.714000</span>
+<span class="cm">       Sat     42  2.875476</span>
+<span class="cm">       Sun     19  3.516842</span>
+<span class="cm">       Thur    17  3.030000</span>
+<span class="cm">*/</span>
+</pre></div>
+</div>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [21]: </span><span class="n">tips</span><span class="o">.</span><span class="n">groupby</span><span class="p">([</span><span class="s1">&apos;smoker&apos;</span><span class="p">,</span> <span class="s1">&apos;day&apos;</span><span class="p">])</span><span class="o">.</span><span class="n">agg</span><span class="p">({</span><span class="s1">&apos;tip&apos;</span><span class="p">:</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">]})</span>
+<span class="gr">Out[21]: </span>
+<span class="go">              tip          </span>
+<span class="go">             size      mean</span>
+<span class="go">smoker day                 </span>
+<span class="go">No     Fri    4.0  2.812500</span>
+<span class="go">       Sat   45.0  3.102889</span>
+<span class="go">       Sun   57.0  3.167895</span>
+<span class="go">       Thur  45.0  2.673778</span>
+<span class="go">Yes    Fri   15.0  2.714000</span>
+<span class="go">       Sat   42.0  2.875476</span>
+<span class="go">       Sun   19.0  3.516842</span>
+<span class="go">       Thur  17.0  3.030000</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="join">
+<span id="compare-with-sql-join"></span><h2><span class="yiyi-st" id="yiyi-92">JOIN</span></h2>
+<p><span class="yiyi-st" id="yiyi-93">可以使用<a class="reference internal" href="generated/pandas.DataFrame.join.html#pandas.DataFrame.join" title="pandas.DataFrame.join"><code class="xref py py-meth docutils literal"><span class="pre">join()</span></code></a>或<a class="reference internal" href="generated/pandas.merge.html#pandas.merge" title="pandas.merge"><code class="xref py py-meth docutils literal"><span class="pre">merge()</span></code></a>执行JOIN。</span><span class="yiyi-st" id="yiyi-94">默认情况下，<a class="reference internal" href="generated/pandas.DataFrame.join.html#pandas.DataFrame.join" title="pandas.DataFrame.join"><code class="xref py py-meth docutils literal"><span class="pre">join()</span></code></a>将在其索引上加入DataFrames。</span><span class="yiyi-st" id="yiyi-95">每个方法都有参数，允许您指定要执行的连接类型（LEFT，RIGHT，INNER，FULL）或要连接的列（列名或索引）。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [22]: </span><span class="n">df1</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s1">&apos;key&apos;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&apos;A&apos;</span><span class="p">,</span> <span class="s1">&apos;B&apos;</span><span class="p">,</span> <span class="s1">&apos;C&apos;</span><span class="p">,</span> <span class="s1">&apos;D&apos;</span><span class="p">],</span>
+<span class="gp">   ....:</span>                     <span class="s1">&apos;value&apos;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">4</span><span class="p">)})</span>
+<span class="gp">   ....:</span> 
+
+<span class="gp">In [23]: </span><span class="n">df2</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s1">&apos;key&apos;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&apos;B&apos;</span><span class="p">,</span> <span class="s1">&apos;D&apos;</span><span class="p">,</span> <span class="s1">&apos;D&apos;</span><span class="p">,</span> <span class="s1">&apos;E&apos;</span><span class="p">],</span>
+<span class="gp">   ....:</span>                     <span class="s1">&apos;value&apos;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">4</span><span class="p">)})</span>
+<span class="gp">   ....:</span> 
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-96">假设我们有两个与我们的DataFrames具有相同名称和结构的数据库表。</span></p>
+<p><span class="yiyi-st" id="yiyi-97">现在让我们来讨论各种类型的JOIN。</span></p>
+<div class="section" id="inner-join">
+<h3><span class="yiyi-st" id="yiyi-98">INNER JOIN</span></h3>
+<div class="highlight-sql"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="o">*</span>
+<span class="k">FROM</span> <span class="n">df1</span>
+<span class="k">INNER</span> <span class="k">JOIN</span> <span class="n">df2</span>
+  <span class="k">ON</span> <span class="n">df1</span><span class="p">.</span><span class="k">key</span> <span class="o">=</span> <span class="n">df2</span><span class="p">.</span><span class="k">key</span><span class="p">;</span>
+</pre></div>
+</div>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="c"># merge performs an INNER JOIN by default</span>
+<span class="gp">In [24]: </span><span class="n">pd</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">df1</span><span class="p">,</span> <span class="n">df2</span><span class="p">,</span> <span class="n">on</span><span class="o">=</span><span class="s1">&apos;key&apos;</span><span class="p">)</span>
+<span class="gr">Out[24]: </span>
+<span class="go">  key   value_x   value_y</span>
+<span class="go">0   B -0.318214  0.543581</span>
+<span class="go">1   D  2.169960 -0.426067</span>
+<span class="go">2   D  2.169960  1.138079</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-99"><a class="reference internal" href="generated/pandas.merge.html#pandas.merge" title="pandas.merge"><code class="xref py py-meth docutils literal"><span class="pre">merge()</span></code></a>还提供了您想要将DataFrame的列与另一个DataFrame的索引相连接的情况下的参数。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [25]: </span><span class="n">indexed_df2</span> <span class="o">=</span> <span class="n">df2</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s1">&apos;key&apos;</span><span class="p">)</span>
+
+<span class="gp">In [26]: </span><span class="n">pd</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">df1</span><span class="p">,</span> <span class="n">indexed_df2</span><span class="p">,</span> <span class="n">left_on</span><span class="o">=</span><span class="s1">&apos;key&apos;</span><span class="p">,</span> <span class="n">right_index</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="gr">Out[26]: </span>
+<span class="go">  key   value_x   value_y</span>
+<span class="go">1   B -0.318214  0.543581</span>
+<span class="go">3   D  2.169960 -0.426067</span>
+<span class="go">3   D  2.169960  1.138079</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="left-outer-join">
+<h3><span class="yiyi-st" id="yiyi-100">LEFT OUTER JOIN</span></h3>
+<div class="highlight-sql"><div class="highlight"><pre><span></span><span class="c1">-- show all records from df1</span>
+<span class="k">SELECT</span> <span class="o">*</span>
+<span class="k">FROM</span> <span class="n">df1</span>
+<span class="k">LEFT</span> <span class="k">OUTER</span> <span class="k">JOIN</span> <span class="n">df2</span>
+  <span class="k">ON</span> <span class="n">df1</span><span class="p">.</span><span class="k">key</span> <span class="o">=</span> <span class="n">df2</span><span class="p">.</span><span class="k">key</span><span class="p">;</span>
+</pre></div>
+</div>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="c"># show all records from df1</span>
+<span class="gp">In [27]: </span><span class="n">pd</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">df1</span><span class="p">,</span> <span class="n">df2</span><span class="p">,</span> <span class="n">on</span><span class="o">=</span><span class="s1">&apos;key&apos;</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s1">&apos;left&apos;</span><span class="p">)</span>
+<span class="gr">Out[27]: </span>
+<span class="go">  key   value_x   value_y</span>
+<span class="go">0   A  0.116174       NaN</span>
+<span class="go">1   B -0.318214  0.543581</span>
+<span class="go">2   C  0.285261       NaN</span>
+<span class="go">3   D  2.169960 -0.426067</span>
+<span class="go">4   D  2.169960  1.138079</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="right-join">
+<h3><span class="yiyi-st" id="yiyi-101">RIGHT JOIN</span></h3>
+<div class="highlight-sql"><div class="highlight"><pre><span></span><span class="c1">-- show all records from df2</span>
+<span class="k">SELECT</span> <span class="o">*</span>
+<span class="k">FROM</span> <span class="n">df1</span>
+<span class="k">RIGHT</span> <span class="k">OUTER</span> <span class="k">JOIN</span> <span class="n">df2</span>
+  <span class="k">ON</span> <span class="n">df1</span><span class="p">.</span><span class="k">key</span> <span class="o">=</span> <span class="n">df2</span><span class="p">.</span><span class="k">key</span><span class="p">;</span>
+</pre></div>
+</div>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="c"># show all records from df2</span>
+<span class="gp">In [28]: </span><span class="n">pd</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">df1</span><span class="p">,</span> <span class="n">df2</span><span class="p">,</span> <span class="n">on</span><span class="o">=</span><span class="s1">&apos;key&apos;</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s1">&apos;right&apos;</span><span class="p">)</span>
+<span class="gr">Out[28]: </span>
+<span class="go">  key   value_x   value_y</span>
+<span class="go">0   B -0.318214  0.543581</span>
+<span class="go">1   D  2.169960 -0.426067</span>
+<span class="go">2   D  2.169960  1.138079</span>
+<span class="go">3   E       NaN  0.086073</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="full-join">
+<h3><span class="yiyi-st" id="yiyi-102">FULL JOIN</span></h3>
+<p><span class="yiyi-st" id="yiyi-103">pandas还允许FULL JOIN，它显示数据集的两侧，无论连接的列是否找到匹配。</span><span class="yiyi-st" id="yiyi-104">从写作，所有RDBMS（MySQL）不支持FULL JOIN。</span></p>
+<div class="highlight-sql"><div class="highlight"><pre><span></span><span class="c1">-- show all records from both tables</span>
+<span class="k">SELECT</span> <span class="o">*</span>
+<span class="k">FROM</span> <span class="n">df1</span>
+<span class="k">FULL</span> <span class="k">OUTER</span> <span class="k">JOIN</span> <span class="n">df2</span>
+  <span class="k">ON</span> <span class="n">df1</span><span class="p">.</span><span class="k">key</span> <span class="o">=</span> <span class="n">df2</span><span class="p">.</span><span class="k">key</span><span class="p">;</span>
+</pre></div>
+</div>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="c"># show all records from both frames</span>
+<span class="gp">In [29]: </span><span class="n">pd</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">df1</span><span class="p">,</span> <span class="n">df2</span><span class="p">,</span> <span class="n">on</span><span class="o">=</span><span class="s1">&apos;key&apos;</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s1">&apos;outer&apos;</span><span class="p">)</span>
+<span class="gr">Out[29]: </span>
+<span class="go">  key   value_x   value_y</span>
+<span class="go">0   A  0.116174       NaN</span>
+<span class="go">1   B -0.318214  0.543581</span>
+<span class="go">2   C  0.285261       NaN</span>
+<span class="go">3   D  2.169960 -0.426067</span>
+<span class="go">4   D  2.169960  1.138079</span>
+<span class="go">5   E       NaN  0.086073</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="union">
+<h2><span class="yiyi-st" id="yiyi-105">UNION</span></h2>
+<p><span class="yiyi-st" id="yiyi-106">可以使用<a class="reference internal" href="generated/pandas.concat.html#pandas.concat" title="pandas.concat"><code class="xref py py-meth docutils literal"><span class="pre">concat()</span></code></a>执行UNION ALL。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [30]: </span><span class="n">df1</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s1">&apos;city&apos;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&apos;Chicago&apos;</span><span class="p">,</span> <span class="s1">&apos;San Francisco&apos;</span><span class="p">,</span> <span class="s1">&apos;New York City&apos;</span><span class="p">],</span>
+<span class="gp">   ....:</span>                     <span class="s1">&apos;rank&apos;</span><span class="p">:</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">)})</span>
+<span class="gp">   ....:</span> 
+
+<span class="gp">In [31]: </span><span class="n">df2</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s1">&apos;city&apos;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&apos;Chicago&apos;</span><span class="p">,</span> <span class="s1">&apos;Boston&apos;</span><span class="p">,</span> <span class="s1">&apos;Los Angeles&apos;</span><span class="p">],</span>
+<span class="gp">   ....:</span>                     <span class="s1">&apos;rank&apos;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">]})</span>
+<span class="gp">   ....:</span> 
+</pre></div>
+</div>
+<div class="highlight-sql"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="n">city</span><span class="p">,</span> <span class="n">rank</span>
+<span class="k">FROM</span> <span class="n">df1</span>
+<span class="k">UNION</span> <span class="k">ALL</span>
+<span class="k">SELECT</span> <span class="n">city</span><span class="p">,</span> <span class="n">rank</span>
+<span class="k">FROM</span> <span class="n">df2</span><span class="p">;</span>
+<span class="cm">/*</span>
+<span class="cm">         city  rank</span>
+<span class="cm">      Chicago     1</span>
+<span class="cm">San Francisco     2</span>
+<span class="cm">New York City     3</span>
+<span class="cm">      Chicago     1</span>
+<span class="cm">       Boston     4</span>
+<span class="cm">  Los Angeles     5</span>
+<span class="cm">*/</span>
+</pre></div>
+</div>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [32]: </span><span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">df1</span><span class="p">,</span> <span class="n">df2</span><span class="p">])</span>
+<span class="gr">Out[32]: </span>
+<span class="go">            city  rank</span>
+<span class="go">0        Chicago     1</span>
+<span class="go">1  San Francisco     2</span>
+<span class="go">2  New York City     3</span>
+<span class="go">0        Chicago     1</span>
+<span class="go">1         Boston     4</span>
+<span class="go">2    Los Angeles     5</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-107">SQL的UNION类似于UNION ALL，但UNION将删除重复的行。</span></p>
+<div class="highlight-sql"><div class="highlight"><pre><span></span><span class="k">SELECT</span> <span class="n">city</span><span class="p">,</span> <span class="n">rank</span>
+<span class="k">FROM</span> <span class="n">df1</span>
+<span class="k">UNION</span>
+<span class="k">SELECT</span> <span class="n">city</span><span class="p">,</span> <span class="n">rank</span>
+<span class="k">FROM</span> <span class="n">df2</span><span class="p">;</span>
+<span class="c1">-- notice that there is only one Chicago record this time</span>
+<span class="cm">/*</span>
+<span class="cm">         city  rank</span>
+<span class="cm">      Chicago     1</span>
+<span class="cm">San Francisco     2</span>
+<span class="cm">New York City     3</span>
+<span class="cm">       Boston     4</span>
+<span class="cm">  Los Angeles     5</span>
+<span class="cm">*/</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-108">在pandas中，您可以使用<a class="reference internal" href="generated/pandas.concat.html#pandas.concat" title="pandas.concat"><code class="xref py py-meth docutils literal"><span class="pre">concat()</span></code></a>与<a class="reference internal" href="generated/pandas.DataFrame.drop_duplicates.html#pandas.DataFrame.drop_duplicates" title="pandas.DataFrame.drop_duplicates"><code class="xref py py-meth docutils literal"><span class="pre">drop_duplicates()</span></code></a>结合使用。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [33]: </span><span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">df1</span><span class="p">,</span> <span class="n">df2</span><span class="p">])</span><span class="o">.</span><span class="n">drop_duplicates</span><span class="p">()</span>
+<span class="gr">Out[33]: </span>
+<span class="go">            city  rank</span>
+<span class="go">0        Chicago     1</span>
+<span class="go">1  San Francisco     2</span>
+<span class="go">2  New York City     3</span>
+<span class="go">1         Boston     4</span>
+<span class="go">2    Los Angeles     5</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="pandas-equivalents-for-some-sql-analytic-and-aggregate-functions">
+<h2><span class="yiyi-st" id="yiyi-109">Pandas equivalents for some SQL analytic and aggregate functions</span></h2>
+<div class="section" id="top-n-rows-with-offset">
+<h3><span class="yiyi-st" id="yiyi-110">Top N rows with offset</span></h3>
+<div class="highlight-sql"><div class="highlight"><pre><span></span><span class="c1">-- MySQL</span>
+<span class="k">SELECT</span> <span class="o">*</span> <span class="k">FROM</span> <span class="n">tips</span>
+<span class="k">ORDER</span> <span class="k">BY</span> <span class="n">tip</span> <span class="k">DESC</span>
+<span class="k">LIMIT</span> <span class="mi">10</span> <span class="k">OFFSET</span> <span class="mi">5</span><span class="p">;</span>
+</pre></div>
+</div>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [34]: </span><span class="n">tips</span><span class="o">.</span><span class="n">nlargest</span><span class="p">(</span><span class="mi">10</span><span class="o">+</span><span class="mi">5</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="s1">&apos;tip&apos;</span><span class="p">)</span><span class="o">.</span><span class="n">tail</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+<span class="gr">Out[34]: </span>
+<span class="go">     total_bill   tip     sex smoker   day    time  size</span>
+<span class="go">183       23.17  6.50    Male    Yes   Sun  Dinner     4</span>
+<span class="go">214       28.17  6.50  Female    Yes   Sat  Dinner     3</span>
+<span class="go">47        32.40  6.00    Male     No   Sun  Dinner     4</span>
+<span class="go">239       29.03  5.92    Male     No   Sat  Dinner     3</span>
+<span class="go">88        24.71  5.85    Male     No  Thur   Lunch     2</span>
+<span class="go">181       23.33  5.65    Male    Yes   Sun  Dinner     2</span>
+<span class="go">44        30.40  5.60    Male     No   Sun  Dinner     4</span>
+<span class="go">52        34.81  5.20  Female     No   Sun  Dinner     4</span>
+<span class="go">85        34.83  5.17  Female     No  Thur   Lunch     4</span>
+<span class="go">211       25.89  5.16    Male    Yes   Sat  Dinner     4</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="top-n-rows-per-group">
+<h3><span class="yiyi-st" id="yiyi-111">每组前N行</span></h3>
+<div class="highlight-sql"><div class="highlight"><pre><span></span><span class="c1">-- Oracle&apos;s ROW_NUMBER() analytic function</span>
+<span class="k">SELECT</span> <span class="o">*</span> <span class="k">FROM</span> <span class="p">(</span>
+  <span class="k">SELECT</span>
+    <span class="n">t</span><span class="p">.</span><span class="o">*</span><span class="p">,</span>
+    <span class="n">ROW_NUMBER</span><span class="p">()</span> <span class="n">OVER</span><span class="p">(</span><span class="n">PARTITION</span> <span class="k">BY</span> <span class="k">day</span> <span class="k">ORDER</span> <span class="k">BY</span> <span class="n">total_bill</span> <span class="k">DESC</span><span class="p">)</span> <span class="k">AS</span> <span class="n">rn</span>
+  <span class="k">FROM</span> <span class="n">tips</span> <span class="n">t</span>
+<span class="p">)</span>
+<span class="k">WHERE</span> <span class="n">rn</span> <span class="o">&lt;</span> <span class="mi">3</span>
+<span class="k">ORDER</span> <span class="k">BY</span> <span class="k">day</span><span class="p">,</span> <span class="n">rn</span><span class="p">;</span>
+</pre></div>
+</div>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [35]: </span><span class="p">(</span><span class="n">tips</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="n">rn</span><span class="o">=</span><span class="n">tips</span><span class="o">.</span><span class="n">sort_values</span><span class="p">([</span><span class="s1">&apos;total_bill&apos;</span><span class="p">],</span> <span class="n">ascending</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="gp">   ....:</span>                     <span class="o">.</span><span class="n">groupby</span><span class="p">([</span><span class="s1">&apos;day&apos;</span><span class="p">])</span>
+<span class="gp">   ....:</span>                     <span class="o">.</span><span class="n">cumcount</span><span class="p">()</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+<span class="gp">   ....:</span>      <span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s1">&apos;rn &lt; 3&apos;</span><span class="p">)</span>
+<span class="gp">   ....:</span>      <span class="o">.</span><span class="n">sort_values</span><span class="p">([</span><span class="s1">&apos;day&apos;</span><span class="p">,</span><span class="s1">&apos;rn&apos;</span><span class="p">])</span>
+<span class="gp">   ....:</span> <span class="p">)</span>
+<span class="gp">   ....:</span> 
+<span class="gr">Out[35]: </span>
+<span class="go">     total_bill    tip     sex smoker   day    time  size  rn</span>
+<span class="go">95        40.17   4.73    Male    Yes   Fri  Dinner     4   1</span>
+<span class="go">90        28.97   3.00    Male    Yes   Fri  Dinner     2   2</span>
+<span class="go">170       50.81  10.00    Male    Yes   Sat  Dinner     3   1</span>
+<span class="go">212       48.33   9.00    Male     No   Sat  Dinner     4   2</span>
+<span class="go">156       48.17   5.00    Male     No   Sun  Dinner     6   1</span>
+<span class="go">182       45.35   3.50    Male    Yes   Sun  Dinner     3   2</span>
+<span class="go">197       43.11   5.00  Female    Yes  Thur   Lunch     4   1</span>
+<span class="go">142       41.19   5.00    Male     No  Thur   Lunch     5   2</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-112">相同使用<cite>rank（method =&apos;first&apos;）</cite>函数</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [36]: </span><span class="p">(</span><span class="n">tips</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="n">rnk</span><span class="o">=</span><span class="n">tips</span><span class="o">.</span><span class="n">groupby</span><span class="p">([</span><span class="s1">&apos;day&apos;</span><span class="p">])[</span><span class="s1">&apos;total_bill&apos;</span><span class="p">]</span>
+<span class="gp">   ....:</span>                      <span class="o">.</span><span class="n">rank</span><span class="p">(</span><span class="n">method</span><span class="o">=</span><span class="s1">&apos;first&apos;</span><span class="p">,</span> <span class="n">ascending</span><span class="o">=</span><span class="bp">False</span><span class="p">))</span>
+<span class="gp">   ....:</span>      <span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s1">&apos;rnk &lt; 3&apos;</span><span class="p">)</span>
+<span class="gp">   ....:</span>      <span class="o">.</span><span class="n">sort_values</span><span class="p">([</span><span class="s1">&apos;day&apos;</span><span class="p">,</span><span class="s1">&apos;rnk&apos;</span><span class="p">])</span>
+<span class="gp">   ....:</span> <span class="p">)</span>
+<span class="gp">   ....:</span> 
+<span class="gr">Out[36]: </span>
+<span class="go">     total_bill    tip     sex smoker   day    time  size  rnk</span>
+<span class="go">95        40.17   4.73    Male    Yes   Fri  Dinner     4  1.0</span>
+<span class="go">90        28.97   3.00    Male    Yes   Fri  Dinner     2  2.0</span>
+<span class="go">170       50.81  10.00    Male    Yes   Sat  Dinner     3  1.0</span>
+<span class="go">212       48.33   9.00    Male     No   Sat  Dinner     4  2.0</span>
+<span class="go">156       48.17   5.00    Male     No   Sun  Dinner     6  1.0</span>
+<span class="go">182       45.35   3.50    Male    Yes   Sun  Dinner     3  2.0</span>
+<span class="go">197       43.11   5.00  Female    Yes  Thur   Lunch     4  1.0</span>
+<span class="go">142       41.19   5.00    Male     No  Thur   Lunch     5  2.0</span>
+</pre></div>
+</div>
+<div class="highlight-sql"><div class="highlight"><pre><span></span><span class="c1">-- Oracle&apos;s RANK() analytic function</span>
+<span class="k">SELECT</span> <span class="o">*</span> <span class="k">FROM</span> <span class="p">(</span>
+  <span class="k">SELECT</span>
+    <span class="n">t</span><span class="p">.</span><span class="o">*</span><span class="p">,</span>
+    <span class="n">RANK</span><span class="p">()</span> <span class="n">OVER</span><span class="p">(</span><span class="n">PARTITION</span> <span class="k">BY</span> <span class="n">sex</span> <span class="k">ORDER</span> <span class="k">BY</span> <span class="n">tip</span><span class="p">)</span> <span class="k">AS</span> <span class="n">rnk</span>
+  <span class="k">FROM</span> <span class="n">tips</span> <span class="n">t</span>
+  <span class="k">WHERE</span> <span class="n">tip</span> <span class="o">&lt;</span> <span class="mi">2</span>
+<span class="p">)</span>
+<span class="k">WHERE</span> <span class="n">rnk</span> <span class="o">&lt;</span> <span class="mi">3</span>
+<span class="k">ORDER</span> <span class="k">BY</span> <span class="n">sex</span><span class="p">,</span> <span class="n">rnk</span><span class="p">;</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-113">让我们找到提示（排名</span><span class="yiyi-st" id="yiyi-114">请注意，对于相同的<cite>提示</cite>（作为Oracle的RANK()函数）使用<code class="docutils literal"><span class="pre">rank(method=&apos;min&apos;)</span></code>函数<cite>rnk_min</cite></span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [37]: </span><span class="p">(</span><span class="n">tips</span><span class="p">[</span><span class="n">tips</span><span class="p">[</span><span class="s1">&apos;tip&apos;</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">]</span>
+<span class="gp">   ....:</span>      <span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="n">rnk_min</span><span class="o">=</span><span class="n">tips</span><span class="o">.</span><span class="n">groupby</span><span class="p">([</span><span class="s1">&apos;sex&apos;</span><span class="p">])[</span><span class="s1">&apos;tip&apos;</span><span class="p">]</span>
+<span class="gp">   ....:</span>                          <span class="o">.</span><span class="n">rank</span><span class="p">(</span><span class="n">method</span><span class="o">=</span><span class="s1">&apos;min&apos;</span><span class="p">))</span>
+<span class="gp">   ....:</span>      <span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s1">&apos;rnk_min &lt; 3&apos;</span><span class="p">)</span>
+<span class="gp">   ....:</span>      <span class="o">.</span><span class="n">sort_values</span><span class="p">([</span><span class="s1">&apos;sex&apos;</span><span class="p">,</span><span class="s1">&apos;rnk_min&apos;</span><span class="p">])</span>
+<span class="gp">   ....:</span> <span class="p">)</span>
+<span class="gp">   ....:</span> 
+<span class="gr">Out[37]: </span>
+<span class="go">     total_bill   tip     sex smoker  day    time  size  rnk_min</span>
+<span class="go">67         3.07  1.00  Female    Yes  Sat  Dinner     1      1.0</span>
+<span class="go">92         5.75  1.00  Female    Yes  Fri  Dinner     2      1.0</span>
+<span class="go">111        7.25  1.00  Female     No  Sat  Dinner     1      1.0</span>
+<span class="go">236       12.60  1.00    Male    Yes  Sat  Dinner     2      1.0</span>
+<span class="go">237       32.83  1.17    Male    Yes  Sat  Dinner     2      2.0</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="update">
+<h2><span class="yiyi-st" id="yiyi-115">UPDATE</span></h2>
+<div class="highlight-sql"><div class="highlight"><pre><span></span><span class="k">UPDATE</span> <span class="n">tips</span>
+<span class="k">SET</span> <span class="n">tip</span> <span class="o">=</span> <span class="n">tip</span><span class="o">*</span><span class="mi">2</span>
+<span class="k">WHERE</span> <span class="n">tip</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">;</span>
+</pre></div>
+</div>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [38]: </span><span class="n">tips</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">tips</span><span class="p">[</span><span class="s1">&apos;tip&apos;</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">,</span> <span class="s1">&apos;tip&apos;</span><span class="p">]</span> <span class="o">*=</span> <span class="mi">2</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="delete">
+<h2><span class="yiyi-st" id="yiyi-116">DELETE</span></h2>
+<div class="highlight-sql"><div class="highlight"><pre><span></span><span class="k">DELETE</span> <span class="k">FROM</span> <span class="n">tips</span>
+<span class="k">WHERE</span> <span class="n">tip</span> <span class="o">&gt;</span> <span class="mi">9</span><span class="p">;</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-117">在pandas中，我们选择应该保留的行，而不是删除它们</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [39]: </span><span class="n">tips</span> <span class="o">=</span> <span class="n">tips</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">tips</span><span class="p">[</span><span class="s1">&apos;tip&apos;</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="mi">9</span><span class="p">]</span>
+</pre></div>
+</div>
+</div>

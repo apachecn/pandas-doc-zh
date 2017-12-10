@@ -1,0 +1,131 @@
+
+<span id="ecosystem"></span><h1><span class="yiyi-st" id="yiyi-75">pandas Ecosystem</span></h1>
+        <blockquote>
+        <p>原文：<a href="http://pandas.pydata.org/pandas-docs/stable/ecosystem.html">http://pandas.pydata.org/pandas-docs/stable/ecosystem.html</a></p>
+        <p>译者：<a href="https://github.com/wizardforcel">飞龙</a> <a href="http://usyiyi.cn/">UsyiyiCN</a></p>
+        <p>校对：（虚位以待）</p>
+        </blockquote>
+    
+<p><span class="yiyi-st" id="yiyi-76">越来越多的软件包在大熊猫上构建，以满足数据准备，分析和可视化的特定需求。</span><span class="yiyi-st" id="yiyi-77">这是令人鼓舞的，因为它意味着熊猫不仅帮助用户处理他们的数据任务，而且它为开发者提供了一个更好的起点，构建强大和更集中的数据工具。</span><span class="yiyi-st" id="yiyi-78">创建补充熊猫功能的图书馆也允许熊猫开发继续专注于它的原始要求。</span></p>
+<p><span class="yiyi-st" id="yiyi-79"></span></p>
+<p><span class="yiyi-st" id="yiyi-80">我们希望让用户更容易找到这些项目，如果您知道您认为应该在此列表中的其他实质性项目，请告诉我们。</span></p>
+<div class="section" id="statistics-and-machine-learning">
+<span id="ecosystem-stats"></span><h2><span class="yiyi-st" id="yiyi-81">Statistics and Machine Learning</span></h2>
+<div class="section" id="statsmodels">
+<h3><span class="yiyi-st" id="yiyi-82"><a class="reference external" href="http://www.statsmodels.org/">Statsmodels</a></span></h3>
+<p><span class="yiyi-st" id="yiyi-83">Statsmodels是着名的python“统计和计量经济学图书馆”，它与熊猫有着长期的特殊关系。</span><span class="yiyi-st" id="yiyi-84">Statsmodels提供强大的统计，计量经济学，分析和建模功能，超出了熊猫的范围。</span><span class="yiyi-st" id="yiyi-85">Statsmodels利用pandas对象作为计算的基础数据容器。</span></p>
+</div>
+<div class="section" id="sklearn-pandas">
+<h3><span class="yiyi-st" id="yiyi-86"><a class="reference external" href="https://github.com/paulgb/sklearn-pandas">sklearn-pandas</a></span></h3>
+<p><span class="yiyi-st" id="yiyi-87">在<a class="reference external" href="http://scikit-learn.org/">scikit-learn</a> ML管道中使用pandas DataFrames。</span></p>
+</div>
+</div>
+<div class="section" id="visualization">
+<span id="ecosystem-visualization"></span><h2><span class="yiyi-st" id="yiyi-88">Visualization</span></h2>
+<div class="section" id="bokeh">
+<h3><span class="yiyi-st" id="yiyi-89"><a class="reference external" href="http://bokeh.pydata.org">Bokeh</a></span></h3>
+<p><span class="yiyi-st" id="yiyi-90">Bokeh是一个用于大型数据集的Python交互式可视化库，本地使用最新的Web技术。</span><span class="yiyi-st" id="yiyi-91">其目标是以Protovis / D3的风格提供优雅，简洁的新颖图形构造，同时为大型数据向瘦客户端提供高性能交互性。</span></p>
+</div>
+<div class="section" id="yhat-ggplot">
+<h3><span class="yiyi-st" id="yiyi-92"><a class="reference external" href="https://github.com/yhat/ggplot">yhat/ggplot</a></span></h3>
+<p><span class="yiyi-st" id="yiyi-93">Hadley Wickham的<a class="reference external" href="http://ggplot2.org/">ggplot2</a>是R语言的基础探索性可视化包。</span><span class="yiyi-st" id="yiyi-94">基于<a class="reference external" href="http://www.cs.uic.edu/~wilkinson/TheGrammarOfGraphics/GOG.html">“图形语法”</a>它提供了一个强大的，声明性和极其一般的方式来生成任何类型的数据的定制图。</span><span class="yiyi-st" id="yiyi-95">这真的很不可思议。</span><span class="yiyi-st" id="yiyi-96">各种实现到其他语言是可用的，但一个忠实的实现python用户长期以来一直缺失。</span><span class="yiyi-st" id="yiyi-97">虽然仍然年轻（截至2014年1月），<a class="reference external" href="https://github.com/yhat/ggplot">yhat / ggplot</a>项目已经在这个方向上迅速发展。</span></p>
+</div>
+<div class="section" id="seaborn">
+<h3><span class="yiyi-st" id="yiyi-98"><a class="reference external" href="https://github.com/mwaskom/seaborn">Seaborn</a></span></h3>
+<p><span class="yiyi-st" id="yiyi-99">虽然熊猫有相当多的“只是绘图”的功能内置，可视化，特别是统计图形是一个广泛的领域，具有悠久的传统和大量的地面覆盖。</span><span class="yiyi-st" id="yiyi-100"><a class="reference external" href="https://github.com/mwaskom/seaborn">Seaborn</a>项目构建在pandas和<a class="reference external" href="http://matplotlib.org">matplotlib</a>之上，以便于绘制更多高级类型的数据，然后提供由pandas提供的数据。</span></p>
+</div>
+<div class="section" id="vincent">
+<h3><span class="yiyi-st" id="yiyi-101"><a class="reference external" href="https://github.com/wrobstory/vincent">Vincent</a></span></h3>
+<p><span class="yiyi-st" id="yiyi-102"><a class="reference external" href="https://github.com/wrobstory/vincent">Vincent</a>项目利用<a class="reference external" href="https://github.com/trifacta/vega">Vega</a>（进而利用<a class="reference external" href="http://d3js.org/">d3</a>）创建图表。</span><span class="yiyi-st" id="yiyi-103">虽然功能，从2016年夏天Vincent项目在两年内没有更新，<a class="reference external" href="https://github.com/wrobstory/vincent#2015-08-12-update">不太可能收到进一步更新</a>。</span></p>
+</div>
+<div class="section" id="ipython-vega">
+<h3><span class="yiyi-st" id="yiyi-104"><a class="reference external" href="https://github.com/vega/ipyvega">IPython Vega</a></span></h3>
+<p><span class="yiyi-st" id="yiyi-105">像Vincent一样，<a class="reference external" href="https://github.com/vega/ipyvega">IPython Vega</a>项目利用<a class="reference external" href="https://github.com/trifacta/vega">Vega</a>创建图，但主要针对IPython Notebook环境。</span></p>
+</div>
+<div class="section" id="plotly">
+<h3><span class="yiyi-st" id="yiyi-106"><a class="reference external" href="https://plot.ly/python">Plotly</a></span></h3>
+<p><span class="yiyi-st" id="yiyi-107"><a class="reference external" href="https://plot.ly/">Plotly的</a> <a class="reference external" href="https://plot.ly/python/">Python API</a>可提供互动数字和网页分享功能。</span><span class="yiyi-st" id="yiyi-108">使用WebGL和<a class="reference external" href="http://d3js.org/">D3.js</a>来呈现地图，2D，3D和实况流图。</span><span class="yiyi-st" id="yiyi-109">该库支持直接从pandas DataFrame和基于云的协作绘制。</span><span class="yiyi-st" id="yiyi-110"><a class="reference external" href="https://plot.ly/python/matplotlib-to-plotly-tutorial/">matplotlib，ggplot for Python和Seaborn</a>的用户可以将图形转换为基于Web的互动图。</span><span class="yiyi-st" id="yiyi-111">绘图可以在<a class="reference external" href="https://plot.ly/ipython-notebooks/">IPython笔记本</a>中绘制，使用R或MATLAB编辑，在GUI中修改，或嵌入在应用程序和仪表板中。</span><span class="yiyi-st" id="yiyi-112">Plotly可免费无限制分享，且拥有<a class="reference external" href="https://plot.ly/product/plans/">云</a>，<a class="reference external" href="https://plot.ly/python/offline/">离线</a>或<a class="reference external" href="https://plot.ly/product/enterprise/">内部</a>帐户供私人使用。</span></p>
+</div>
+<div class="section" id="pandas-qt">
+<h3><span class="yiyi-st" id="yiyi-113"><a class="reference external" href="https://github.com/datalyze-solutions/pandas-qt">Pandas-Qt</a></span></h3>
+<p><span class="yiyi-st" id="yiyi-114">从主熊猫库跳出，<a class="reference external" href="https://github.com/datalyze-solutions/pandas-qt">Pandas-Qt</a>库可以在PyQt4和PySide应用程序中实现DataFrame可视化和操作。</span></p>
+</div>
+</div>
+<div class="section" id="ecosystem-ide">
+<span id="ide"></span><h2><span class="yiyi-st" id="yiyi-115">IDE</span></h2>
+<div class="section" id="ipython">
+<h3><span class="yiyi-st" id="yiyi-116"><a class="reference external" href="http://ipython.org/documentation.html">IPython</a></span></h3>
+<p><span class="yiyi-st" id="yiyi-117">IPython是一个交互式命令shell和分布式计算环境。</span><span class="yiyi-st" id="yiyi-118">IPython Notebook是一个用于创建IPython笔记本的Web应用程序。</span><span class="yiyi-st" id="yiyi-119">IPython notebook是一个JSON文档，包含输入/输出单元格的有序列表，其中可以包含代码，文本，数学，图表和富媒体。</span><span class="yiyi-st" id="yiyi-120">IPython Notebook可以通过Web界面中的“下载为”和<code class="docutils literal"><span class="pre">ipython  t1转换为多种开放标准输出格式（HTML，HTML演示文稿幻灯片，LaTeX，PDF，ReStructuredText，Markdown， &gt; <span class="pre">nbconvert</span></span></code>。</span></p>
+<p><span class="yiyi-st" id="yiyi-121">Pandas DataFrames实现了IPython Notebook用于显示（缩写）HTML表的<code class="docutils literal"><span class="pre">_repr_html_</span></code>方法。</span><span class="yiyi-st" id="yiyi-122">（注意：HTML表格可能与非HTML IPython输出格式兼容，也可能不兼容）。</span></p>
+</div>
+<div class="section" id="quantopian-qgrid">
+<h3><span class="yiyi-st" id="yiyi-123"><a class="reference external" href="https://github.com/quantopian/qgrid">quantopian/qgrid</a></span></h3>
+<p><span class="yiyi-st" id="yiyi-124">qgrid是“用于排序和过滤IPython Notebook中的DataFrames的交互式网格”，使用SlickGrid构建。</span></p>
+</div>
+<div class="section" id="spyder">
+<h3><span class="yiyi-st" id="yiyi-125"><a class="reference external" href="https://github.com/spyder-ide/spyder/">Spyder</a></span></h3>
+<p><span class="yiyi-st" id="yiyi-126">Spyder是一个跨平台的基于Qt的开源Python IDE，具有编辑，测试，调试和内省功能。</span><span class="yiyi-st" id="yiyi-127">Spyder现在可以内省和显示Pandas DataFrames，并显示“列方式最小/最大值和全局最小/最大着色”。</span></p>
+</div>
+</div>
+<div class="section" id="api">
+<span id="ecosystem-api"></span><h2><span class="yiyi-st" id="yiyi-128">API</span></h2>
+<div class="section" id="pandas-datareader">
+<h3><span class="yiyi-st" id="yiyi-129"><a class="reference external" href="https://github.com/pydata/pandas-datareader">pandas-datareader</a></span></h3>
+<p><span class="yiyi-st" id="yiyi-130"><code class="docutils literal"><span class="pre">pandas-datareader</span></code>是用于pandas的远程数据访问库。</span><span class="yiyi-st" id="yiyi-131"><code class="docutils literal"><span class="pre">pandas.io</span></code> from pandas &lt; 0.17.0 is now refactored/split-off to and importable from <code class="docutils literal"><span class="pre">pandas_datareader</span></code> (PyPI:<code class="docutils literal"><span class="pre">pandas-datareader</span></code>). </span><span class="yiyi-st" id="yiyi-132">许多/大多数支持的API在<a class="reference external" href="https://pandas-datareader.readthedocs.io/en/latest/">pandas-datareader docs</a>中至少有一个文档段落：</span></p>
+<p><span class="yiyi-st" id="yiyi-133">以下数据Feed可用：</span></p>
+<blockquote>
+<div><ul class="simple">
+<li><span class="yiyi-st" id="yiyi-134">雅虎</span><span class="yiyi-st" id="yiyi-135">金融</span></li>
+<li><span class="yiyi-st" id="yiyi-136">Google财经</span></li>
+<li><span class="yiyi-st" id="yiyi-137">FRED</span></li>
+<li><span class="yiyi-st" id="yiyi-138">Fama /法语</span></li>
+<li><span class="yiyi-st" id="yiyi-139">世界银行</span></li>
+<li><span class="yiyi-st" id="yiyi-140">经合组织</span></li>
+<li><span class="yiyi-st" id="yiyi-141">欧洲统计局</span></li>
+<li><span class="yiyi-st" id="yiyi-142">EDGAR索引</span></li>
+</ul>
+</div></blockquote>
+</div>
+<div class="section" id="quandl-python">
+<h3><span class="yiyi-st" id="yiyi-143"><a class="reference external" href="https://github.com/quandl/Python">quandl/Python</a></span></h3>
+<p><span class="yiyi-st" id="yiyi-144">Quandl API for Python包装Quandl REST API以返回带有时间序列索引的Pandas DataFrames。</span></p>
+</div>
+<div class="section" id="pydatastream">
+<h3><span class="yiyi-st" id="yiyi-145"><a class="reference external" href="https://github.com/vfilimonov/pydatastream">pydatastream</a></span></h3>
+<p><span class="yiyi-st" id="yiyi-146">PyDatastream是<a class="reference external" href="http://dataworks.thomson.com/Dataworks/Enterprise/1.0/">Thomson Dataworks Enterprise（DWE / Datastream）</a> SOAP API的Python接口，用于返回带有财务数据的带索引的Pandas DataFrames或面板。</span><span class="yiyi-st" id="yiyi-147">此程序包需要此API的有效凭据（非免费）。</span></p>
+</div>
+<div class="section" id="pandasdmx">
+<h3><span class="yiyi-st" id="yiyi-148"><a class="reference external" href="https://pandasdmx.readthedocs.io">pandaSDMX</a></span></h3>
+<p><span class="yiyi-st" id="yiyi-149">pandaSDMX是一个可扩展的库，用于检索和获取在<a class="reference external" href="http://www.sdmx.org">SDMX</a> 2.1中传播的统计数据和元数据。</span><span class="yiyi-st" id="yiyi-150">本标准目前由欧洲统计局（欧盟统计局）和欧洲中央银行（欧洲中央银行）支持。</span><span class="yiyi-st" id="yiyi-151">数据集可以作为pandas系列或多索引的DataFrames返回。</span></p>
+</div>
+<div class="section" id="fredapi">
+<h3><span class="yiyi-st" id="yiyi-152"><a class="reference external" href="https://github.com/mortada/fredapi">fredapi</a></span></h3>
+<p><span class="yiyi-st" id="yiyi-153">fredapi是由圣路易斯联邦储备银行提供的<a class="reference external" href="http://research.stlouisfed.org/fred2/">联邦储备经济数据（FRED）</a>的Python接口。</span><span class="yiyi-st" id="yiyi-154">它与包含时间点数据（即历史数据修订）的FRED数据库和ALFRED数据库一起工作。</span><span class="yiyi-st" id="yiyi-155">fredapi在python中为FRED HTTP API提供了一个包装器，并且还提供了几种方便的方法来解析和分析来自ALFRED的时间点数据。</span><span class="yiyi-st" id="yiyi-156">fredapi使用pandas并返回一个Series或DataFrame中的数据。</span><span class="yiyi-st" id="yiyi-157">此模块需要FRED API密钥，您可以在FRED网站上免费获取。</span></p>
+</div>
+</div>
+<div class="section" id="domain-specific">
+<span id="ecosystem-domain"></span><h2><span class="yiyi-st" id="yiyi-158">Domain Specific</span></h2>
+<div class="section" id="geopandas">
+<h3><span class="yiyi-st" id="yiyi-159"><a class="reference external" href="https://github.com/kjordahl/geopandas">Geopandas</a></span></h3>
+<p><span class="yiyi-st" id="yiyi-160">地理空间扩展了熊猫数据对象，以包括支持几何操作的地理信息。</span><span class="yiyi-st" id="yiyi-161">如果你的工作需要地图和地理坐标，你喜欢大熊猫，你应该仔细看看地球圈。</span></p>
+</div>
+<div class="section" id="xarray">
+<h3><span class="yiyi-st" id="yiyi-162"><a class="reference external" href="https://github.com/pydata/xarray">xarray</a></span></h3>
+<p><span class="yiyi-st" id="yiyi-163">xarray通过提供核心熊猫数据结构的N维变量将大熊猫的标记数据功率带到物理科学。</span><span class="yiyi-st" id="yiyi-164">它旨在提供一个用于多维数组分析的熊猫和熊猫兼容工具包，而不是熊猫擅长的表格数据。</span></p>
+</div>
+</div>
+<div class="section" id="out-of-core">
+<span id="ecosystem-out-of-core"></span><h2><span class="yiyi-st" id="yiyi-165">Out-of-core</span></h2>
+<div class="section" id="dask">
+<h3><span class="yiyi-st" id="yiyi-166"><a class="reference external" href="https://dask.readthedocs.io/en/latest/">Dask</a></span></h3>
+<p><span class="yiyi-st" id="yiyi-167">Dask是一个用于分析的灵活的并行计算库。</span><span class="yiyi-st" id="yiyi-168">Dask允许熟悉的<code class="docutils literal"><span class="pre">DataFrame</span></code>接口用于核外，并行和分布式计算。</span></p>
+</div>
+<div class="section" id="blaze">
+<h3><span class="yiyi-st" id="yiyi-169"><a class="reference external" href="http://blaze.pydata.org/">Blaze</a></span></h3>
+<p><span class="yiyi-st" id="yiyi-170">Blaze提供了一个标准API，用于使用各种内存和磁盘后端进行计算：NumPy，Pandas，SQLAlchemy，MongoDB，PyTables，PySpark。</span></p>
+</div>
+<div class="section" id="odo">
+<h3><span class="yiyi-st" id="yiyi-171"><a class="reference external" href="http://odo.pydata.org">Odo</a></span></h3>
+<p><span class="yiyi-st" id="yiyi-172">Odo提供了用于在不同格式之间移动数据的统一API。</span><span class="yiyi-st" id="yiyi-173">它使用pandas自己的<code class="docutils literal"><span class="pre">read_csv</span></code>来获取CSV IO，并利用许多现有的包（如PyTables，h5py和pymongo）在非熊猫格式之间移动数据。</span><span class="yiyi-st" id="yiyi-174">它的基于图的方法也可以由最终用户扩展自定义格式，可能太具体的odo的核心。</span></p>
+</div>
+</div>

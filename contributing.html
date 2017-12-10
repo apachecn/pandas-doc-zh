@@ -1,0 +1,638 @@
+
+<span id="contributing"></span><h1><span class="yiyi-st" id="yiyi-79">Contributing to pandas</span></h1>
+        <blockquote>
+        <p>原文：<a href="http://pandas.pydata.org/pandas-docs/stable/contributing.html">http://pandas.pydata.org/pandas-docs/stable/contributing.html</a></p>
+        <p>译者：<a href="https://github.com/wizardforcel">飞龙</a> <a href="http://usyiyi.cn/">UsyiyiCN</a></p>
+        <p>校对：（虚位以待）</p>
+        </blockquote>
+    
+<div class="contents local topic" id="table-of-contents">
+<p class="topic-title first"><span class="yiyi-st" id="yiyi-80">目录：</span></p>
+<ul class="simple">
+<li><span class="yiyi-st" id="yiyi-81"><a class="reference internal" href="#where-to-start" id="id1">从哪里开始？</a></span></li>
+<li><span class="yiyi-st" id="yiyi-82"><a class="reference internal" href="#bug-reports-and-enhancement-requests" id="id2">错误报告和增强请求</a></span></li>
+<li><span class="yiyi-st" id="yiyi-90"><a class="reference internal" href="#working-with-the-code" id="id3">使用代码</a></span><ul>
+<li><span class="yiyi-st" id="yiyi-83"><a class="reference internal" href="#version-control-git-and-github" id="id4">版本控制，Git和GitHub</a></span></li>
+<li><span class="yiyi-st" id="yiyi-84"><a class="reference internal" href="#getting-started-with-git" id="id5">开始使用Git</a></span></li>
+<li><span class="yiyi-st" id="yiyi-85"><a class="reference internal" href="#forking" id="id6">分岔</a></span></li>
+<li><span class="yiyi-st" id="yiyi-86"><a class="reference internal" href="#creating-a-branch" id="id7">创建分支</a></span></li>
+<li><span class="yiyi-st" id="yiyi-87"><a class="reference internal" href="#creating-a-development-environment" id="id8">创建开发环境</a></span></li>
+<li><span class="yiyi-st" id="yiyi-88"><a class="reference internal" href="#creating-a-windows-development-environment" id="id9">创建Windows开发环境</a></span></li>
+<li><span class="yiyi-st" id="yiyi-89"><a class="reference internal" href="#making-changes" id="id10">进行更改</a></span></li>
+</ul>
+</li>
+<li><span class="yiyi-st" id="yiyi-96"><a class="reference internal" href="#contributing-to-the-documentation" id="id11">参与文档</a></span><ul>
+<li><span class="yiyi-st" id="yiyi-91"><a class="reference internal" href="#about-the-pandas-documentation" id="id12">关于<em>pandas</em>文档</a></span></li>
+<li><span class="yiyi-st" id="yiyi-95"><a class="reference internal" href="#how-to-build-the-pandas-documentation" id="id13">如何构建<em>pandas</em>文档</a></span><ul>
+<li><span class="yiyi-st" id="yiyi-92"><a class="reference internal" href="#requirements" id="id14">要求</a></span></li>
+<li><span class="yiyi-st" id="yiyi-93"><a class="reference internal" href="#building-the-documentation" id="id15">构建文档</a></span></li>
+<li><span class="yiyi-st" id="yiyi-94"><a class="reference internal" href="#building-master-branch-documentation" id="id16">构建主分支文档</a></span></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><span class="yiyi-st" id="yiyi-105"><a class="reference internal" href="#contributing-to-the-code-base" id="id17">有助于代码库</a></span><ul>
+<li><span class="yiyi-st" id="yiyi-97"><a class="reference internal" href="#code-standards" id="id18">代码标准</a></span></li>
+<li><span class="yiyi-st" id="yiyi-103"><a class="reference internal" href="#test-driven-development-code-writing" id="id19">测试驱动开发/代码编写</a></span><ul>
+<li><span class="yiyi-st" id="yiyi-98"><a class="reference internal" href="#writing-tests" id="id20">写测试</a></span></li>
+<li><span class="yiyi-st" id="yiyi-99"><a class="reference internal" href="#running-the-test-suite" id="id21">运行测试套件</a></span></li>
+<li><span class="yiyi-st" id="yiyi-100"><a class="reference internal" href="#running-the-performance-test-suite" id="id22">运行性能测试套件</a></span></li>
+<li><span class="yiyi-st" id="yiyi-101"><a class="reference internal" href="#running-google-bigquery-integration-tests" id="id23">运行Google BigQuery集成测试</a></span></li>
+<li><span class="yiyi-st" id="yiyi-102"><a class="reference internal" href="#running-the-vbench-performance-test-suite-phasing-out" id="id24">运行vbench性能测试套件（逐步淘汰）</a></span></li>
+</ul>
+</li>
+<li><span class="yiyi-st" id="yiyi-104"><a class="reference internal" href="#documenting-your-code" id="id25">记录您的代码</a></span></li>
+</ul>
+</li>
+<li><span class="yiyi-st" id="yiyi-112"><a class="reference internal" href="#contributing-your-changes-to-pandas" id="id26">贡献您对<em>pandas</em></a>的更改</span><ul>
+<li><span class="yiyi-st" id="yiyi-106"><a class="reference internal" href="#committing-your-code" id="id27">提交代码</a></span></li>
+<li><span class="yiyi-st" id="yiyi-107"><a class="reference internal" href="#combining-commits" id="id28">组合提交</a></span></li>
+<li><span class="yiyi-st" id="yiyi-108"><a class="reference internal" href="#pushing-your-changes" id="id29">推送更改</a></span></li>
+<li><span class="yiyi-st" id="yiyi-109"><a class="reference internal" href="#review-your-code" id="id30">检查您的代码</a></span></li>
+<li><span class="yiyi-st" id="yiyi-110"><a class="reference internal" href="#finally-make-the-pull-request" id="id31">最后，请求拉请求</a></span></li>
+<li><span class="yiyi-st" id="yiyi-111"><a class="reference internal" href="#delete-your-merged-branch-optional" id="id32">删除合并的分支（可选）</a></span></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="section" id="where-to-start">
+<h2><span class="yiyi-st" id="yiyi-113"><a class="toc-backref" href="#id1">Where to start?</a></span></h2>
+<p><span class="yiyi-st" id="yiyi-114">欢迎所有贡献，错误报告，错误修复，文档改进，增强和想法。</span></p>
+<p><span class="yiyi-st" id="yiyi-115">如果您只是想开始使用<em>pandas</em>代码库，请导航到<a class="reference external" href="https://github.com/pandas-dev/pandas/issues">GitHub“问题”标签</a>，开始查找有趣的问题。</span><span class="yiyi-st" id="yiyi-116">在您可以开始使用的<a class="reference external" href="https://github.com/pandas-dev/pandas/issues?labels=Docs&amp;sort=updated&amp;state=open">文档</a>和<a class="reference external" href="https://github.com/pandas-dev/pandas/issues?q=is%3Aopen+is%3Aissue+label%3A%22Difficulty+Novice%22">难度新手</a>下列出了一些问题。</span></p>
+<p><span class="yiyi-st" id="yiyi-117">或者也许通过使用<em>pandas</em>你有自己的想法或正在寻找文档中的东西，并认为&apos;这可以改进&apos;...你可以做点什么！</span></p>
+<p><span class="yiyi-st" id="yiyi-118">随时可以在<a class="reference external" href="https://groups.google.com/forum/?fromgroups#!forum/pydata">邮寄名单</a>或<a class="reference external" href="https://gitter.im/pandas-dev/pandas">Gitter</a>上提问。</span></p>
+</div>
+<div class="section" id="bug-reports-and-enhancement-requests">
+<h2><span class="yiyi-st" id="yiyi-119"><a class="toc-backref" href="#id2">Bug reports and enhancement requests</a></span></h2>
+<p><span class="yiyi-st" id="yiyi-120">错误报告是使<em>pandas</em>更稳定的重要部分。</span><span class="yiyi-st" id="yiyi-121">有一个完整的错误报告将允许其他人再现错误，并提供洞察修复。</span><span class="yiyi-st" id="yiyi-122">由于支持许多版本的<em>pandas</em>，因此知道版本信息也将标识自以前版本以来的改进。</span><span class="yiyi-st" id="yiyi-123">尝试在<em>主</em>分支上生成错误代码通常是一个值得做的练习，以确认该错误仍然存​​在。</span><span class="yiyi-st" id="yiyi-124">它也值得搜索现有的错误报告和拉请求，以查看该问题是否已经报告和/或修复。</span></p>
+<p><span class="yiyi-st" id="yiyi-125">错误报告必须：</span></p>
+<ol class="arabic">
+<li><p class="first"><span class="yiyi-st" id="yiyi-126">包含一个简短的自包含的Python代码段，用于重现问题。</span><span class="yiyi-st" id="yiyi-127">您可以使用<a class="reference external" href="http://github.github.com/github-flavored-markdown/">GitHub Flavored Markdown</a>来格式化代码：</span></p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>```python
+&gt;&gt;&gt; from pandas import DataFrame
+&gt;&gt;&gt; df = DataFrame(...)
+...
+```
+</pre></div>
+</div>
+</li>
+<li><p class="first"><span class="yiyi-st" id="yiyi-128">包括<em>pandas</em>的完整版本字符串及其依赖项。</span><span class="yiyi-st" id="yiyi-129">在<em>pandas</em>的版本0.12之后，您可以使用内置函数：</span></p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pandas.util.print_versions</span> <span class="k">import</span> <span class="n">show_versions</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">show_versions</span><span class="p">()</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-130">和<em>pandas</em>中0.13.1及以上：</span></p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pd</span><span class="o">.</span><span class="n">show_versions</span><span class="p">()</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first"><span class="yiyi-st" id="yiyi-131">解释当前行为为什么是错误/不需要和你期望的结果是什么。</span></p>
+</li>
+</ol>
+<p><span class="yiyi-st" id="yiyi-132">然后问题会显示给<em>pandas</em>社区，其他人可以看到并提供想法/评论。</span></p>
+</div>
+<div class="section" id="working-with-the-code">
+<h2><span class="yiyi-st" id="yiyi-133"><a class="toc-backref" href="#id3">Working with the code</a></span></h2>
+<p><span class="yiyi-st" id="yiyi-134">现在您有一个您想要修复的问题，要添加的增强功能或文档，您需要了解如何使用GitHub和<em>pandas</em>代码库。</span></p>
+<div class="section" id="version-control-git-and-github">
+<h3><span class="yiyi-st" id="yiyi-135"><a class="toc-backref" href="#id4">Version control, Git, and GitHub</a></span></h3>
+<p><span class="yiyi-st" id="yiyi-136">对于新用户，使用Git是促成<em>pandas</em>的更强大的方面之一。</span><span class="yiyi-st" id="yiyi-137">它可以很快拥有压倒性优势，但坚持下面的指导方针将有助于保持过程简单，大多是无故障。</span><span class="yiyi-st" id="yiyi-138">一如既往，如果你有困难，请随时要求帮助。</span></p>
+<p><span class="yiyi-st" id="yiyi-139">代码托管在<a class="reference external" href="https://www.github.com/pandas-dev/pandas">GitHub</a>上。</span><span class="yiyi-st" id="yiyi-140">要提供资料，您需要注册一个<a class="reference external" href="https://github.com/signup/free">免费的GitHub帐户</a>。</span><span class="yiyi-st" id="yiyi-141">我们使用<a class="reference external" href="http://git-scm.com/">Git</a>进行版本控制，允许许多人在项目上一起工作。</span></p>
+<p><span class="yiyi-st" id="yiyi-142">一些伟大的资源学习Git：</span></p>
+<ul class="simple">
+<li><span class="yiyi-st" id="yiyi-143"><a class="reference external" href="http://help.github.com/">GitHub帮助页</a>。</span></li>
+<li><span class="yiyi-st" id="yiyi-144"><a class="reference external" href="http://docs.scipy.org/doc/numpy/dev/index.html">NumPy的文档</a>。</span></li>
+<li><span class="yiyi-st" id="yiyi-145">Matthew Brett的<a class="reference external" href="http://matthew-brett.github.com/pydagogue/">Pydagogue</a>。</span></li>
+</ul>
+</div>
+<div class="section" id="getting-started-with-git">
+<h3><span class="yiyi-st" id="yiyi-146"><a class="toc-backref" href="#id5">Getting started with Git</a></span></h3>
+<p><span class="yiyi-st" id="yiyi-147"><a class="reference external" href="http://help.github.com/set-up-git-redirect">GitHub有指示</a>用于安装git，设置SSH密钥和配置git。</span><span class="yiyi-st" id="yiyi-148">所有这些步骤需要完成，然后才能在本地存储库和GitHub之间无缝工作。</span></p>
+</div>
+<div class="section" id="forking">
+<span id="contributing-forking"></span><h3><span class="yiyi-st" id="yiyi-149"><a class="toc-backref" href="#id6">Forking</a></span></h3>
+<p><span class="yiyi-st" id="yiyi-150">你将需要你自己的fork来处理代码。</span><span class="yiyi-st" id="yiyi-151">转到<a class="reference external" href="https://github.com/pandas-dev/pandas">pandas项目页</a>，然后点击<code class="docutils literal"><span class="pre">Fork</span></code>按钮。</span><span class="yiyi-st" id="yiyi-152">你会想要克隆你的叉子到你的机器：</span></p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">clone</span> <span class="n">git</span><span class="nd">@github</span><span class="o">.</span><span class="n">com</span><span class="p">:</span><span class="n">your</span><span class="o">-</span><span class="n">user</span><span class="o">-</span><span class="n">name</span><span class="o">/</span><span class="n">pandas</span><span class="o">.</span><span class="n">git</span> <span class="n">pandas</span><span class="o">-</span><span class="n">yourname</span>
+<span class="n">cd</span> <span class="n">pandas</span><span class="o">-</span><span class="n">yourname</span>
+<span class="n">git</span> <span class="n">remote</span> <span class="n">add</span> <span class="n">upstream</span> <span class="n">git</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">pandas</span><span class="o">-</span><span class="n">dev</span><span class="o">/</span><span class="n">pandas</span><span class="o">.</span><span class="n">git</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-153">这将创建目录<cite>pandas-yourname</cite>，并将您的存储库连接到上游（主项目）<em>pandas</em>存储库。</span></p>
+<p><span class="yiyi-st" id="yiyi-154">在提交拉取请求后，测试套件将在Travis-CI上自动运行。</span><span class="yiyi-st" id="yiyi-155">但是，如果您希望在提交pull请求之前在分支上运行测试套件，则需要将Travis-CI连接到您的GitHub存储库。</span><span class="yiyi-st" id="yiyi-156">这样做的说明是<a class="reference external" href="http://about.travis-ci.org/docs/user/getting-started/">这里</a>。</span></p>
+</div>
+<div class="section" id="creating-a-branch">
+<h3><span class="yiyi-st" id="yiyi-157"><a class="toc-backref" href="#id7">Creating a branch</a></span></h3>
+<p><span class="yiyi-st" id="yiyi-158">您希望您的主分支仅反映生产就绪代码，因此创建功能分支以进行更改。</span><span class="yiyi-st" id="yiyi-159">例如：</span></p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">branch</span> <span class="n">shiny</span><span class="o">-</span><span class="n">new</span><span class="o">-</span><span class="n">feature</span>
+<span class="n">git</span> <span class="n">checkout</span> <span class="n">shiny</span><span class="o">-</span><span class="n">new</span><span class="o">-</span><span class="n">feature</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-160">以上可以简化为：</span></p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">checkout</span> <span class="o">-</span><span class="n">b</span> <span class="n">shiny</span><span class="o">-</span><span class="n">new</span><span class="o">-</span><span class="n">feature</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-161">这将您的工作目录更改为闪亮的新功能分支。</span><span class="yiyi-st" id="yiyi-162">Keep any changes in this branch specific to one bug or feature so it is clear what the branch brings to <em>pandas</em>. </span><span class="yiyi-st" id="yiyi-163">你可以有许多闪亮的新功能，并使用git checkout命令在它们之间切换。</span></p>
+<p><span class="yiyi-st" id="yiyi-164">要更新此分支，您需要从主分支检索更改：</span></p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">fetch</span> <span class="n">upstream</span>
+<span class="n">git</span> <span class="n">rebase</span> <span class="n">upstream</span><span class="o">/</span><span class="n">master</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-165">这将重播你的提交在最新的熊猫git master。</span><span class="yiyi-st" id="yiyi-166">如果这导致合并冲突，您必须在提交您的拉取请求之前解决这些冲突。</span><span class="yiyi-st" id="yiyi-167">如果您有未提交的更改，则需要在更新之前<code class="docutils literal"><span class="pre">stash</span></code>。</span><span class="yiyi-st" id="yiyi-168">这将有效地存储您的更改，他们可以在更新后重新应用。</span></p>
+</div>
+<div class="section" id="creating-a-development-environment">
+<span id="contributing-dev-env"></span><h3><span class="yiyi-st" id="yiyi-169"><a class="toc-backref" href="#id8">Creating a development environment</a></span></h3>
+<p><span class="yiyi-st" id="yiyi-170">创建<em>pandas</em>开发环境的简单方法如下。</span></p>
+<ul class="simple">
+<li><span class="yiyi-st" id="yiyi-171">安装<a class="reference internal" href="install.html#install-anaconda"><span class="std std-ref">Anaconda</span></a>或<a class="reference internal" href="install.html#install-miniconda"><span class="std std-ref">miniconda</span></a></span></li>
+<li><span class="yiyi-st" id="yiyi-172">请确保您已<a class="reference internal" href="#contributing-forking"><span class="std std-ref">cloned the repository</span></a></span></li>
+<li><span class="yiyi-st" id="yiyi-173"><code class="docutils literal"><span class="pre">cd</span></code>到<em>pandas</em>源目录</span></li>
+</ul>
+<p><span class="yiyi-st" id="yiyi-174">通过运行以下命令，让conda创建一个名为<code class="docutils literal"><span class="pre">pandas_dev</span></code>的新环境或任何其他名称：</span></p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">create</span> <span class="o">-</span><span class="n">n</span> <span class="n">pandas_dev</span> <span class="o">--</span><span class="n">file</span> <span class="n">ci</span><span class="o">/</span><span class="n">requirements_dev</span><span class="o">.</span><span class="n">txt</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-175">对于python 3环境：</span></p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">create</span> <span class="o">-</span><span class="n">n</span> <span class="n">pandas_dev</span> <span class="n">python</span><span class="o">=</span><span class="mi">3</span> <span class="o">--</span><span class="n">file</span> <span class="n">ci</span><span class="o">/</span><span class="n">requirements_dev</span><span class="o">.</span><span class="n">txt</span>
+</pre></div>
+</div>
+<div class="admonition warning">
+<p class="first admonition-title"><span class="yiyi-st" id="yiyi-176">警告</span></p>
+<p class="last"><span class="yiyi-st" id="yiyi-177">如果您使用Windows，请参阅<a class="reference internal" href="#contributing-windows"><span class="std std-ref">here for a fully compliant Windows environment</span></a>。</span></p>
+</div>
+<p><span class="yiyi-st" id="yiyi-178">这将创建新的环境，而不是触摸任何现有的环境，也没有任何现有的python安装。</span><span class="yiyi-st" id="yiyi-179">它将安装<em>pandas</em>的所有基本依赖项，以及开发和测试工具。</span><span class="yiyi-st" id="yiyi-180">如果要安装其他依赖项，可以按如下所示安装它们：</span></p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">install</span> <span class="o">-</span><span class="n">n</span> <span class="n">pandas_dev</span> <span class="o">-</span><span class="n">c</span> <span class="n">pandas</span> <span class="n">pytables</span> <span class="n">scipy</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-181">要安装<em>所有</em> pandas依赖项，您可以执行以下操作：</span></p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">install</span> <span class="o">-</span><span class="n">n</span> <span class="n">pandas_dev</span> <span class="o">-</span><span class="n">c</span> <span class="n">pandas</span> <span class="o">--</span><span class="n">file</span> <span class="n">ci</span><span class="o">/</span><span class="n">requirements_all</span><span class="o">.</span><span class="n">txt</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-182">要在此环境中工作，Windows用户应<code class="docutils literal"><span class="pre">activate</span></code>，如下所示：</span></p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">activate</span> <span class="n">pandas_dev</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-183">Mac OSX / Linux用户应该使用：</span></p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">source</span> <span class="n">activate</span> <span class="n">pandas_dev</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-184">然后，您将看到一条确认消息，表明您处于新的开发环境中。</span></p>
+<p><span class="yiyi-st" id="yiyi-185">要查看您的环境：</span></p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">info</span> <span class="o">-</span><span class="n">e</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-186">要在Windows中返回到主页根环境：</span></p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">deactivate</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-187">在OSX / Linux中返回到您的主根环境：</span></p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">source</span> <span class="n">deactivate</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-188">请参阅完整的条件文档<a class="reference external" href="http://conda.pydata.org/docs">此处</a>。</span></p>
+<p><span class="yiyi-st" id="yiyi-189">此时，您可以轻松地执行<em>就地</em>安装，如下一节所述。</span></p>
+</div>
+<div class="section" id="creating-a-windows-development-environment">
+<span id="contributing-windows"></span><h3><span class="yiyi-st" id="yiyi-190"><a class="toc-backref" href="#id9">Creating a Windows development environment</a></span></h3>
+<p><span class="yiyi-st" id="yiyi-191">如果基于Windows系统，您需要安装编译器来构建安装环境。</span><span class="yiyi-st" id="yiyi-192">您将需要安装相应的Visual Studio编译器，VS 2008 for Python 2.7，VS 2010 for 3.4和VS 2015 for Python 3.5。</span></p>
+<p><span class="yiyi-st" id="yiyi-193">对于Python 2.7，您可以安装<code class="docutils literal"><span class="pre">mingw</span></code>编译器，它将等效于VS 2008：</span></p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">install</span> <span class="o">-</span><span class="n">n</span> <span class="n">pandas_dev</span> <span class="n">libpython</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-194">或使用<a class="reference external" href="https://www.microsoft.com/en-us/download/details.aspx?id=44266">Microsoft Visual Studio VC ++编译器Python</a>。</span><span class="yiyi-st" id="yiyi-195">请注意，您必须检查<code class="docutils literal"><span class="pre">x64</span></code>框以安装<code class="docutils literal"><span class="pre">x64</span></code>扩展构建功能，因为默认情况下未安装。</span></p>
+<p><span class="yiyi-st" id="yiyi-196">对于Python 3.4，您可以下载并安装<a class="reference external" href="https://www.microsoft.com/en-us/download/details.aspx?id=8279">Windows 7.1 SDK</a>。</span><span class="yiyi-st" id="yiyi-197">阅读下面的参考文件，因为在安装过程中可能会有各种各样的困难。</span></p>
+<p><span class="yiyi-st" id="yiyi-198">对于Python 3.5，您可以下载并安装<a class="reference external" href="https://www.visualstudio.com/en-us/downloads/visual-studio-2015-downloads-vs.aspx">Visual Studio 2015社区版</a>。</span></p>
+<p><span class="yiyi-st" id="yiyi-199">这里有一些参考和博客：</span></p>
+<ul class="simple">
+<li><span class="yiyi-st" id="yiyi-200"><a class="reference external" href="https://blogs.msdn.microsoft.com/pythonengineering/2016/04/11/unable-to-find-vcvarsall-bat/">https://blogs.msdn.microsoft.com/pythonengineering/2016/04/11/unable-to-find-vcvarsall-bat/</a></span></li>
+<li><span class="yiyi-st" id="yiyi-201"><a class="reference external" href="https://github.com/conda/conda-recipes/wiki/Building-from-Source-on-Windows-32-bit-and-64-bit">https://github.com/conda/conda-recipes/wiki/Building-from-Source-on-Windows-32-bit-and-64-bit</a></span></li>
+<li><span class="yiyi-st" id="yiyi-202"><a class="reference external" href="https://cowboyprogrammer.org/building-python-wheels-for-windows/">https://cowboyprogrammer.org/building-python-wheels-for-windows/</a></span></li>
+<li><span class="yiyi-st" id="yiyi-203"><a class="reference external" href="https://blog.ionelmc.ro/2014/12/21/compiling-python-extensions-on-windows/">https://blog.ionelmc.ro/2014/12/21/compiling-python-extensions-on-windows/</a></span></li>
+<li><span class="yiyi-st" id="yiyi-204"><a class="reference external" href="https://support.enthought.com/hc/en-us/articles/204469260-Building-Python-extensions-with-Canopy">https://support.enthought.com/hc/en-us/articles/204469260-Building-Python-extensions-with-Canopy</a></span></li>
+</ul>
+</div>
+<div class="section" id="making-changes">
+<span id="contributing-getting-source"></span><h3><span class="yiyi-st" id="yiyi-205"><a class="toc-backref" href="#id10">Making changes</a></span></h3>
+<p><span class="yiyi-st" id="yiyi-206">在更改代码之前，通常需要构建刚刚签出的代码。</span><span class="yiyi-st" id="yiyi-207">有两种主要的方法。</span></p>
+<ol class="arabic">
+<li><p class="first"><span class="yiyi-st" id="yiyi-208">开发<em>pandas</em>的最佳方式是通过运行以下命令来构建C扩展：</span></p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">setup</span><span class="o">.</span><span class="n">py</span> <span class="n">build_ext</span> <span class="o">--</span><span class="n">inplace</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-209">如果您在<em>pandas</em>源目录中启动Python解释器，您将调用构建的C扩展</span></p>
+</li>
+<li><p class="first"><span class="yiyi-st" id="yiyi-210">另一个非常常见的选择是执行<em>pandas</em>的<code class="docutils literal"><span class="pre">develop</span></code>安装：</span></p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">setup</span><span class="o">.</span><span class="n">py</span> <span class="n">develop</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-211">这使得一个符号链接告诉Python解释器从你的开发目录中导入<em>pandas</em>。</span><span class="yiyi-st" id="yiyi-212">因此，您可以始终在您的系统上使用开发版本，而不必在克隆目录中。</span></p>
+</li>
+</ol>
+</div>
+</div>
+<div class="section" id="contributing-to-the-documentation">
+<span id="contributing-documentation"></span><h2><span class="yiyi-st" id="yiyi-213"><a class="toc-backref" href="#id11">Contributing to the documentation</a></span></h2>
+<p><span class="yiyi-st" id="yiyi-214">如果你不是专门开发人员，贡献文档仍然是巨大的价值。</span><span class="yiyi-st" id="yiyi-215">你甚至不必成为<em>pandas</em>的专家！</span><span class="yiyi-st" id="yiyi-216">像参考文档一样，为了清晰起见，重写小段落是一种简单但有效的方法。</span><span class="yiyi-st" id="yiyi-217">下一个用户读这部分内容的人会在你的贡献的基础上！</span></p>
+<p><span class="yiyi-st" id="yiyi-218">事实上，文档的一些部分，在专家写的后更糟糕。</span><span class="yiyi-st" id="yiyi-219">如果文档中的某些东西对你说没有完全弄清楚，在你弄清楚之后再更新相关部分是一个必要的方法，以确保它将帮助下一个人。</span></p>
+<div class="contents local topic" id="documentation">
+<p class="topic-title first"><span class="yiyi-st" id="yiyi-220">文档：</span></p>
+<ul class="simple">
+<li><span class="yiyi-st" id="yiyi-221"><a class="reference internal" href="#about-the-pandas-documentation" id="id33">关于<em>pandas</em>文档</a></span></li>
+<li><span class="yiyi-st" id="yiyi-225"><a class="reference internal" href="#how-to-build-the-pandas-documentation" id="id34">如何构建<em>pandas</em>文档</a></span><ul>
+<li><span class="yiyi-st" id="yiyi-222"><a class="reference internal" href="#requirements" id="id35">要求</a></span></li>
+<li><span class="yiyi-st" id="yiyi-223"><a class="reference internal" href="#building-the-documentation" id="id36">构建文档</a></span></li>
+<li><span class="yiyi-st" id="yiyi-224"><a class="reference internal" href="#building-master-branch-documentation" id="id37">构建主分支文档</a></span></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="section" id="about-the-pandas-documentation">
+<h3><span class="yiyi-st" id="yiyi-226"><a class="toc-backref" href="#id33">About the <em>pandas</em> documentation</a></span></h3>
+<p><span class="yiyi-st" id="yiyi-227">该文档用<strong>reStructuredText</strong>编写，这几乎就像用纯英语书写，并使用<a class="reference external" href="http://sphinx.pocoo.org/">Sphinx</a>构建。</span><span class="yiyi-st" id="yiyi-228">Sphinx文档对reST有一个很好的<a class="reference external" href="http://sphinx.pocoo.org/rest.html">介绍。</a></span><span class="yiyi-st" id="yiyi-229">查看Sphinx文档以对文档执行更复杂的更改。</span></p>
+<p><span class="yiyi-st" id="yiyi-230">关于文档的一些其他重要的事情：</span></p>
+<ul>
+<li><p class="first"><span class="yiyi-st" id="yiyi-231"><em>pandas</em>文档由两部分组成：代码本身中的docstrings和此文件夹中的文档<code class="docutils literal"><span class="pre">pandas/doc/</span></code>。</span></p>
+<p><span class="yiyi-st" id="yiyi-232">docstrings提供了对各个功能的使用的清楚解释，而此文件夹中的文档包括每个主题的教程式概述以及一些其他信息（新增内容，安装等）。</span></p>
+</li>
+<li><p class="first"><span class="yiyi-st" id="yiyi-233">docstrings遵循<strong>Numpy Docstring Standard</strong>，在科学Python社区中广泛使用。</span><span class="yiyi-st" id="yiyi-234">这个标准规定了docstring的不同部分的格式。</span><span class="yiyi-st" id="yiyi-235">有关详细说明，请参阅<a class="reference external" href="https://github.com/numpy/numpy/blob/master/doc/HOWTO_DOCUMENT.rst.txt">本文档</a>，或者查看一些现有函数以类似方式扩展它。</span></p>
+</li>
+<li><p class="first"><span class="yiyi-st" id="yiyi-236">本教程大量使用<a class="reference external" href="http://matplotlib.org/sampledoc/ipython_directive.html">ipython指令</a> sphinx扩展。</span><span class="yiyi-st" id="yiyi-237">此指令允许您将代码放在将在doc构建期间运行的文档中。</span><span class="yiyi-st" id="yiyi-238">例如：</span></p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">..</span> <span class="n">ipython</span><span class="p">::</span> <span class="n">python</span>
+
+    <span class="n">x</span> <span class="o">=</span> <span class="mi">2</span>
+    <span class="n">x</span><span class="o">**</span><span class="mi">3</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-239">将呈现为：</span></p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">In</span> <span class="p">[</span><span class="mi">1</span><span class="p">]:</span> <span class="n">x</span> <span class="o">=</span> <span class="mi">2</span>
+
+<span class="n">In</span> <span class="p">[</span><span class="mi">2</span><span class="p">]:</span> <span class="n">x</span><span class="o">**</span><span class="mi">3</span>
+<span class="n">Out</span><span class="p">[</span><span class="mi">2</span><span class="p">]:</span> <span class="mi">8</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-240">在doc构建过程中，几乎所有的代码示例都会运行（并保存输出）。</span><span class="yiyi-st" id="yiyi-241">这种方法意味着代码示例将始终是最新的，但它确实使doc构建更复杂。</span></p>
+</li>
+</ul>
+<div class="admonition note">
+<p class="first admonition-title"><span class="yiyi-st" id="yiyi-242">注意</span></p>
+<p><span class="yiyi-st" id="yiyi-243"><code class="docutils literal"><span class="pre">.rst</span></code>文件用于自动生成文档的Markdown和HTML版本。</span><span class="yiyi-st" id="yiyi-244">因此，请不要直接编辑<code class="docutils literal"><span class="pre">CONTRIBUTING.md</span></code>，而应对<code class="docutils literal"><span class="pre">doc/source/contributing.rst</span></code>进行任何更改。</span><span class="yiyi-st" id="yiyi-245">然后，要生成<code class="docutils literal"><span class="pre">CONTRIBUTING.md</span></code>，请使用以下命令使用<a class="reference external" href="http://johnmacfarlane.net/pandoc/">pandoc</a>：</span></p>
+<div class="last highlight-default"><div class="highlight"><pre><span></span><span class="n">pandoc</span> <span class="n">doc</span><span class="o">/</span><span class="n">source</span><span class="o">/</span><span class="n">contributing</span><span class="o">.</span><span class="n">rst</span> <span class="o">-</span><span class="n">t</span> <span class="n">markdown_github</span> <span class="o">&gt;</span> <span class="n">CONTRIBUTING</span><span class="o">.</span><span class="n">md</span>
+</pre></div>
+</div>
+</div>
+<p><span class="yiyi-st" id="yiyi-246">实用程序脚本<code class="docutils literal"><span class="pre">scripts/api_rst_coverage.py</span></code>可用于比较<code class="docutils literal"><span class="pre">doc/source/api.rst</span></code>中记录的方法列表（用于生成<a class="reference external" href="http://pandas.pydata.org/pandas-docs/stable/api.html">API参考</a>页面）和实际的公共方法。</span><span class="yiyi-st" id="yiyi-247">这将识别<code class="docutils literal"><span class="pre">doc/source/api.rst</span></code>中记录的方法，这些方法实际上不是类方法，以及在<code class="docutils literal"><span class="pre">doc/source/api.rst</span></code>中没有记录的现有方法。 。</span></p>
+</div>
+<div class="section" id="how-to-build-the-pandas-documentation">
+<h3><span class="yiyi-st" id="yiyi-248"><a class="toc-backref" href="#id34">How to build the <em>pandas</em> documentation</a></span></h3>
+<div class="section" id="requirements">
+<h4><span class="yiyi-st" id="yiyi-249"><a class="toc-backref" href="#id35">Requirements</a></span></h4>
+<p><span class="yiyi-st" id="yiyi-250">首先，您需要有一个开发环境，以便能够构建pandas（请参阅<a class="reference internal" href="#contributing-dev-env"><span class="std std-ref">creating a development environment above</span></a>）。</span><span class="yiyi-st" id="yiyi-251">此外，要构建文档，还有一些额外的要求：您需要安装<code class="docutils literal"><span class="pre">sphinx</span></code>和<code class="docutils literal"><span class="pre">ipython</span></code>。</span><span class="yiyi-st" id="yiyi-252"><a class="reference external" href="https://github.com/numpy/numpydoc">numpydoc</a>用于解析Numpy Docstring Standard（见上文）后面的文档字符串，但不需要安装，因为numpydoc的本地副本包含在<em>pandas 源代码。</em></span><span class="yiyi-st" id="yiyi-253"><a class="reference external" href="https://nbconvert.readthedocs.io/en/latest/">nbconvert</a>和<a class="reference external" href="https://nbformat.readthedocs.io/en/latest/">nbformat</a>是构建文档中包含的Jupyter笔记本所必需的。</span></p>
+<p><span class="yiyi-st" id="yiyi-254">如果您有名为<code class="docutils literal"><span class="pre">pandas_dev</span></code>的conda环境，则可以使用以下命令安装额外的需求：</span></p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">install</span> <span class="o">-</span><span class="n">n</span> <span class="n">pandas_dev</span> <span class="n">sphinx</span> <span class="n">ipython</span> <span class="n">nbconvert</span> <span class="n">nbformat</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-255">此外，建议所有<a class="reference internal" href="install.html#install-optional-dependencies"><span class="std std-ref">optional dependencies</span></a>。</span><span class="yiyi-st" id="yiyi-256">安装。</span><span class="yiyi-st" id="yiyi-257">这不是绝对必要的，但请注意，您在构建文档时会看到一些错误消息。</span><span class="yiyi-st" id="yiyi-258">这是因为文档中的所有代码都是在doc构建期间执行的，因此使用可选依赖关系的代码示例会生成错误。</span><span class="yiyi-st" id="yiyi-259">运行<code class="docutils literal"><span class="pre">pd.show_versions()</span></code>可获取所有依赖项的已安装版本的概述。</span></p>
+<div class="admonition warning">
+<p class="first admonition-title"><span class="yiyi-st" id="yiyi-260">警告</span></p>
+<p class="last"><span class="yiyi-st" id="yiyi-261">您需要具有<code class="docutils literal"><span class="pre">sphinx</span></code> version&gt; = 1.3.2。</span></p>
+</div>
+</div>
+<div class="section" id="building-the-documentation">
+<h4><span class="yiyi-st" id="yiyi-262"><a class="toc-backref" href="#id36">Building the documentation</a></span></h4>
+<p><span class="yiyi-st" id="yiyi-263">那么如何构建文档呢？</span><span class="yiyi-st" id="yiyi-264">在控制台中导航到您当地的<code class="docutils literal"><span class="pre">pandas/doc/</span></code>目录，然后运行：</span></p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">make</span><span class="o">.</span><span class="n">py</span> <span class="n">html</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-265">然后，您可以在文件夹<code class="docutils literal"><span class="pre">pandas/doc/build/html/</span></code>中找到HTML输出。</span></p>
+<p><span class="yiyi-st" id="yiyi-266">第一次构建文档时，将需要一段时间，因为它必须运行所有代码示例并构建所有生成的docstring页面。</span><span class="yiyi-st" id="yiyi-267">在后续的调用中，sphinx将尝试仅构建已修改的页面。</span></p>
+<p><span class="yiyi-st" id="yiyi-268">如果你想做一个完全干净的构建，做：</span></p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">make</span><span class="o">.</span><span class="n">py</span> <span class="n">clean</span>
+<span class="n">python</span> <span class="n">make</span><span class="o">.</span><span class="n">py</span> <span class="n">build</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-269">从<em>pandas</em> 0.13.1开始，您可以告诉<code class="docutils literal"><span class="pre">make.py</span></code>只编译文档的一个部分，大大缩短了检查更改的周转时间。</span><span class="yiyi-st" id="yiyi-270">系统将提示您删除不需要的<code class="docutils literal"><span class="pre">.rst</span></code>文件。</span><span class="yiyi-st" id="yiyi-271">这是好的，因为这些文件的先前版本可以从git检出。</span><span class="yiyi-st" id="yiyi-272">但是，您必须确保不将文件删除提交到您的Git存储库！</span></p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1">#omit autosummary and API section</span>
+<span class="n">python</span> <span class="n">make</span><span class="o">.</span><span class="n">py</span> <span class="n">clean</span>
+<span class="n">python</span> <span class="n">make</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">no</span><span class="o">-</span><span class="n">api</span>
+
+<span class="c1"># compile the docs with only a single</span>
+<span class="c1"># section, that which is in indexing.rst</span>
+<span class="n">python</span> <span class="n">make</span><span class="o">.</span><span class="n">py</span> <span class="n">clean</span>
+<span class="n">python</span> <span class="n">make</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">single</span> <span class="n">indexing</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-273">为了比较，完整的文档构建可能需要10分钟，<code class="docutils literal"><span class="pre">-no-api</span></code>构建可能需要3分钟，单个节可能需要15秒。</span><span class="yiyi-st" id="yiyi-274">后续构建（仅处理已更改的部分）将更快。</span><span class="yiyi-st" id="yiyi-275">在Web浏览器中打开以下文件，以查看刚刚构建的完整文档：</span></p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pandas</span><span class="o">/</span><span class="n">docs</span><span class="o">/</span><span class="n">build</span><span class="o">/</span><span class="n">html</span><span class="o">/</span><span class="n">index</span><span class="o">.</span><span class="n">html</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-276">你会看到你的新的和改进的文档的满意！</span></p>
+</div>
+<div class="section" id="building-master-branch-documentation">
+<span id="contributing-dev-docs"></span><h4><span class="yiyi-st" id="yiyi-277"><a class="toc-backref" href="#id37">Building master branch documentation</a></span></h4>
+<p><span class="yiyi-st" id="yiyi-278">当pull请求合并到<em>pandas</em> <code class="docutils literal"><span class="pre">master</span></code>分支中时，文档的主要部分也由Travis-CI构建。</span><span class="yiyi-st" id="yiyi-279">这些文档随后托管在<a class="reference external" href="http://pandas-docs.github.io/pandas-docs-travis">此处</a>。</span></p>
+</div>
+</div>
+</div>
+<div class="section" id="contributing-to-the-code-base">
+<h2><span class="yiyi-st" id="yiyi-280"><a class="toc-backref" href="#id17">Contributing to the code base</a></span></h2>
+<div class="contents local topic" id="code-base">
+<p class="topic-title first"><span class="yiyi-st" id="yiyi-281">代码库：</span></p>
+<ul class="simple">
+<li><span class="yiyi-st" id="yiyi-282"><a class="reference internal" href="#code-standards" id="id38">代码标准</a></span></li>
+<li><span class="yiyi-st" id="yiyi-288"><a class="reference internal" href="#test-driven-development-code-writing" id="id39">测试驱动开发/代码编写</a></span><ul>
+<li><span class="yiyi-st" id="yiyi-283"><a class="reference internal" href="#writing-tests" id="id40">写测试</a></span></li>
+<li><span class="yiyi-st" id="yiyi-284"><a class="reference internal" href="#running-the-test-suite" id="id41">运行测试套件</a></span></li>
+<li><span class="yiyi-st" id="yiyi-285"><a class="reference internal" href="#running-the-performance-test-suite" id="id42">运行性能测试套件</a></span></li>
+<li><span class="yiyi-st" id="yiyi-286"><a class="reference internal" href="#running-google-bigquery-integration-tests" id="id43">运行Google BigQuery集成测试</a></span></li>
+<li><span class="yiyi-st" id="yiyi-287"><a class="reference internal" href="#running-the-vbench-performance-test-suite-phasing-out" id="id44">运行vbench性能测试套件（逐步淘汰）</a></span></li>
+</ul>
+</li>
+<li><span class="yiyi-st" id="yiyi-289"><a class="reference internal" href="#documenting-your-code" id="id45">记录您的代码</a></span></li>
+</ul>
+</div>
+<div class="section" id="code-standards">
+<h3><span class="yiyi-st" id="yiyi-290"><a class="toc-backref" href="#id38">Code standards</a></span></h3>
+<p><span class="yiyi-st" id="yiyi-291"><em>pandas</em>使用<a class="reference external" href="http://www.python.org/dev/peps/pep-0008/">PEP8</a>标准。</span><span class="yiyi-st" id="yiyi-292">有几个工具，以确保您遵守此标准。</span><span class="yiyi-st" id="yiyi-293">这是<em>一些</em>的更常见的<code class="docutils literal"><span class="pre">PEP8</span></code>问题：</span></p>
+<blockquote>
+<div><ul class="simple">
+<li><span class="yiyi-st" id="yiyi-294">我们将行长度限制为80个字符以提高可读性</span></li>
+<li><span class="yiyi-st" id="yiyi-295">传递参数应该在逗号后面有空格，例如。 <code class="docutils literal"><span class="pre">foo（arg1，</span> <span class="pre">arg2，</span> <span class="pre">kw1 =&apos;bar&apos;）</span> </code></span></li>
+</ul>
+</div></blockquote>
+<p><span class="yiyi-st" id="yiyi-296">Travis-CI将运行<a class="reference external" href="http://pypi.python.org/pypi/flake8">flake8</a>工具，并报告代码中的任何文体错误。</span><span class="yiyi-st" id="yiyi-297">生成任何警告将导致构建失败；因此这些是向<em>pandas</em>提交代码的要求的一部分。</span></p>
+<p><span class="yiyi-st" id="yiyi-298">在提交代码以在diff上运行它是有帮助的：</span></p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">diff</span> <span class="n">master</span> <span class="o">|</span> <span class="n">flake8</span> <span class="o">--</span><span class="n">diff</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-299">此外，我们编写了一个工具来检查您的提交是否为PEP8，<a class="reference external" href="https://github.com/hayd/pep8radius">pip install pep8radius</a>。</span><span class="yiyi-st" id="yiyi-300">看看PEP8修复在你的分支vs主人：</span></p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pep8radius</span> <span class="n">master</span> <span class="o">--</span><span class="n">diff</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-301">并进行以下更改：</span></p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pep8radius</span> <span class="n">master</span> <span class="o">--</span><span class="n">diff</span> <span class="o">--</span><span class="ow">in</span><span class="o">-</span><span class="n">place</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-302">其他标准在<a class="reference external" href="https://github.com/pandas-dev/pandas/wiki/Code-Style-and-Conventions">代码样式wiki页面</a>中列出。</span></p>
+<p><span class="yiyi-st" id="yiyi-303">请尝试保持向后兼容性。</span><span class="yiyi-st" id="yiyi-304"><em>pandas</em>有很多用户有很多现有的代码，所以不要打破它，如果可能的话。</span><span class="yiyi-st" id="yiyi-305">如果你认为需要破解，清楚地说明为什么作为pull请求的一部分。</span><span class="yiyi-st" id="yiyi-306">此外，在更改方法签名并在需要时添加弃用警告时要小心。</span></p>
+</div>
+<div class="section" id="test-driven-development-code-writing">
+<h3><span class="yiyi-st" id="yiyi-307"><a class="toc-backref" href="#id39">Test-driven development/code writing</a></span></h3>
+<p><span class="yiyi-st" id="yiyi-308"><em>pandas</em>是认真的测试，并强烈鼓励贡献者拥抱<a class="reference external" href="http://en.wikipedia.org/wiki/Test-driven_development">测试驱动开发（TDD）</a>。</span><span class="yiyi-st" id="yiyi-309">这个开发过程“依赖于重复一个非常短的开发周期：首先，开发人员编写一个（最初失败的）自动化测试用例，定义一个所需的改进或新的函数，然后产生最小量的代码通过该测试。 ，在实际写任何代码之前，你应该写你的测试。</span><span class="yiyi-st" id="yiyi-310">通常测试可以从原来的GitHub问题。</span><span class="yiyi-st" id="yiyi-311">但是，它总是值得考虑额外的用例和编写相应的测试。</span></p>
+<p><span class="yiyi-st" id="yiyi-312">添加测试是代码推送到<em>pandas</em>之后最常见的请求之一。</span><span class="yiyi-st" id="yiyi-313">因此，值得习惯于提前写测试，所以这从来不是一个问题。</span></p>
+<p><span class="yiyi-st" id="yiyi-314">像许多软件包一样，<em>pandas</em>使用<a class="reference external" href="https://nose.readthedocs.io/en/latest/index.html">鼻子测试系统</a>和<a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/routines.testing.html">numpy.testing</a>中的方便扩展。</span></p>
+<div class="section" id="writing-tests">
+<h4><span class="yiyi-st" id="yiyi-315"><a class="toc-backref" href="#id40">Writing tests</a></span></h4>
+<p><span class="yiyi-st" id="yiyi-316">所有测试都应该进入特定软件包的<code class="docutils literal"><span class="pre">tests</span></code>子目录。</span><span class="yiyi-st" id="yiyi-317">此文件夹包含许多当前的测试示例，我们建议寻找这些灵感。</span><span class="yiyi-st" id="yiyi-318">如果您的测试需要处理文件或网络连接，则有关维基的<a class="reference external" href="https://github.com/pandas-dev/pandas/wiki/Testing">测试页</a>的更多信息。</span></p>
+<p><span class="yiyi-st" id="yiyi-319"><code class="docutils literal"><span class="pre">pandas.util.testing</span></code>模块有许多特殊的<code class="docutils literal"><span class="pre">assert</span></code>函数，可以更容易地说明Series或DataFrame对象是否是等价的。</span><span class="yiyi-st" id="yiyi-320">验证代码是否正确的最简单方法是显式构造期望的结果，然后将实际结果与预期的正确结果进行比较：</span></p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">test_pivot</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&apos;index&apos;</span> <span class="p">:</span> <span class="p">[</span><span class="s1">&apos;A&apos;</span><span class="p">,</span> <span class="s1">&apos;B&apos;</span><span class="p">,</span> <span class="s1">&apos;C&apos;</span><span class="p">,</span> <span class="s1">&apos;C&apos;</span><span class="p">,</span> <span class="s1">&apos;B&apos;</span><span class="p">,</span> <span class="s1">&apos;A&apos;</span><span class="p">],</span>
+        <span class="s1">&apos;columns&apos;</span> <span class="p">:</span> <span class="p">[</span><span class="s1">&apos;One&apos;</span><span class="p">,</span> <span class="s1">&apos;One&apos;</span><span class="p">,</span> <span class="s1">&apos;One&apos;</span><span class="p">,</span> <span class="s1">&apos;Two&apos;</span><span class="p">,</span> <span class="s1">&apos;Two&apos;</span><span class="p">,</span> <span class="s1">&apos;Two&apos;</span><span class="p">],</span>
+        <span class="s1">&apos;values&apos;</span> <span class="p">:</span> <span class="p">[</span><span class="mf">1.</span><span class="p">,</span> <span class="mf">2.</span><span class="p">,</span> <span class="mf">3.</span><span class="p">,</span> <span class="mf">3.</span><span class="p">,</span> <span class="mf">2.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">]</span>
+    <span class="p">}</span>
+
+    <span class="n">frame</span> <span class="o">=</span> <span class="n">DataFrame</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+    <span class="n">pivoted</span> <span class="o">=</span> <span class="n">frame</span><span class="o">.</span><span class="n">pivot</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="s1">&apos;index&apos;</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="s1">&apos;columns&apos;</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="s1">&apos;values&apos;</span><span class="p">)</span>
+
+    <span class="n">expected</span> <span class="o">=</span> <span class="n">DataFrame</span><span class="p">({</span>
+        <span class="s1">&apos;One&apos;</span> <span class="p">:</span> <span class="p">{</span><span class="s1">&apos;A&apos;</span> <span class="p">:</span> <span class="mf">1.</span><span class="p">,</span> <span class="s1">&apos;B&apos;</span> <span class="p">:</span> <span class="mf">2.</span><span class="p">,</span> <span class="s1">&apos;C&apos;</span> <span class="p">:</span> <span class="mf">3.</span><span class="p">},</span>
+        <span class="s1">&apos;Two&apos;</span> <span class="p">:</span> <span class="p">{</span><span class="s1">&apos;A&apos;</span> <span class="p">:</span> <span class="mf">1.</span><span class="p">,</span> <span class="s1">&apos;B&apos;</span> <span class="p">:</span> <span class="mf">2.</span><span class="p">,</span> <span class="s1">&apos;C&apos;</span> <span class="p">:</span> <span class="mf">3.</span><span class="p">}</span>
+    <span class="p">})</span>
+
+    <span class="n">assert_frame_equal</span><span class="p">(</span><span class="n">pivoted</span><span class="p">,</span> <span class="n">expected</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="running-the-test-suite">
+<h4><span class="yiyi-st" id="yiyi-321"><a class="toc-backref" href="#id41">Running the test suite</a></span></h4>
+<p><span class="yiyi-st" id="yiyi-322">然后可以直接在您的Git克隆中运行测试（无需安装<em>pandas</em>）：</span></p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">nosetests</span> <span class="n">pandas</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-323">测试套件是详尽的，需要大约20分钟运行。</span><span class="yiyi-st" id="yiyi-324">通常，在运行整个套件之前，首先应围绕您的更改运行一部分测试。</span><span class="yiyi-st" id="yiyi-325">这是使用以下结构之一完成的：</span></p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>  <span class="n">nosetests</span> <span class="n">pandas</span><span class="o">/</span><span class="n">tests</span><span class="o">/</span><span class="p">[</span><span class="n">test</span><span class="o">-</span><span class="n">module</span><span class="p">]</span><span class="o">.</span><span class="n">py</span>
+  <span class="n">nosetests</span> <span class="n">pandas</span><span class="o">/</span><span class="n">tests</span><span class="o">/</span><span class="p">[</span><span class="n">test</span><span class="o">-</span><span class="n">module</span><span class="p">]</span><span class="o">.</span><span class="n">py</span><span class="p">:[</span><span class="n">TestClass</span><span class="p">]</span>
+  <span class="n">nosetests</span> <span class="n">pandas</span><span class="o">/</span><span class="n">tests</span><span class="o">/</span><span class="p">[</span><span class="n">test</span><span class="o">-</span><span class="n">module</span><span class="p">]</span><span class="o">.</span><span class="n">py</span><span class="p">:[</span><span class="n">TestClass</span><span class="p">]</span><span class="o">.</span><span class="p">[</span><span class="n">test_method</span><span class="p">]</span>
+
+<span class="o">..</span> <span class="n">versionadded</span><span class="p">::</span> <span class="mf">0.18</span><span class="o">.</span><span class="mi">0</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-326">此外，可以运行</span></p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">pd</span><span class="o">.</span><span class="n">test</span><span class="p">()</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-327">与一个导入的熊猫类似地运行测试。</span></p>
+</div>
+<div class="section" id="running-the-performance-test-suite">
+<h4><span class="yiyi-st" id="yiyi-328"><a class="toc-backref" href="#id42">Running the performance test suite</a></span></h4>
+<p><span class="yiyi-st" id="yiyi-329">性能很重要，值得考虑你的代码是否引入了性能回归。</span><span class="yiyi-st" id="yiyi-330"><em>pandas</em>正在迁移到<a class="reference external" href="https://github.com/spacetelescope/asv">asv基准</a>，以便轻松监控关键<em>pandas</em>操作的性能。</span><span class="yiyi-st" id="yiyi-331">这些基准都在<code class="docutils literal"><span class="pre">pandas/asv_bench</span></code>目录中找到。</span><span class="yiyi-st" id="yiyi-332">asv支持python2和python3。</span></p>
+<div class="admonition note">
+<p class="first admonition-title"><span class="yiyi-st" id="yiyi-333">注意</span></p>
+<p class="last"><span class="yiyi-st" id="yiyi-334">asv基准套件是从以前的框架vbench中翻译出来的，所以很多风格问题都可能是代码自动转换的结果。</span></p>
+</div>
+<p><span class="yiyi-st" id="yiyi-335">要使用asv的所有功能，您需要<code class="docutils literal"><span class="pre">conda</span></code>或<code class="docutils literal"><span class="pre">virtualenv</span></code>。</span><span class="yiyi-st" id="yiyi-336">有关详细信息，请查看<a class="reference external" href="https://asv.readthedocs.io/en/latest/installing.html">asv安装网页</a>。</span></p>
+<p><span class="yiyi-st" id="yiyi-337">要安装asv：</span></p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">git</span><span class="o">+</span><span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">spacetelescope</span><span class="o">/</span><span class="n">asv</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-338">如果您需要运行基准测试，请将您的目录更改为<code class="docutils literal"><span class="pre">asv_bench/</span></code>并运行：</span></p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">asv</span> <span class="n">continuous</span> <span class="o">-</span><span class="n">f</span> <span class="mf">1.1</span> <span class="n">upstream</span><span class="o">/</span><span class="n">master</span> <span class="n">HEAD</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-339">您可以将<code class="docutils literal"><span class="pre">HEAD</span></code>替换为您正在使用的分支的名称，并报告更改超过10％的基准。</span><span class="yiyi-st" id="yiyi-340">该命令默认使用<code class="docutils literal"><span class="pre">conda</span></code>创建基准环境。</span><span class="yiyi-st" id="yiyi-341">如果要使用virtualenv，请写：</span></p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">asv</span> <span class="n">continuous</span> <span class="o">-</span><span class="n">f</span> <span class="mf">1.1</span> <span class="o">-</span><span class="n">E</span> <span class="n">virtualenv</span> <span class="n">upstream</span><span class="o">/</span><span class="n">master</span> <span class="n">HEAD</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-342">应该将<code class="docutils literal"><span class="pre">-E</span> <span class="pre">virtualenv</span></code>选项添加到运行基准测试的所有<code class="docutils literal"><span class="pre">asv</span></code>命令。</span><span class="yiyi-st" id="yiyi-343">默认值在<code class="docutils literal"><span class="pre">asv.conf.json</span></code>中定义。</span></p>
+<p><span class="yiyi-st" id="yiyi-344">运行完整的测试套件可能需要长达一个小时，最多使用3GB的RAM。</span><span class="yiyi-st" id="yiyi-345">通常只需将一部分结果粘贴到pull请求中即可，以表明提交的更改不会导致意外的性能回退。</span><span class="yiyi-st" id="yiyi-346">您可以使用<code class="docutils literal"><span class="pre">-b</span></code>标志运行特定的基准，该标志采用正则表达式。</span><span class="yiyi-st" id="yiyi-347">例如，这将只运行来自<code class="docutils literal"><span class="pre">pandas/asv_bench/benchmarks/groupby.py</span></code>文件的测试：</span></p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">asv</span> <span class="n">continuous</span> <span class="o">-</span><span class="n">f</span> <span class="mf">1.1</span> <span class="n">upstream</span><span class="o">/</span><span class="n">master</span> <span class="n">HEAD</span> <span class="o">-</span><span class="n">b</span> <span class="o">^</span><span class="n">groupby</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-348">如果您只想从文件中运行特定的测试组，可以使用<code class="docutils literal"><span class="pre">.</span></code></span><span class="yiyi-st" id="yiyi-349">作为分离器。</span><span class="yiyi-st" id="yiyi-350">例如：</span></p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">asv</span> <span class="n">continuous</span> <span class="o">-</span><span class="n">f</span> <span class="mf">1.1</span> <span class="n">upstream</span><span class="o">/</span><span class="n">master</span> <span class="n">HEAD</span> <span class="o">-</span><span class="n">b</span> <span class="n">groupby</span><span class="o">.</span><span class="n">groupby_agg_builtins</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-351">将只运行<code class="docutils literal"><span class="pre">groupby.py</span></code>中定义的<code class="docutils literal"><span class="pre">groupby_agg_builtins</span></code>基准。</span></p>
+<p><span class="yiyi-st" id="yiyi-352">您还可以使用已安装在当前Python环境中的<code class="docutils literal"><span class="pre">pandas</span></code>版本运行基准套件。</span><span class="yiyi-st" id="yiyi-353">如果您没有virtualenv或conda，或正在使用上面讨论的<code class="docutils literal"><span class="pre">setup.py</span> <span class="pre">开发</span></code>方法，对于就地构建，您需要设置<code class="docutils literal"><span class="pre">PYTHONPATH</span></code>，例如<code class="docutils literal"><span class="pre">PYTHONPATH =“$ PWD /..&quot;</span> <span class="pre">asv</span> <span class="pre">[remaining</span> <span class="pre">arguments]</span></code>。</span><span class="yiyi-st" id="yiyi-354">您可以使用现有的Python环境通过以下方式运行基准：</span></p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">asv</span> <span class="n">run</span> <span class="o">-</span><span class="n">e</span> <span class="o">-</span><span class="n">E</span> <span class="n">existing</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-355">或者，使用一个特定的Python解释器：</span></p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">asv</span> <span class="n">run</span> <span class="o">-</span><span class="n">e</span> <span class="o">-</span><span class="n">E</span> <span class="n">existing</span><span class="p">:</span><span class="n">python3</span><span class="o">.</span><span class="mi">5</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-356">这将从基准显示stderr，并使用来自您的<code class="docutils literal"><span class="pre">$PATH</span></code>的本地<code class="docutils literal"><span class="pre">python</span></code>。</span></p>
+<p><span class="yiyi-st" id="yiyi-357">有关如何编写基准和如何使用asv的信息，请参见<a class="reference external" href="https://asv.readthedocs.io/en/latest/writing_benchmarks.html">asv文档</a>。</span></p>
+</div>
+<div class="section" id="running-google-bigquery-integration-tests">
+<span id="contributing-gbq-integration-tests"></span><h4><span class="yiyi-st" id="yiyi-358"><a class="toc-backref" href="#id43">Running Google BigQuery Integration Tests</a></span></h4>
+<p><span class="yiyi-st" id="yiyi-359">您需要创建JSON格式的Google BigQuery私钥，才能在本地计算机和Travis-CI上运行Google BigQuery集成测试。</span><span class="yiyi-st" id="yiyi-360">第一步是创建<a class="reference external" href="https://console.developers.google.com/iam-admin/serviceaccounts/">服务帐户</a>。</span></p>
+<p><span class="yiyi-st" id="yiyi-361">在pull请求中跳过<code class="docutils literal"><span class="pre">pandas.io.gbq</span></code>的集成测试，因为运行Google BigQuery集成测试所需的凭据在Travis-CI上<a class="reference external" href="https://docs.travis-ci.com/user/encrypting-files/">加密</a>，只能从pandas-dev / pandas存储库。</span><span class="yiyi-st" id="yiyi-362">凭证将不可用于大熊猫的大熊猫。</span><span class="yiyi-st" id="yiyi-363">以下是在分支存储库上运行gbq集成测试的步骤：</span></p>
+<ol class="arabic">
+<li><p class="first"><span class="yiyi-st" id="yiyi-364">转到<a class="reference external" href="https://travis-ci.org/">Travis CI</a>并使用您的GitHub帐户登录。</span></p>
+</li>
+<li><p class="first"><span class="yiyi-st" id="yiyi-365">点击<code class="docutils literal"><span class="pre">我的</span> <span class="pre">存储库</span></code>列表旁边的<code class="docutils literal"><span class="pre">+</span></code>图标，然后为您的分支启用Travis构建。</span></p>
+</li>
+<li><p class="first"><span class="yiyi-st" id="yiyi-366">点击齿轮图标编辑您的travis构建，并添加两个环境变量：</span></p>
+<ul class="simple">
+<li><span class="yiyi-st" id="yiyi-367"><code class="docutils literal"><span class="pre">GBQ_PROJECT_ID</span></code>，其值为您的BigQuery项目的ID。</span></li>
+<li><span class="yiyi-st" id="yiyi-368"><code class="docutils literal"><span class="pre">SERVICE_ACCOUNT_KEY</span></code>，其值为您为服务帐户下载的JSON密钥的内容。</span><span class="yiyi-st" id="yiyi-369">在JSON密钥周围使用单引号，以确保它被视为字符串。</span></li>
+</ul>
+<p><span class="yiyi-st" id="yiyi-370">对于这两个环境变量，保持“在构建日志中显示值”选项DISABLED。</span><span class="yiyi-st" id="yiyi-371">这些变量包含敏感数据，您不希望其内容在构建日志中显示。</span></p>
+</li>
+<li><p class="first"><span class="yiyi-st" id="yiyi-372">您的分支应在推送后自动测试。</span><span class="yiyi-st" id="yiyi-373">您可以通过访问位于以下位置的Travis分支页检查状态：<a class="reference external" href="https://travis-ci.org/your-user-name/pandas/branches">https://travis-ci.org/your-user-name/pandas/branches</a>。</span><span class="yiyi-st" id="yiyi-374">单击您的分支的构建作业。</span><span class="yiyi-st" id="yiyi-375">展开构建日志中的以下行：<code class="docutils literal"><span class="pre">ci / print_skipped.py</span> <span class="pre">/tmp/nosetests.xml</span></code>。</span><span class="yiyi-st" id="yiyi-376">搜索术语<code class="docutils literal"><span class="pre">test_gbq</span></code>并确认不会跳过gbq集成测试。</span></p>
+</li>
+</ol>
+</div>
+<div class="section" id="running-the-vbench-performance-test-suite-phasing-out">
+<h4><span class="yiyi-st" id="yiyi-377"><a class="toc-backref" href="#id44">Running the vbench performance test suite (phasing out)</a></span></h4>
+<p><span class="yiyi-st" id="yiyi-378">历史上，<em>pandas</em>使用<a class="reference external" href="https://github.com/pydata/vbench">vbench库</a>，以便轻松监视关键<em>pandas</em>操作的性能。</span><span class="yiyi-st" id="yiyi-379">这些基准都在<code class="docutils literal"><span class="pre">pandas/vb_suite</span></code>目录中找到。</span><span class="yiyi-st" id="yiyi-380">vbench目前只适用于python2。</span></p>
+<p><span class="yiyi-st" id="yiyi-381">安装vbench：</span></p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">git</span><span class="o">+</span><span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">pydata</span><span class="o">/</span><span class="n">vbench</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-382">Vbench还需要<code class="docutils literal"><span class="pre">sqlalchemy</span></code>，<code class="docutils literal"><span class="pre">gitpython</span></code>和<code class="docutils literal"><span class="pre">psutil</span></code>，都可以使用pip安装。</span><span class="yiyi-st" id="yiyi-383">如果您需要运行基准测试，请将目录更改为<em>pandas</em> root并运行：</span></p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">./</span><span class="n">test_perf</span><span class="o">.</span><span class="n">sh</span> <span class="o">-</span><span class="n">b</span> <span class="n">master</span> <span class="o">-</span><span class="n">t</span> <span class="n">HEAD</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-384">这将检出主修订版并在主服务器和您的提交上运行套件。</span><span class="yiyi-st" id="yiyi-385">运行完整的测试套件可能需要长达一个小时，最多使用3GB的RAM。</span><span class="yiyi-st" id="yiyi-386">通常，将一个子集的结果粘贴到合并请求中就足以表明提交的更改不会导致意外的性能回退。</span></p>
+<p><span class="yiyi-st" id="yiyi-387">您可以使用带有正则表达式的<code class="docutils literal"><span class="pre">-r</span></code>标志运行特定的基准测试。</span></p>
+<p><span class="yiyi-st" id="yiyi-388">有关如何编写基准的信息，请参阅<a class="reference external" href="https://github.com/pandas-dev/pandas/wiki/Performance-Testing">性能测试wiki</a>。</span></p>
+</div>
+</div>
+<div class="section" id="documenting-your-code">
+<h3><span class="yiyi-st" id="yiyi-389"><a class="toc-backref" href="#id45">Documenting your code</a></span></h3>
+<p><span class="yiyi-st" id="yiyi-390">更改应反映在位于<code class="docutils literal"><span class="pre">doc/source/whatsnew/vx.y.z.txt</span></code>中的发行说明中。</span><span class="yiyi-st" id="yiyi-391">此文件包含每个发行版的正在进行的更改日志。</span><span class="yiyi-st" id="yiyi-392">向此文件添加条目以记录您的修复，增强或（不可避免的）中断更改。</span><span class="yiyi-st" id="yiyi-393">添加条目时，请务必包含GitHub问题编号（使用``<a class="reference external" href="https://github.com/pandas-dev/pandas/issues/1234">GH1234</a>``其中<cite>1234</cite>是问题/拉取请求编号）。</span></p>
+<p><span class="yiyi-st" id="yiyi-394">如果您的代码是增强功能，则很可能需要在现有文档中添加使用示例。</span><span class="yiyi-st" id="yiyi-395">这可以按照<a class="reference internal" href="#contributing-documentation"><span class="std std-ref">above</span></a>部分进行。</span><span class="yiyi-st" id="yiyi-396">此外，为了让用户知道添加此功能的时间，使用<code class="docutils literal"><span class="pre">versionadded</span></code>指令。</span><span class="yiyi-st" id="yiyi-397">sphinx语法是：</span></p>
+<div class="highlight-rst"><div class="highlight"><pre><span></span><span class="p">..</span> <span class="ow">versionadded</span><span class="p">::</span> 0.17.0
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-398">这将把文本<em>新的版本0.17.0</em>放置sphinx指令。</span><span class="yiyi-st" id="yiyi-399">当添加新的函数或方法（<a class="reference external" href="https://github.com/pandas-dev/pandas/blob/v0.16.2/pandas/core/generic.py#L1959">示例</a>）或新的关键字参数（<a class="reference external" href="https://github.com/pandas-dev/pandas/blob/v0.16.2/pandas/core/frame.py#L1171">示例</a>）时，也应将其放在docstring中。</span></p>
+</div>
+</div>
+<div class="section" id="contributing-your-changes-to-pandas">
+<h2><span class="yiyi-st" id="yiyi-400"><a class="toc-backref" href="#id26">Contributing your changes to <em>pandas</em></a></span></h2>
+<div class="section" id="committing-your-code">
+<h3><span class="yiyi-st" id="yiyi-401"><a class="toc-backref" href="#id27">Committing your code</a></span></h3>
+<p><span class="yiyi-st" id="yiyi-402">保持样式修复一个单独的提交，使您的拉取请求更加可读。</span></p>
+<p><span class="yiyi-st" id="yiyi-403">完成更改后，您可以键入以下内容查看这些更改：</span></p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">status</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-404">如果你创建了一个新文件，它不是由git跟踪。</span><span class="yiyi-st" id="yiyi-405">通过键入以下内容添加：</span></p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">add</span> <span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">file</span><span class="o">-</span><span class="n">to</span><span class="o">-</span><span class="n">be</span><span class="o">-</span><span class="n">added</span><span class="o">.</span><span class="n">py</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-406">做&apos;git status&apos;应该给出像：</span></p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># On branch shiny-new-feature</span>
+<span class="c1">#</span>
+<span class="c1">#       modified:   /relative/path/to/file-you-added.py</span>
+<span class="c1">#</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-407">最后，使用解释性消息将更改提交到本地存储库。</span><span class="yiyi-st" id="yiyi-408"><em>Pandas</em>使用提交消息前缀和布局的约定。</span><span class="yiyi-st" id="yiyi-409">以下是一些常见的前缀以及何时使用它们的一般准则：</span></p>
+<blockquote>
+<div><ul class="simple">
+<li><span class="yiyi-st" id="yiyi-410">ENH：增强，新功能</span></li>
+<li><span class="yiyi-st" id="yiyi-411">BUG：错误修复</span></li>
+<li><span class="yiyi-st" id="yiyi-412">DOC：文档的添加/更新</span></li>
+<li><span class="yiyi-st" id="yiyi-413">TST：测试的添加/更新</span></li>
+<li><span class="yiyi-st" id="yiyi-414">BLD：更新构建过程/脚本</span></li>
+<li><span class="yiyi-st" id="yiyi-415">PERF：性能改进</span></li>
+<li><span class="yiyi-st" id="yiyi-416">CLN：代码清理</span></li>
+</ul>
+</div></blockquote>
+<p><span class="yiyi-st" id="yiyi-417">以下定义如何构造提交消息。</span><span class="yiyi-st" id="yiyi-418">请使用GH1234或＃1234在提交消息中引用相关的GitHub问题。</span><span class="yiyi-st" id="yiyi-419">任何一种风格都很好，但前者通常是首选：</span></p>
+<blockquote>
+<div><ul class="simple">
+<li><span class="yiyi-st" id="yiyi-420">主题行具有<cite>80</cite> chars。</span></li>
+<li><span class="yiyi-st" id="yiyi-421">一个空白行。</span></li>
+<li><span class="yiyi-st" id="yiyi-422">（可选）提交消息体。</span></li>
+</ul>
+</div></blockquote>
+<p><span class="yiyi-st" id="yiyi-423">现在，您可以在本地存储库中提交更改：</span></p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">commit</span> <span class="o">-</span><span class="n">m</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="combining-commits">
+<h3><span class="yiyi-st" id="yiyi-424"><a class="toc-backref" href="#id28">Combining commits</a></span></h3>
+<p><span class="yiyi-st" id="yiyi-425">如果你有多个提交，你可能想把它们合并成一个提交，通常被称为“压缩”或“rebasing”。</span><span class="yiyi-st" id="yiyi-426">这是包维护者在提交拉取请求时的常见请求，因为它维护了更紧凑的提交历史。</span><span class="yiyi-st" id="yiyi-427">要重命名您的提交：</span></p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">rebase</span> <span class="o">-</span><span class="n">i</span> <span class="n">HEAD</span><span class="o">~</span><span class="c1">#</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-428">其中＃是要组合的提交数。</span><span class="yiyi-st" id="yiyi-429">然后你可以选择相关的提交消息并丢弃其他。</span></p>
+<p><span class="yiyi-st" id="yiyi-430">要压缩到主分支：</span></p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">rebase</span> <span class="o">-</span><span class="n">i</span> <span class="n">master</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-431">Use the <code class="docutils literal"><span class="pre">s</span></code> option on a commit to <code class="docutils literal"><span class="pre">squash</span></code>, meaning to keep the commit messages, or <code class="docutils literal"><span class="pre">f</span></code> to <code class="docutils literal"><span class="pre">fixup</span></code>, meaning to merge the commit messages.</span></p>
+<p><span class="yiyi-st" id="yiyi-432">然后，您将需要强行推动分支（见下文）以用新的替换当前提交：</span></p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">push</span> <span class="n">origin</span> <span class="n">shiny</span><span class="o">-</span><span class="n">new</span><span class="o">-</span><span class="n">feature</span> <span class="o">-</span><span class="n">f</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="pushing-your-changes">
+<h3><span class="yiyi-st" id="yiyi-433"><a class="toc-backref" href="#id29">Pushing your changes</a></span></h3>
+<p><span class="yiyi-st" id="yiyi-434">当您希望您的更改公开显示在您的GitHub页面上时，推送您的分叉功能部分的提交：</span></p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">push</span> <span class="n">origin</span> <span class="n">shiny</span><span class="o">-</span><span class="n">new</span><span class="o">-</span><span class="n">feature</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-435">这里<code class="docutils literal"><span class="pre">origin</span></code>是GitHub上远程仓库的默认名称。</span><span class="yiyi-st" id="yiyi-436">你可以看到远程仓库：</span></p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">remote</span> <span class="o">-</span><span class="n">v</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-437">如果你按上面所述添加了上游仓库，你会看到：</span></p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">origin</span>  <span class="n">git</span><span class="nd">@github</span><span class="o">.</span><span class="n">com</span><span class="p">:</span><span class="n">yourname</span><span class="o">/</span><span class="n">pandas</span><span class="o">.</span><span class="n">git</span> <span class="p">(</span><span class="n">fetch</span><span class="p">)</span>
+<span class="n">origin</span>  <span class="n">git</span><span class="nd">@github</span><span class="o">.</span><span class="n">com</span><span class="p">:</span><span class="n">yourname</span><span class="o">/</span><span class="n">pandas</span><span class="o">.</span><span class="n">git</span> <span class="p">(</span><span class="n">push</span><span class="p">)</span>
+<span class="n">upstream</span>        <span class="n">git</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">pandas</span><span class="o">-</span><span class="n">dev</span><span class="o">/</span><span class="n">pandas</span><span class="o">.</span><span class="n">git</span> <span class="p">(</span><span class="n">fetch</span><span class="p">)</span>
+<span class="n">upstream</span>        <span class="n">git</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">pandas</span><span class="o">-</span><span class="n">dev</span><span class="o">/</span><span class="n">pandas</span><span class="o">.</span><span class="n">git</span> <span class="p">(</span><span class="n">push</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-438">现在你的代码是在GitHub上，但它还不是<em>pandas</em>项目的一部分。</span><span class="yiyi-st" id="yiyi-439">为了实现这一点，需要在GitHub上提交拉取请求。</span></p>
+</div>
+<div class="section" id="review-your-code">
+<h3><span class="yiyi-st" id="yiyi-440"><a class="toc-backref" href="#id30">Review your code</a></span></h3>
+<p><span class="yiyi-st" id="yiyi-441">当您准备要求进行代码审核时，请提交拉取请求。</span><span class="yiyi-st" id="yiyi-442">在你做之前，再次确保你已经遵循本文档中关于代码风格，测试，性能测试和文档的所有准则。</span><span class="yiyi-st" id="yiyi-443">您还应该仔细检查您的分支更改是根据它所基于的分支：</span></p>
+<ol class="arabic simple">
+<li><span class="yiyi-st" id="yiyi-444">在GitHub上导航到您的存储库 -  <a class="reference external" href="https://github.com/your-user-name/pandas">https://github.com/your-user-name/pandas</a></span></li>
+<li><span class="yiyi-st" id="yiyi-445">点击<code class="docutils literal"><span class="pre">Branches</span></code></span></li>
+<li><span class="yiyi-st" id="yiyi-446">单击功能部门的<code class="docutils literal"><span class="pre">Compare</span></code>按钮</span></li>
+<li><span class="yiyi-st" id="yiyi-447">如果需要，请选择<code class="docutils literal"><span class="pre">base</span></code>和<code class="docutils literal"><span class="pre">compare</span></code>分支。</span><span class="yiyi-st" id="yiyi-448">这将分别是<code class="docutils literal"><span class="pre">master</span></code>和<code class="docutils literal"><span class="pre">shiny-new-feature</span></code>。</span></li>
+</ol>
+</div>
+<div class="section" id="finally-make-the-pull-request">
+<h3><span class="yiyi-st" id="yiyi-449"><a class="toc-backref" href="#id31">Finally, make the pull request</a></span></h3>
+<p><span class="yiyi-st" id="yiyi-450">如果一切看起来不错，你准备提出一个拉请求。</span><span class="yiyi-st" id="yiyi-451">拉取请求是来自本地存储库的代码如何可用于GitHub社区，可以查看并最终合并到主版本。</span><span class="yiyi-st" id="yiyi-452">此拉取请求及其关联的更改将最终提交到主分支，并在下一个版本中可用。</span><span class="yiyi-st" id="yiyi-453">要提交拉款请求：</span></p>
+<ol class="arabic simple">
+<li><span class="yiyi-st" id="yiyi-454">在GitHub上导航到您的存储库</span></li>
+<li><span class="yiyi-st" id="yiyi-455">点击<code class="docutils literal"><span class="pre">拉动</span> <span class="pre">请求</span></code>按钮</span></li>
+<li><span class="yiyi-st" id="yiyi-456">然后，您可以点击<code class="docutils literal"><span class="pre">Commits</span></code>和<code class="docutils literal"><span class="pre">文件</span> <span class="pre">已更改</span></code></span></li>
+<li><span class="yiyi-st" id="yiyi-457">在<code class="docutils literal"><span class="pre">预览</span> <span class="pre">讨论</span></code>标签中写入您对更改的说明</span></li>
+<li><span class="yiyi-st" id="yiyi-458">点击<code class="docutils literal"><span class="pre">发送</span> <span class="pre">拉</span> <span class="pre">请求</span></code>。</span></li>
+</ol>
+<p><span class="yiyi-st" id="yiyi-459">然后，此请求将转到存储库维护人员，他们将查看代码。</span><span class="yiyi-st" id="yiyi-460">如果你需要做更多的更改，你可以在你的分支，将它们推送到GitHub，并拉动请求将自动更新。</span><span class="yiyi-st" id="yiyi-461">将它们推送到GitHub是通过：</span></p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">push</span> <span class="o">-</span><span class="n">f</span> <span class="n">origin</span> <span class="n">shiny</span><span class="o">-</span><span class="n">new</span><span class="o">-</span><span class="n">feature</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-462">这将自动更新您的拉取请求与最新的代码，并重新启动Travis-CI测试。</span></p>
+<p><span class="yiyi-st" id="yiyi-463">如果您的拉取请求与<code class="docutils literal"><span class="pre">pandas.io.gbq</span></code>模块相关，请参阅<a class="reference internal" href="#contributing-gbq-integration-tests"><span class="std std-ref">Running Google BigQuery Integration Tests</span></a>一节，为您的拉取请求配置Google BigQuery服务帐户在Travis-CI。</span></p>
+</div>
+<div class="section" id="delete-your-merged-branch-optional">
+<h3><span class="yiyi-st" id="yiyi-464"><a class="toc-backref" href="#id32">Delete your merged branch (optional)</a></span></h3>
+<p><span class="yiyi-st" id="yiyi-465">一旦你的特性分支被接受到上游，你可能想要摆脱分支。</span><span class="yiyi-st" id="yiyi-466">首先，将上游主合并到你的分支，所以git知道它是安全的删除你的分支：</span></p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">fetch</span> <span class="n">upstream</span>
+<span class="n">git</span> <span class="n">checkout</span> <span class="n">master</span>
+<span class="n">git</span> <span class="n">merge</span> <span class="n">upstream</span><span class="o">/</span><span class="n">master</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-467">然后你可以做：</span></p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">branch</span> <span class="o">-</span><span class="n">d</span> <span class="n">shiny</span><span class="o">-</span><span class="n">new</span><span class="o">-</span><span class="n">feature</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-468">确保使用小写的<code class="docutils literal"><span class="pre">-d</span></code>，否则git将不会警告你，如果你的功能分支没有被实际合并。</span></p>
+<p><span class="yiyi-st" id="yiyi-469">分支将仍然存在于GitHub上，所以删除它有：</span></p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">push</span> <span class="n">origin</span> <span class="o">--</span><span class="n">delete</span> <span class="n">shiny</span><span class="o">-</span><span class="n">new</span><span class="o">-</span><span class="n">feature</span>
+</pre></div>
+</div>
+</div>
+</div>

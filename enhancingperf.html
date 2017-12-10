@@ -1,0 +1,737 @@
+
+<span id="enhancingperf"></span><h1><span class="yiyi-st" id="yiyi-66">Enhancing Performance</span></h1>
+        <blockquote>
+        <p>原文：<a href="http://pandas.pydata.org/pandas-docs/stable/enhancingperf.html">http://pandas.pydata.org/pandas-docs/stable/enhancingperf.html</a></p>
+        <p>译者：<a href="https://github.com/wizardforcel">飞龙</a> <a href="http://usyiyi.cn/">UsyiyiCN</a></p>
+        <p>校对：（虚位以待）</p>
+        </blockquote>
+    
+<div class="section" id="cython-writing-c-extensions-for-pandas">
+<span id="enhancingperf-cython"></span><h2><span class="yiyi-st" id="yiyi-67">Cython (Writing C extensions for pandas)</span></h2>
+<p><span class="yiyi-st" id="yiyi-68">对于许多使用情况下，用纯python和numpy编写pandas就足够了。</span><span class="yiyi-st" id="yiyi-69">然而，在一些计算繁重的应用中，可以通过将工作转换到<a class="reference external" href="http://cython.org/">cython</a>来实现可观的加速。</span></p>
+<p><span class="yiyi-st" id="yiyi-70">本教程假设您已在python中尽可能重构，例如尝试删除for循环并使用numpy向量化，它总是值得在python首先优化。</span></p>
+<p><span class="yiyi-st" id="yiyi-71">本教程将介绍一个“典型”的细化慢计算过程。</span><span class="yiyi-st" id="yiyi-72">我们使用cython文档中的<a class="reference external" href="http://docs.cython.org/src/quickstart/cythonize.html">示例，但是在pandas的上下文中。</a></span><span class="yiyi-st" id="yiyi-73">我们最终的cythonized解决方案比纯python大约快100倍。</span></p>
+<div class="section" id="pure-python">
+<span id="enhancingperf-pure"></span><h3><span class="yiyi-st" id="yiyi-74">Pure python</span></h3>
+<p><span class="yiyi-st" id="yiyi-75">我们有一个DataFrame，我们要对其应用一个行的方式。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [1]: </span><span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s1">&apos;a&apos;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">1000</span><span class="p">),</span>
+<span class="gp">   ...:</span>                    <span class="s1">&apos;b&apos;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">1000</span><span class="p">),</span>
+<span class="gp">   ...:</span>                    <span class="s1">&apos;N&apos;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="mi">1000</span><span class="p">,</span> <span class="p">(</span><span class="mi">1000</span><span class="p">)),</span>
+<span class="gp">   ...:</span>                    <span class="s1">&apos;x&apos;</span><span class="p">:</span> <span class="s1">&apos;x&apos;</span><span class="p">})</span>
+<span class="gp">   ...:</span> 
+
+<span class="gp">In [2]: </span><span class="n">df</span>
+<span class="gr">Out[2]: </span>
+<span class="go">       N         a         b  x</span>
+<span class="go">0    585  0.469112 -0.218470  x</span>
+<span class="go">1    841 -0.282863 -0.061645  x</span>
+<span class="go">2    251 -1.509059 -0.723780  x</span>
+<span class="go">3    972 -1.135632  0.551225  x</span>
+<span class="go">4    181  1.212112 -0.497767  x</span>
+<span class="go">5    458 -0.173215  0.837519  x</span>
+<span class="go">6    159  0.119209  1.103245  x</span>
+<span class="go">..   ...       ...       ... ..</span>
+<span class="go">993  190  0.131892  0.290162  x</span>
+<span class="go">994  931  0.342097  0.215341  x</span>
+<span class="go">995  374 -1.512743  0.874737  x</span>
+<span class="go">996  246  0.933753  1.120790  x</span>
+<span class="go">997  157 -0.308013  0.198768  x</span>
+<span class="go">998  977 -0.079915  1.757555  x</span>
+<span class="go">999  770 -1.010589 -1.115680  x</span>
+
+<span class="go">[1000 rows x 4 columns]</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-76">这里是纯python中的函数：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [3]: </span><span class="k">def</span> <span class="nf">f</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+<span class="gp">   ...:</span>     <span class="k">return</span> <span class="n">x</span> <span class="o">*</span> <span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+<span class="gp">   ...:</span> 
+
+<span class="gp">In [4]: </span><span class="k">def</span> <span class="nf">integrate_f</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">N</span><span class="p">):</span>
+<span class="gp">   ...:</span>     <span class="n">s</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="gp">   ...:</span>     <span class="n">dx</span> <span class="o">=</span> <span class="p">(</span><span class="n">b</span> <span class="o">-</span> <span class="n">a</span><span class="p">)</span> <span class="o">/</span> <span class="n">N</span>
+<span class="gp">   ...:</span>     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N</span><span class="p">):</span>
+<span class="gp">   ...:</span>         <span class="n">s</span> <span class="o">+=</span> <span class="n">f</span><span class="p">(</span><span class="n">a</span> <span class="o">+</span> <span class="n">i</span> <span class="o">*</span> <span class="n">dx</span><span class="p">)</span>
+<span class="gp">   ...:</span>     <span class="k">return</span> <span class="n">s</span> <span class="o">*</span> <span class="n">dx</span>
+<span class="gp">   ...:</span> 
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-77">我们通过使用<code class="docutils literal"><span class="pre">apply</span></code>（逐行）来实现我们的结果：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [7]: </span><span class="o">%</span><span class="n">timeit</span> <span class="n">df</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">integrate_f</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="s1">&apos;a&apos;</span><span class="p">],</span> <span class="n">x</span><span class="p">[</span><span class="s1">&apos;b&apos;</span><span class="p">],</span> <span class="n">x</span><span class="p">[</span><span class="s1">&apos;N&apos;</span><span class="p">]),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="go">10 loops, best of 3: 174 ms per loop</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-78">但显然这对我们来说不够快。</span><span class="yiyi-st" id="yiyi-79">让我们来看看，使用<a class="reference external" href="http://ipython.org/ipython-doc/stable/api/generated/IPython.core.magics.execution.html#IPython.core.magics.execution.ExecutionMagics.prun">prun ipython magic function</a>查看在此操作期间花费的时间（限于最耗时的四个调用）：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [5]: </span><span class="o">%</span><span class="n">prun</span> <span class="o">-</span><span class="n">l</span> <span class="mi">4</span> <span class="n">df</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">integrate_f</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="s1">&apos;a&apos;</span><span class="p">],</span> <span class="n">x</span><span class="p">[</span><span class="s1">&apos;b&apos;</span><span class="p">],</span> <span class="n">x</span><span class="p">[</span><span class="s1">&apos;N&apos;</span><span class="p">]),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="go">         671915 function calls (666906 primitive calls) in 0.379 seconds</span>
+
+<span class="go">   Ordered by: internal time</span>
+<span class="go">   List reduced from 128 to 4 due to restriction &lt;4&gt;</span>
+
+<span class="go">   ncalls  tottime  percall  cumtime  percall filename:lineno(function)</span>
+<span class="go">     1000    0.193    0.000    0.290    0.000 &lt;ipython-input-4-91e33489f136&gt;:1(integrate_f)</span>
+<span class="go">   552423    0.089    0.000    0.089    0.000 &lt;ipython-input-3-bc41a25943f6&gt;:1(f)</span>
+<span class="go">     3000    0.011    0.000    0.060    0.000 base.py:2146(get_value)</span>
+<span class="go">     1000    0.008    0.000    0.008    0.000 {range}</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-80">到目前为止，大部分时间是花费在<code class="docutils literal"><span class="pre">integrate_f</span></code>或<code class="docutils literal"><span class="pre">f</span></code>内，因此我们将集中力量对这两个函数进行cythonizing。</span></p>
+<div class="admonition note">
+<p class="first admonition-title"><span class="yiyi-st" id="yiyi-81">注意</span></p>
+<p class="last"><span class="yiyi-st" id="yiyi-82">在python 2中，用其生成器对（<code class="docutils literal"><span class="pre">xrange</span></code>）替换<code class="docutils literal"><span class="pre">range</span></code>将意味着<code class="docutils literal"><span class="pre">range</span></code>线将消失。</span><span class="yiyi-st" id="yiyi-83">在python 3 <code class="docutils literal"><span class="pre">range</span></code>已经是一个生成器。</span></p>
+</div>
+</div>
+<div class="section" id="plain-cython">
+<span id="enhancingperf-plain"></span><h3><span class="yiyi-st" id="yiyi-84">Plain cython</span></h3>
+<p><span class="yiyi-st" id="yiyi-85">First we’re going to need to import the cython magic function to ipython (for cython versions &lt; 0.21 you can use <code class="docutils literal"><span class="pre">%load_ext</span> <span class="pre">cythonmagic</span></code>):</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [6]: </span><span class="o">%</span><span class="n">load_ext</span> <span class="n">Cython</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-86">现在，让我们简单地将我们的函数复制到cython as（后缀在这里区分功能版本）：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [7]: </span><span class="o">%%</span><span class="n">cython</span>
+<span class="gp">   ...:</span> <span class="k">def</span> <span class="nf">f_plain</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+<span class="gp">   ...:</span>     <span class="k">return</span> <span class="n">x</span> <span class="o">*</span> <span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+<span class="gp">   ...:</span> <span class="k">def</span> <span class="nf">integrate_f_plain</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">N</span><span class="p">):</span>
+<span class="gp">   ...:</span>     <span class="n">s</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="gp">   ...:</span>     <span class="n">dx</span> <span class="o">=</span> <span class="p">(</span><span class="n">b</span> <span class="o">-</span> <span class="n">a</span><span class="p">)</span> <span class="o">/</span> <span class="n">N</span>
+<span class="gp">   ...:</span>     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N</span><span class="p">):</span>
+<span class="gp">   ...:</span>         <span class="n">s</span> <span class="o">+=</span> <span class="n">f_plain</span><span class="p">(</span><span class="n">a</span> <span class="o">+</span> <span class="n">i</span> <span class="o">*</span> <span class="n">dx</span><span class="p">)</span>
+<span class="gp">   ...:</span>     <span class="k">return</span> <span class="n">s</span> <span class="o">*</span> <span class="n">dx</span>
+<span class="gp">   ...:</span> 
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title"><span class="yiyi-st" id="yiyi-87">注意</span></p>
+<p class="last"><span class="yiyi-st" id="yiyi-88">如果你无法将上面的内容粘贴到你的ipython中，你可能需要使用出血边缘的ipython来粘贴，以适应细胞魔法。</span></p>
+</div>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [4]: </span><span class="o">%</span><span class="n">timeit</span> <span class="n">df</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">integrate_f_plain</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="s1">&apos;a&apos;</span><span class="p">],</span> <span class="n">x</span><span class="p">[</span><span class="s1">&apos;b&apos;</span><span class="p">],</span> <span class="n">x</span><span class="p">[</span><span class="s1">&apos;N&apos;</span><span class="p">]),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="go">10 loops, best of 3: 85.5 ms per loop</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-89">这已经刮了三分之一，不是太糟糕了一个简单的复制和粘贴。</span></p>
+</div>
+<div class="section" id="adding-type">
+<span id="enhancingperf-type"></span><h3><span class="yiyi-st" id="yiyi-90">Adding type</span></h3>
+<p><span class="yiyi-st" id="yiyi-91">我们通过提供类型信息获得另一个巨大的改进：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [8]: </span><span class="o">%%</span><span class="n">cython</span>
+<span class="gp">   ...:</span> <span class="n">cdef</span> <span class="n">double</span> <span class="n">f_typed</span><span class="p">(</span><span class="n">double</span> <span class="n">x</span><span class="p">)</span> <span class="k">except</span><span class="err">?</span> <span class="o">-</span><span class="mi">2</span><span class="p">:</span>
+<span class="gp">   ...:</span>     <span class="k">return</span> <span class="n">x</span> <span class="o">*</span> <span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+<span class="gp">   ...:</span> <span class="n">cpdef</span> <span class="n">double</span> <span class="n">integrate_f_typed</span><span class="p">(</span><span class="n">double</span> <span class="n">a</span><span class="p">,</span> <span class="n">double</span> <span class="n">b</span><span class="p">,</span> <span class="nb">int</span> <span class="n">N</span><span class="p">):</span>
+<span class="gp">   ...:</span>     <span class="n">cdef</span> <span class="nb">int</span> <span class="n">i</span>
+<span class="gp">   ...:</span>     <span class="n">cdef</span> <span class="n">double</span> <span class="n">s</span><span class="p">,</span> <span class="n">dx</span>
+<span class="gp">   ...:</span>     <span class="n">s</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="gp">   ...:</span>     <span class="n">dx</span> <span class="o">=</span> <span class="p">(</span><span class="n">b</span> <span class="o">-</span> <span class="n">a</span><span class="p">)</span> <span class="o">/</span> <span class="n">N</span>
+<span class="gp">   ...:</span>     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N</span><span class="p">):</span>
+<span class="gp">   ...:</span>         <span class="n">s</span> <span class="o">+=</span> <span class="n">f_typed</span><span class="p">(</span><span class="n">a</span> <span class="o">+</span> <span class="n">i</span> <span class="o">*</span> <span class="n">dx</span><span class="p">)</span>
+<span class="gp">   ...:</span>     <span class="k">return</span> <span class="n">s</span> <span class="o">*</span> <span class="n">dx</span>
+<span class="gp">   ...:</span> 
+</pre></div>
+</div>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [4]: </span><span class="o">%</span><span class="n">timeit</span> <span class="n">df</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">integrate_f_typed</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="s1">&apos;a&apos;</span><span class="p">],</span> <span class="n">x</span><span class="p">[</span><span class="s1">&apos;b&apos;</span><span class="p">],</span> <span class="n">x</span><span class="p">[</span><span class="s1">&apos;N&apos;</span><span class="p">]),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="go">10 loops, best of 3: 20.3 ms per loop</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-92">现在，我们在说话！</span><span class="yiyi-st" id="yiyi-93">它现在比原来的python实现快十倍，我们没有<em>真的</em>修改代码。</span><span class="yiyi-st" id="yiyi-94">让我们再看看什么是吃饭时间：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [9]: </span><span class="o">%</span><span class="n">prun</span> <span class="o">-</span><span class="n">l</span> <span class="mi">4</span> <span class="n">df</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">integrate_f_typed</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="s1">&apos;a&apos;</span><span class="p">],</span> <span class="n">x</span><span class="p">[</span><span class="s1">&apos;b&apos;</span><span class="p">],</span> <span class="n">x</span><span class="p">[</span><span class="s1">&apos;N&apos;</span><span class="p">]),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="go">         118490 function calls (113481 primitive calls) in 0.093 seconds</span>
+
+<span class="go">   Ordered by: internal time</span>
+<span class="go">   List reduced from 124 to 4 due to restriction &lt;4&gt;</span>
+
+<span class="go">   ncalls  tottime  percall  cumtime  percall filename:lineno(function)</span>
+<span class="go">     3000    0.011    0.000    0.064    0.000 base.py:2146(get_value)</span>
+<span class="go">     3000    0.006    0.000    0.072    0.000 series.py:600(__getitem__)</span>
+<span class="go">     3000    0.005    0.000    0.014    0.000 base.py:1131(_convert_scalar_indexer)</span>
+<span class="go">     9024    0.005    0.000    0.012    0.000 {getattr}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="using-ndarray">
+<span id="enhancingperf-ndarray"></span><h3><span class="yiyi-st" id="yiyi-95">Using ndarray</span></h3>
+<p><span class="yiyi-st" id="yiyi-96">这是电话系列...很多！</span><span class="yiyi-st" id="yiyi-97">它从每一行创建一个系列，并从索引和系列（每行三次）获取。</span><span class="yiyi-st" id="yiyi-98">函数调用在Python中很昂贵，所以也许我们可以通过应用部分的cythonizing最小化。</span></p>
+<div class="admonition note">
+<p class="first admonition-title"><span class="yiyi-st" id="yiyi-99">注意</span></p>
+<p class="last"><span class="yiyi-st" id="yiyi-100">我们现在将ndarrays传递给cython函数，幸运的是cython和numpy非常好。</span></p>
+</div>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [10]: </span><span class="o">%%</span><span class="n">cython</span>
+<span class="gp">   ....:</span> <span class="n">cimport</span> <span class="n">numpy</span> <span class="k">as</span> <span class="n">np</span>
+<span class="gp">   ....:</span> <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="gp">   ....:</span> <span class="n">cdef</span> <span class="n">double</span> <span class="n">f_typed</span><span class="p">(</span><span class="n">double</span> <span class="n">x</span><span class="p">)</span> <span class="k">except</span><span class="err">?</span> <span class="o">-</span><span class="mi">2</span><span class="p">:</span>
+<span class="gp">   ....:</span>     <span class="k">return</span> <span class="n">x</span> <span class="o">*</span> <span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+<span class="gp">   ....:</span> <span class="n">cpdef</span> <span class="n">double</span> <span class="n">integrate_f_typed</span><span class="p">(</span><span class="n">double</span> <span class="n">a</span><span class="p">,</span> <span class="n">double</span> <span class="n">b</span><span class="p">,</span> <span class="nb">int</span> <span class="n">N</span><span class="p">):</span>
+<span class="gp">   ....:</span>     <span class="n">cdef</span> <span class="nb">int</span> <span class="n">i</span>
+<span class="gp">   ....:</span>     <span class="n">cdef</span> <span class="n">double</span> <span class="n">s</span><span class="p">,</span> <span class="n">dx</span>
+<span class="gp">   ....:</span>     <span class="n">s</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="gp">   ....:</span>     <span class="n">dx</span> <span class="o">=</span> <span class="p">(</span><span class="n">b</span> <span class="o">-</span> <span class="n">a</span><span class="p">)</span> <span class="o">/</span> <span class="n">N</span>
+<span class="gp">   ....:</span>     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N</span><span class="p">):</span>
+<span class="gp">   ....:</span>         <span class="n">s</span> <span class="o">+=</span> <span class="n">f_typed</span><span class="p">(</span><span class="n">a</span> <span class="o">+</span> <span class="n">i</span> <span class="o">*</span> <span class="n">dx</span><span class="p">)</span>
+<span class="gp">   ....:</span>     <span class="k">return</span> <span class="n">s</span> <span class="o">*</span> <span class="n">dx</span>
+<span class="gp">   ....:</span> <span class="n">cpdef</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">[</span><span class="n">double</span><span class="p">]</span> <span class="n">apply_integrate_f</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="n">col_a</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="n">col_b</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="n">col_N</span><span class="p">):</span>
+<span class="gp">   ....:</span>     <span class="k">assert</span> <span class="p">(</span><span class="n">col_a</span><span class="o">.</span><span class="n">dtype</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">float</span> <span class="ow">and</span> <span class="n">col_b</span><span class="o">.</span><span class="n">dtype</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">float</span> <span class="ow">and</span> <span class="n">col_N</span><span class="o">.</span><span class="n">dtype</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">)</span>
+<span class="gp">   ....:</span>     <span class="n">cdef</span> <span class="n">Py_ssize_t</span> <span class="n">i</span><span class="p">,</span> <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">col_N</span><span class="p">)</span>
+<span class="gp">   ....:</span>     <span class="k">assert</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">col_a</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">col_b</span><span class="p">)</span> <span class="o">==</span> <span class="n">n</span><span class="p">)</span>
+<span class="gp">   ....:</span>     <span class="n">cdef</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">[</span><span class="n">double</span><span class="p">]</span> <span class="n">res</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+<span class="gp">   ....:</span>     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">col_a</span><span class="p">)):</span>
+<span class="gp">   ....:</span>         <span class="n">res</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">integrate_f_typed</span><span class="p">(</span><span class="n">col_a</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">col_b</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">col_N</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+<span class="gp">   ....:</span>     <span class="k">return</span> <span class="n">res</span>
+<span class="gp">   ....:</span> 
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-101">实现很简单，它创建一个零和循环的行数组，应用我们的<code class="docutils literal"><span class="pre">integrate_f_typed</span></code>，并将其放在零的数组。</span></p>
+<div class="admonition warning">
+<p class="first admonition-title"><span class="yiyi-st" id="yiyi-102">警告</span></p>
+<p><span class="yiyi-st" id="yiyi-103">In 0.13.0 since <code class="docutils literal"><span class="pre">Series</span></code> has internaly been refactored to no longer sub-class <code class="docutils literal"><span class="pre">ndarray</span></code> but instead subclass <code class="docutils literal"><span class="pre">NDFrame</span></code>, you can <strong>not pass</strong> a <code class="docutils literal"><span class="pre">Series</span></code> directly as a <code class="docutils literal"><span class="pre">ndarray</span></code> typed parameter to a cython function. </span><span class="yiyi-st" id="yiyi-104">而应使用系列的<code class="docutils literal"><span class="pre">.values</span></code>属性传递实际的<code class="docutils literal"><span class="pre">ndarray</span></code>。</span></p>
+<p><span class="yiyi-st" id="yiyi-105">0.13.0之前</span></p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">apply_integrate_f</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s1">&apos;a&apos;</span><span class="p">],</span> <span class="n">df</span><span class="p">[</span><span class="s1">&apos;b&apos;</span><span class="p">],</span> <span class="n">df</span><span class="p">[</span><span class="s1">&apos;N&apos;</span><span class="p">])</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-106">使用<code class="docutils literal"><span class="pre">.values</span></code>来获取底层的<code class="docutils literal"><span class="pre">ndarray</span></code></span></p>
+<div class="last highlight-python"><div class="highlight"><pre><span></span><span class="n">apply_integrate_f</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s1">&apos;a&apos;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">df</span><span class="p">[</span><span class="s1">&apos;b&apos;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">df</span><span class="p">[</span><span class="s1">&apos;N&apos;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title"><span class="yiyi-st" id="yiyi-107">注意</span></p>
+<p class="last"><span class="yiyi-st" id="yiyi-108">Loops like this would be <em>extremely</em> slow in python, but in Cython looping over numpy arrays is <em>fast</em>.</span></p>
+</div>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [4]: </span><span class="o">%</span><span class="n">timeit</span> <span class="n">apply_integrate_f</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s1">&apos;a&apos;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">df</span><span class="p">[</span><span class="s1">&apos;b&apos;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">df</span><span class="p">[</span><span class="s1">&apos;N&apos;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+<span class="go">1000 loops, best of 3: 1.25 ms per loop</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-109">我们又有了一个很大的改进。</span><span class="yiyi-st" id="yiyi-110">让我们再次检查时间花费在哪里：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [11]: </span><span class="o">%</span><span class="n">prun</span> <span class="o">-</span><span class="n">l</span> <span class="mi">4</span> <span class="n">apply_integrate_f</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s1">&apos;a&apos;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">df</span><span class="p">[</span><span class="s1">&apos;b&apos;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">df</span><span class="p">[</span><span class="s1">&apos;N&apos;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+<span class="go">         208 function calls in 0.002 seconds</span>
+
+<span class="go">   Ordered by: internal time</span>
+<span class="go">   List reduced from 53 to 4 due to restriction &lt;4&gt;</span>
+
+<span class="go">   ncalls  tottime  percall  cumtime  percall filename:lineno(function)</span>
+<span class="go">        1    0.002    0.002    0.002    0.002 {_cython_magic_40485b2751cb6bc085f3a7be0856f402.apply_integrate_f}</span>
+<span class="go">        3    0.000    0.000    0.000    0.000 internals.py:4031(__init__)</span>
+<span class="go">        9    0.000    0.000    0.000    0.000 generic.py:2746(__setattr__)</span>
+<span class="go">        3    0.000    0.000    0.000    0.000 internals.py:3565(iget)</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-111">正如人们所期望的，大多数时间现在花费在<code class="docutils literal"><span class="pre">apply_integrate_f</span></code>中，因此如果我们想提高效率，我们必须继续集中精力在这里。</span></p>
+</div>
+<div class="section" id="more-advanced-techniques">
+<span id="enhancingperf-boundswrap"></span><h3><span class="yiyi-st" id="yiyi-112">More advanced techniques</span></h3>
+<p><span class="yiyi-st" id="yiyi-113">仍有改善的希望。</span><span class="yiyi-st" id="yiyi-114">这里有一个使用一些更先进的cython技术的例子：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [12]: </span><span class="o">%%</span><span class="n">cython</span>
+<span class="gp">   ....:</span> <span class="n">cimport</span> <span class="n">cython</span>
+<span class="gp">   ....:</span> <span class="n">cimport</span> <span class="n">numpy</span> <span class="k">as</span> <span class="n">np</span>
+<span class="gp">   ....:</span> <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="gp">   ....:</span> <span class="n">cdef</span> <span class="n">double</span> <span class="n">f_typed</span><span class="p">(</span><span class="n">double</span> <span class="n">x</span><span class="p">)</span> <span class="k">except</span><span class="err">?</span> <span class="o">-</span><span class="mi">2</span><span class="p">:</span>
+<span class="gp">   ....:</span>     <span class="k">return</span> <span class="n">x</span> <span class="o">*</span> <span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+<span class="gp">   ....:</span> <span class="n">cpdef</span> <span class="n">double</span> <span class="n">integrate_f_typed</span><span class="p">(</span><span class="n">double</span> <span class="n">a</span><span class="p">,</span> <span class="n">double</span> <span class="n">b</span><span class="p">,</span> <span class="nb">int</span> <span class="n">N</span><span class="p">):</span>
+<span class="gp">   ....:</span>     <span class="n">cdef</span> <span class="nb">int</span> <span class="n">i</span>
+<span class="gp">   ....:</span>     <span class="n">cdef</span> <span class="n">double</span> <span class="n">s</span><span class="p">,</span> <span class="n">dx</span>
+<span class="gp">   ....:</span>     <span class="n">s</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="gp">   ....:</span>     <span class="n">dx</span> <span class="o">=</span> <span class="p">(</span><span class="n">b</span> <span class="o">-</span> <span class="n">a</span><span class="p">)</span> <span class="o">/</span> <span class="n">N</span>
+<span class="gp">   ....:</span>     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N</span><span class="p">):</span>
+<span class="gp">   ....:</span>         <span class="n">s</span> <span class="o">+=</span> <span class="n">f_typed</span><span class="p">(</span><span class="n">a</span> <span class="o">+</span> <span class="n">i</span> <span class="o">*</span> <span class="n">dx</span><span class="p">)</span>
+<span class="gp">   ....:</span>     <span class="k">return</span> <span class="n">s</span> <span class="o">*</span> <span class="n">dx</span>
+<span class="gp">   ....:</span> <span class="nd">@cython.boundscheck</span><span class="p">(</span><span class="bp">False</span><span class="p">)</span>
+<span class="gp">   ....:</span> <span class="nd">@cython.wraparound</span><span class="p">(</span><span class="bp">False</span><span class="p">)</span>
+<span class="gp">   ....:</span> <span class="n">cpdef</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">[</span><span class="n">double</span><span class="p">]</span> <span class="n">apply_integrate_f_wrap</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">[</span><span class="n">double</span><span class="p">]</span> <span class="n">col_a</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">[</span><span class="n">double</span><span class="p">]</span> <span class="n">col_b</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="n">col_N</span><span class="p">):</span>
+<span class="gp">   ....:</span>     <span class="n">cdef</span> <span class="nb">int</span> <span class="n">i</span><span class="p">,</span> <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">col_N</span><span class="p">)</span>
+<span class="gp">   ....:</span>     <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">col_a</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">col_b</span><span class="p">)</span> <span class="o">==</span> <span class="n">n</span>
+<span class="gp">   ....:</span>     <span class="n">cdef</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">[</span><span class="n">double</span><span class="p">]</span> <span class="n">res</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+<span class="gp">   ....:</span>     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+<span class="gp">   ....:</span>         <span class="n">res</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">integrate_f_typed</span><span class="p">(</span><span class="n">col_a</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">col_b</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">col_N</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+<span class="gp">   ....:</span>     <span class="k">return</span> <span class="n">res</span>
+<span class="gp">   ....:</span> 
+</pre></div>
+</div>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [4]: </span><span class="o">%</span><span class="n">timeit</span> <span class="n">apply_integrate_f_wrap</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s1">&apos;a&apos;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">df</span><span class="p">[</span><span class="s1">&apos;b&apos;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">df</span><span class="p">[</span><span class="s1">&apos;N&apos;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+<span class="go">1000 loops, best of 3: 987 us per loop</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-115">更快，但需要注意的是，我们的cython代码中的一个错误（例如，一个一个一个的错误）可能会导致segfault，因为内存访问未检查。</span></p>
+</div>
+</div>
+<div class="section" id="using-numba">
+<span id="enhancingperf-numba"></span><h2><span class="yiyi-st" id="yiyi-116">Using numba</span></h2>
+<p><span class="yiyi-st" id="yiyi-117">最近一种替​​代静态编译cython代码的方法是使用<em>动态jit编译器</em>，<code class="docutils literal"><span class="pre">numba</span></code>。</span></p>
+<p><span class="yiyi-st" id="yiyi-118">Numba使您能够通过使用Python直接编写的高性能函数加快应用程序的速度。</span><span class="yiyi-st" id="yiyi-119">有了几个注释，面向数组和数学重的Python代码可以及时编译为本机机器指令，性能类似于C，C ++和Fortran，无需切换语言或Python解释器。</span></p>
+<p><span class="yiyi-st" id="yiyi-120">Numba通过在导入时间，运行时或静态（使用包含的pycc工具）使用LLVM编译器基础结构生成优化的机器代码。</span><span class="yiyi-st" id="yiyi-121">Numba支持编译Python以在CPU或GPU硬件上运行，并且旨在与Python科学软件堆栈集成。</span></p>
+<div class="admonition note">
+<p class="first admonition-title"><span class="yiyi-st" id="yiyi-122">注意</span></p>
+<p class="last"><span class="yiyi-st" id="yiyi-123">您需要安装<code class="docutils literal"><span class="pre">numba</span></code>。</span><span class="yiyi-st" id="yiyi-124">This is easy with <code class="docutils literal"><span class="pre">conda</span></code>, by using: <code class="docutils literal"><span class="pre">conda</span> <span class="pre">install</span> <span class="pre">numba</span></code>, see <a class="reference internal" href="install.html#install-miniconda"><span class="std std-ref">installing using miniconda</span></a>.</span></p>
+</div>
+<div class="admonition note">
+<p class="first admonition-title"><span class="yiyi-st" id="yiyi-125">注意</span></p>
+<p class="last"><span class="yiyi-st" id="yiyi-126">从<code class="docutils literal"><span class="pre">numba</span></code>版本0.20起，pandas对象不能直接传递到numba编译的函数。</span><span class="yiyi-st" id="yiyi-127">相反，必须将<code class="docutils literal"><span class="pre">pandas</span></code>对象下面的<code class="docutils literal"><span class="pre">numpy</span></code>数组传递到numba编译函数，如下所示。</span></p>
+</div>
+<div class="section" id="jit">
+<h3><span class="yiyi-st" id="yiyi-128">Jit</span></h3>
+<p><span class="yiyi-st" id="yiyi-129">使用<code class="docutils literal"><span class="pre">numba</span></code>来及时编译代码。</span><span class="yiyi-st" id="yiyi-130">我们只需从上面的普通python代码，并用<code class="docutils literal"><span class="pre">@jit</span></code>装饰器注释。</span></p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numba</span>
+
+<span class="nd">@numba.jit</span>
+<span class="k">def</span> <span class="nf">f_plain</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+   <span class="k">return</span> <span class="n">x</span> <span class="o">*</span> <span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+
+<span class="nd">@numba.jit</span>
+<span class="k">def</span> <span class="nf">integrate_f_numba</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">N</span><span class="p">):</span>
+   <span class="n">s</span> <span class="o">=</span> <span class="mi">0</span>
+   <span class="n">dx</span> <span class="o">=</span> <span class="p">(</span><span class="n">b</span> <span class="o">-</span> <span class="n">a</span><span class="p">)</span> <span class="o">/</span> <span class="n">N</span>
+   <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N</span><span class="p">):</span>
+       <span class="n">s</span> <span class="o">+=</span> <span class="n">f_plain</span><span class="p">(</span><span class="n">a</span> <span class="o">+</span> <span class="n">i</span> <span class="o">*</span> <span class="n">dx</span><span class="p">)</span>
+   <span class="k">return</span> <span class="n">s</span> <span class="o">*</span> <span class="n">dx</span>
+
+<span class="nd">@numba.jit</span>
+<span class="k">def</span> <span class="nf">apply_integrate_f_numba</span><span class="p">(</span><span class="n">col_a</span><span class="p">,</span> <span class="n">col_b</span><span class="p">,</span> <span class="n">col_N</span><span class="p">):</span>
+   <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">col_N</span><span class="p">)</span>
+   <span class="n">result</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&apos;float64&apos;</span><span class="p">)</span>
+   <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">col_a</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">col_b</span><span class="p">)</span> <span class="o">==</span> <span class="n">n</span>
+   <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+      <span class="n">result</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">integrate_f_numba</span><span class="p">(</span><span class="n">col_a</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">col_b</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">col_N</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+   <span class="k">return</span> <span class="n">result</span>
+
+<span class="k">def</span> <span class="nf">compute_numba</span><span class="p">(</span><span class="n">df</span><span class="p">):</span>
+   <span class="n">result</span> <span class="o">=</span> <span class="n">apply_integrate_f_numba</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s1">&apos;a&apos;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">df</span><span class="p">[</span><span class="s1">&apos;b&apos;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">df</span><span class="p">[</span><span class="s1">&apos;N&apos;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+   <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&apos;result&apos;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-131">注意，我们直接将<code class="docutils literal"><span class="pre">numpy</span></code>数组传递给numba函数。</span><span class="yiyi-st" id="yiyi-132"><code class="docutils literal"><span class="pre">compute_numba</span></code>只是一个包装器，通过传递/返回pandas对象来提供更好的界面。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [4]: </span><span class="o">%</span><span class="n">timeit</span> <span class="n">compute_numba</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+<span class="go">1000 loops, best of 3: 798 us per loop</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="vectorize">
+<h3><span class="yiyi-st" id="yiyi-133">Vectorize</span></h3>
+<p><span class="yiyi-st" id="yiyi-134"><code class="docutils literal"><span class="pre">numba</span></code>也可用于编写不需要用户明确循环向量观察的向量化函数；矢量化函数将自动应用于每行。</span><span class="yiyi-st" id="yiyi-135">考虑下面的玩具示例，将每个观察值加倍：</span></p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numba</span>
+
+<span class="k">def</span> <span class="nf">double_every_value_nonumba</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">x</span><span class="o">*</span><span class="mi">2</span>
+
+<span class="nd">@numba.vectorize</span>
+<span class="k">def</span> <span class="nf">double_every_value_withnumba</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">x</span><span class="o">*</span><span class="mi">2</span>
+
+
+<span class="c1"># Custom function without numba</span>
+<span class="n">In</span> <span class="p">[</span><span class="mi">5</span><span class="p">]:</span> <span class="o">%</span><span class="n">timeit</span> <span class="n">df</span><span class="p">[</span><span class="s1">&apos;col1_doubled&apos;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">a</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">double_every_value_nonumba</span><span class="p">)</span>
+<span class="mi">1000</span> <span class="n">loops</span><span class="p">,</span> <span class="n">best</span> <span class="n">of</span> <span class="mi">3</span><span class="p">:</span> <span class="mi">797</span> <span class="n">us</span> <span class="n">per</span> <span class="n">loop</span>
+
+<span class="c1"># Standard implementation (faster than a custom function)</span>
+<span class="n">In</span> <span class="p">[</span><span class="mi">6</span><span class="p">]:</span> <span class="o">%</span><span class="n">timeit</span> <span class="n">df</span><span class="p">[</span><span class="s1">&apos;col1_doubled&apos;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">a</span><span class="o">*</span><span class="mi">2</span>
+<span class="mi">1000</span> <span class="n">loops</span><span class="p">,</span> <span class="n">best</span> <span class="n">of</span> <span class="mi">3</span><span class="p">:</span> <span class="mi">233</span> <span class="n">us</span> <span class="n">per</span> <span class="n">loop</span>
+
+<span class="c1"># Custom function with numba</span>
+<span class="n">In</span> <span class="p">[</span><span class="mi">7</span><span class="p">]:</span> <span class="o">%</span><span class="n">timeit</span> <span class="n">df</span><span class="p">[</span><span class="s1">&apos;col1_doubled&apos;</span><span class="p">]</span> <span class="o">=</span> <span class="n">double_every_value_withnumba</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">a</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+<span class="mi">1000</span> <span class="n">loops</span><span class="p">,</span> <span class="n">best</span> <span class="n">of</span> <span class="mi">3</span><span class="p">:</span> <span class="mi">145</span> <span class="n">us</span> <span class="n">per</span> <span class="n">loop</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="caveats">
+<h3><span class="yiyi-st" id="yiyi-136">Caveats</span></h3>
+<div class="admonition note">
+<p class="first admonition-title"><span class="yiyi-st" id="yiyi-137">注意</span></p>
+<p class="last"><span class="yiyi-st" id="yiyi-138"><code class="docutils literal"><span class="pre">numba</span></code>将对任何函数执行，但只能加速某些类的函数。</span></p>
+</div>
+<p><span class="yiyi-st" id="yiyi-139"><code class="docutils literal"><span class="pre">numba</span></code>最适合加速将数值函数应用于numpy数组的函数。</span><span class="yiyi-st" id="yiyi-140">当传递一个只使用操作的函数时，它知道如何加速，它将在<code class="docutils literal"><span class="pre">nopython</span></code>模式下执行。</span></p>
+<p><span class="yiyi-st" id="yiyi-141">如果<code class="docutils literal"><span class="pre">numba</span></code>传递的函数包含不知道如何使用的东西 - 当前包含集合，列表，字典或字符串函数的类别，它将还原为<code class="docutils literal"><span class="pre">对象</span> <span class="pre">模式</span></code>。</span><span class="yiyi-st" id="yiyi-142">在<code class="docutils literal"><span class="pre">对象</span> <span class="pre">模式</span></code>中，numba将执行，但您的代码不会显着加速。</span><span class="yiyi-st" id="yiyi-143">如果您希望<code class="docutils literal"><span class="pre">numba</span></code>在无法以加快代码的方式编译函数时抛出错误，请将numba参数传递给<code class="docutils literal"><span class="pre">nopython=True</span></code>（例如<code class="docutils literal"><span class="pre">@numba.jit(nopython=True)</span></code>）。</span><span class="yiyi-st" id="yiyi-144">有关解决<code class="docutils literal"><span class="pre">numba</span></code>模式问题的详情，请参阅<a class="reference external" href="http://numba.pydata.org/numba-doc/0.20.0/user/troubleshoot.html#the-compiled-code-is-too-slow">numba疑难解答页</a>。</span></p>
+<p><span class="yiyi-st" id="yiyi-145">请在<a class="reference external" href="http://numba.pydata.org/">numba docs</a>中了解详情。</span></p>
+</div>
+</div>
+<div class="section" id="expression-evaluation-via-eval-experimental">
+<span id="enhancingperf-eval"></span><h2><span class="yiyi-st" id="yiyi-146">Expression Evaluation via <a class="reference internal" href="generated/pandas.eval.html#pandas.eval" title="pandas.eval"><code class="xref py py-func docutils literal"><span class="pre">eval()</span></code></a> (Experimental)</span></h2>
+<div class="versionadded">
+<p><span class="yiyi-st" id="yiyi-147"><span class="versionmodified">版本0.13中的新功能。</span></span></p>
+</div>
+<p><span class="yiyi-st" id="yiyi-148">顶层函数<a class="reference internal" href="generated/pandas.eval.html#pandas.eval" title="pandas.eval"><code class="xref py py-func docutils literal"><span class="pre">pandas.eval()</span></code></a>实现<a class="reference internal" href="generated/pandas.Series.html#pandas.Series" title="pandas.Series"><code class="xref py py-class docutils literal"><span class="pre">Series</span></code></a>和<a class="reference internal" href="generated/pandas.DataFrame.html#pandas.DataFrame" title="pandas.DataFrame"><code class="xref py py-class docutils literal"><span class="pre">DataFrame</span></code></a>对象的表达式求值。</span></p>
+<div class="admonition note">
+<p class="first admonition-title"><span class="yiyi-st" id="yiyi-149">注意</span></p>
+<p class="last"><span class="yiyi-st" id="yiyi-150">要受益于使用<a class="reference internal" href="generated/pandas.eval.html#pandas.eval" title="pandas.eval"><code class="xref py py-func docutils literal"><span class="pre">eval()</span></code></a>，您需要安装<code class="docutils literal"><span class="pre">numexpr</span></code>。</span><span class="yiyi-st" id="yiyi-151">有关详细信息，请参阅<a class="reference internal" href="install.html#install-recommended-dependencies"><span class="std std-ref">recommended dependencies section</span></a>。</span></p>
+</div>
+<p><span class="yiyi-st" id="yiyi-152">使用<a class="reference internal" href="generated/pandas.eval.html#pandas.eval" title="pandas.eval"><code class="xref py py-func docutils literal"><span class="pre">eval()</span></code></a>来表达式求值而不是纯Python是两个方面：1）大的<a class="reference internal" href="generated/pandas.DataFrame.html#pandas.DataFrame" title="pandas.DataFrame"><code class="xref py py-class docutils literal"><span class="pre">DataFrame</span></code></a>对象被更有效地计算，2）大的算术和布尔表达式由底层引擎一次性计算（默认情况下，<code class="docutils literal"><span class="pre">numexpr</span></code>用于计算）。</span></p>
+<div class="admonition note">
+<p class="first admonition-title"><span class="yiyi-st" id="yiyi-153">注意</span></p>
+<p class="last"><span class="yiyi-st" id="yiyi-154">对于简单表达式或涉及小型DataFrames的表达式，不应使用<a class="reference internal" href="generated/pandas.eval.html#pandas.eval" title="pandas.eval"><code class="xref py py-func docutils literal"><span class="pre">eval()</span></code></a>。</span><span class="yiyi-st" id="yiyi-155">事实上，对于较小的表达式/对象，<a class="reference internal" href="generated/pandas.eval.html#pandas.eval" title="pandas.eval"><code class="xref py py-func docutils literal"><span class="pre">eval()</span></code></a>比纯粹的Python要慢许多个数量级。</span><span class="yiyi-st" id="yiyi-156">一个好的经验法则是，当您拥有超过10,000行的<code class="xref py py-class docutils literal"><span class="pre">DataFrame</span></code>时，只使用<a class="reference internal" href="generated/pandas.eval.html#pandas.eval" title="pandas.eval"><code class="xref py py-func docutils literal"><span class="pre">eval()</span></code></a>。</span></p>
+</div>
+<p><span class="yiyi-st" id="yiyi-157"><a class="reference internal" href="generated/pandas.eval.html#pandas.eval" title="pandas.eval"><code class="xref py py-func docutils literal"><span class="pre">eval()</span></code></a>支持引擎支持的所有算术表达式，除了一些仅在pandas中可用的扩展。</span></p>
+<div class="admonition note">
+<p class="first admonition-title"><span class="yiyi-st" id="yiyi-158">注意</span></p>
+<p class="last"><span class="yiyi-st" id="yiyi-159">帧越大，表达式越大，使用<a class="reference internal" href="generated/pandas.eval.html#pandas.eval" title="pandas.eval"><code class="xref py py-func docutils literal"><span class="pre">eval()</span></code></a>可以看到的加速越快。</span></p>
+</div>
+<div class="section" id="supported-syntax">
+<h3><span class="yiyi-st" id="yiyi-160">Supported Syntax</span></h3>
+<p><span class="yiyi-st" id="yiyi-161">这些操作由<a class="reference internal" href="generated/pandas.eval.html#pandas.eval" title="pandas.eval"><code class="xref py py-func docutils literal"><span class="pre">pandas.eval()</span></code></a>支持：</span></p>
+<ul class="simple">
+<li><span class="yiyi-st" id="yiyi-162">Arithmetic operations except for the left shift (<code class="docutils literal"><span class="pre">&lt;&lt;</span></code>) and right shift (<code class="docutils literal"><span class="pre">&gt;&gt;</span></code>) operators, e.g., <code class="docutils literal"><span class="pre">df</span> <span class="pre">+</span> <span class="pre">2</span> <span class="pre">*</span> <span class="pre">pi</span> <span class="pre">/</span> <span class="pre">s</span> <span class="pre">**</span> <span class="pre">4</span> <span class="pre">%</span> <span class="pre">42</span> <span class="pre">-</span> <span class="pre">the_golden_ratio</span></code></span></li>
+<li><span class="yiyi-st" id="yiyi-163">比较操作，包括链式比较，例如<code class="docutils literal"><span class="pre">2</span> <span class="pre"></span> <span class="pre">df</span> <span class="pre"></span> <span class="pre">df2 </span></code></span></li>
+<li><span class="yiyi-st" id="yiyi-164">Boolean operations, e.g., <code class="docutils literal"><span class="pre">df</span> <span class="pre">&lt;</span> <span class="pre">df2</span> <span class="pre">and</span> <span class="pre">df3</span> <span class="pre">&lt;</span> <span class="pre">df4</span> <span class="pre">or</span> <span class="pre">not</span> <span class="pre">df_bool</span></code></span></li>
+<li><span class="yiyi-st" id="yiyi-165"><code class="docutils literal"><span class="pre">list</span></code> and <code class="docutils literal"><span class="pre">tuple</span></code> literals, e.g., <code class="docutils literal"><span class="pre">[1,</span> <span class="pre">2]</span></code> or <code class="docutils literal"><span class="pre">(1,</span> <span class="pre">2)</span></code></span></li>
+<li><span class="yiyi-st" id="yiyi-166">属性访问权限，例如<code class="docutils literal"><span class="pre">df.a</span></code></span></li>
+<li><span class="yiyi-st" id="yiyi-167">下标表达式，例如<code class="docutils literal"><span class="pre">df[0]</span></code></span></li>
+<li><span class="yiyi-st" id="yiyi-168">简单变量评估，例如<code class="docutils literal"><span class="pre">pd.eval(&apos;df&apos;)</span></code>（这不是很有用）</span></li>
+<li><span class="yiyi-st" id="yiyi-169">Math functions, <cite>sin</cite>, <cite>cos</cite>, <cite>exp</cite>, <cite>log</cite>, <cite>expm1</cite>, <cite>log1p</cite>, <cite>sqrt</cite>, <cite>sinh</cite>, <cite>cosh</cite>, <cite>tanh</cite>, <cite>arcsin</cite>, <cite>arccos</cite>, <cite>arctan</cite>, <cite>arccosh</cite>, <cite>arcsinh</cite>, <cite>arctanh</cite>, <cite>abs</cite> and <cite>arctan2</cite>.</span></li>
+</ul>
+<p><span class="yiyi-st" id="yiyi-170">此Python语法为<strong>不允许</strong>：</span></p>
+<ul class="simple">
+<li><span class="yiyi-st" id="yiyi-180">表达式</span><ul>
+<li><span class="yiyi-st" id="yiyi-171">函数调用而不是数学函数。</span></li>
+<li><span class="yiyi-st" id="yiyi-172"><code class="docutils literal"><span class="pre">is</span></code> / <code class="docutils literal"><span class="pre">是</span> <span class="pre">不是</span></code>操作</span></li>
+<li><span class="yiyi-st" id="yiyi-173"><code class="docutils literal"><span class="pre">if</span></code>表达式</span></li>
+<li><span class="yiyi-st" id="yiyi-174"><code class="docutils literal"><span class="pre">lambda</span></code>表达式</span></li>
+<li><span class="yiyi-st" id="yiyi-175"><code class="docutils literal"><span class="pre">list</span></code> / <code class="docutils literal"><span class="pre">set</span></code> / <code class="docutils literal"><span class="pre">dict</span></code>理解</span></li>
+<li><span class="yiyi-st" id="yiyi-176">字面<code class="docutils literal"><span class="pre">dict</span></code>和<code class="docutils literal"><span class="pre">set</span></code>表达式</span></li>
+<li><span class="yiyi-st" id="yiyi-177"><code class="docutils literal"><span class="pre">yield</span></code>表达式</span></li>
+<li><span class="yiyi-st" id="yiyi-178">生成器表达式</span></li>
+<li><span class="yiyi-st" id="yiyi-179">仅由标量值组成的布尔表达式</span></li>
+</ul>
+</li>
+<li><span class="yiyi-st" id="yiyi-183">语句</span><ul>
+<li><span class="yiyi-st" id="yiyi-181">既不允许<a class="reference external" href="http://docs.python.org/2/reference/simple_stmts.html">简单</a>也不允许<a class="reference external" href="http://docs.python.org/2/reference/compound_stmts.html">复合</a>语句。</span><span class="yiyi-st" id="yiyi-182">这包括<code class="docutils literal"><span class="pre">for</span></code>，<code class="docutils literal"><span class="pre">while</span></code>和<code class="docutils literal"><span class="pre">if</span></code>的内容。</span></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="section" id="eval-examples">
+<h3><span class="yiyi-st" id="yiyi-184"><a class="reference internal" href="generated/pandas.eval.html#pandas.eval" title="pandas.eval"><code class="xref py py-func docutils literal"><span class="pre">eval()</span></code></a> Examples</span></h3>
+<p><span class="yiyi-st" id="yiyi-185"><a class="reference internal" href="generated/pandas.eval.html#pandas.eval" title="pandas.eval"><code class="xref py py-func docutils literal"><span class="pre">pandas.eval()</span></code></a>适用于包含大型数组的表达式。</span></p>
+<p><span class="yiyi-st" id="yiyi-186">首先，让我们创建一些大小合适的数组：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [13]: </span><span class="n">nrows</span><span class="p">,</span> <span class="n">ncols</span> <span class="o">=</span> <span class="mi">20000</span><span class="p">,</span> <span class="mi">100</span>
+
+<span class="gp">In [14]: </span><span class="n">df1</span><span class="p">,</span> <span class="n">df2</span><span class="p">,</span> <span class="n">df3</span><span class="p">,</span> <span class="n">df4</span> <span class="o">=</span> <span class="p">[</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">nrows</span><span class="p">,</span> <span class="n">ncols</span><span class="p">))</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">)]</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-187">现在让我们比较使用纯粹的Python和<a class="reference internal" href="generated/pandas.eval.html#pandas.eval" title="pandas.eval"><code class="xref py py-func docutils literal"><span class="pre">eval()</span></code></a>将它们添加在一起：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [15]: </span><span class="o">%</span><span class="n">timeit</span> <span class="n">df1</span> <span class="o">+</span> <span class="n">df2</span> <span class="o">+</span> <span class="n">df3</span> <span class="o">+</span> <span class="n">df4</span>
+<span class="go">10 loops, best of 3: 24.6 ms per loop</span>
+</pre></div>
+</div>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [16]: </span><span class="o">%</span><span class="n">timeit</span> <span class="n">pd</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="s1">&apos;df1 + df2 + df3 + df4&apos;</span><span class="p">)</span>
+<span class="go">100 loops, best of 3: 8.36 ms per loop</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-188">现在让我们做同样的事情，但比较：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [17]: </span><span class="o">%</span><span class="n">timeit</span> <span class="p">(</span><span class="n">df1</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">df2</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">df3</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">df4</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span>
+<span class="go">10 loops, best of 3: 30.9 ms per loop</span>
+</pre></div>
+</div>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [18]: </span><span class="o">%</span><span class="n">timeit</span> <span class="n">pd</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="s1">&apos;(df1 &gt; 0) &amp; (df2 &gt; 0) &amp; (df3 &gt; 0) &amp; (df4 &gt; 0)&apos;</span><span class="p">)</span>
+<span class="go">100 loops, best of 3: 16.4 ms per loop</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-189"><a class="reference internal" href="generated/pandas.eval.html#pandas.eval" title="pandas.eval"><code class="xref py py-func docutils literal"><span class="pre">eval()</span></code></a>也可以使用未对齐的pandas对象：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [19]: </span><span class="n">s</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">50</span><span class="p">))</span>
+
+<span class="gp">In [20]: </span><span class="o">%</span><span class="n">timeit</span> <span class="n">df1</span> <span class="o">+</span> <span class="n">df2</span> <span class="o">+</span> <span class="n">df3</span> <span class="o">+</span> <span class="n">df4</span> <span class="o">+</span> <span class="n">s</span>
+<span class="go">10 loops, best of 3: 38.4 ms per loop</span>
+</pre></div>
+</div>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [21]: </span><span class="o">%</span><span class="n">timeit</span> <span class="n">pd</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="s1">&apos;df1 + df2 + df3 + df4 + s&apos;</span><span class="p">)</span>
+<span class="go">100 loops, best of 3: 9.31 ms per loop</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title"><span class="yiyi-st" id="yiyi-190">注意</span></p>
+<p><span class="yiyi-st" id="yiyi-191">操作如</span></p>
+<blockquote>
+<div><div class="highlight-python"><div class="highlight"><pre><span></span><span class="mi">1</span> <span class="ow">and</span> <span class="mi">2</span>  <span class="c1"># would parse to 1 &amp; 2, but should evaluate to 2</span>
+<span class="mi">3</span> <span class="ow">or</span> <span class="mi">4</span>  <span class="c1"># would parse to 3 | 4, but should evaluate to 3</span>
+<span class="o">~</span><span class="mi">1</span>  <span class="c1"># this is okay, but slower when using eval</span>
+</pre></div>
+</div>
+</div></blockquote>
+<p class="last"><span class="yiyi-st" id="yiyi-192">应该在Python中执行。</span><span class="yiyi-st" id="yiyi-193">如果尝试使用非类型为<code class="docutils literal"><span class="pre">bool</span></code>或<code class="docutils literal"><span class="pre">np.bool_</span></code>的标量操作数执行任何布尔/逐位运算，则会引发异常。</span><span class="yiyi-st" id="yiyi-194">同样，你应该在纯Python中执行这些类型的操作。</span></p>
+</div>
+</div>
+<div class="section" id="the-dataframe-eval-method-experimental">
+<h3><span class="yiyi-st" id="yiyi-195">The <code class="docutils literal"><span class="pre">DataFrame.eval</span></code> method (Experimental)</span></h3>
+<div class="versionadded">
+<p><span class="yiyi-st" id="yiyi-196"><span class="versionmodified">版本0.13中的新功能。</span></span></p>
+</div>
+<p><span class="yiyi-st" id="yiyi-197">除了顶层<a class="reference internal" href="generated/pandas.eval.html#pandas.eval" title="pandas.eval"><code class="xref py py-func docutils literal"><span class="pre">pandas.eval()</span></code></a>函数，您还可以评估<a class="reference internal" href="generated/pandas.DataFrame.html#pandas.DataFrame" title="pandas.DataFrame"><code class="xref py py-class docutils literal"><span class="pre">DataFrame</span></code></a>的“上下文”中的表达式。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [22]: </span><span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&apos;a&apos;</span><span class="p">,</span> <span class="s1">&apos;b&apos;</span><span class="p">])</span>
+
+<span class="gp">In [23]: </span><span class="n">df</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="s1">&apos;a + b&apos;</span><span class="p">)</span>
+<span class="gr">Out[23]: </span>
+<span class="go">0   -0.246747</span>
+<span class="go">1    0.867786</span>
+<span class="go">2   -1.626063</span>
+<span class="go">3   -1.134978</span>
+<span class="go">4   -1.027798</span>
+<span class="go">dtype: float64</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-198">作为有效<a class="reference internal" href="generated/pandas.eval.html#pandas.eval" title="pandas.eval"><code class="xref py py-func docutils literal"><span class="pre">pandas.eval()</span></code></a>表达式的任何表达式也是有效的<a class="reference internal" href="generated/pandas.DataFrame.eval.html#pandas.DataFrame.eval" title="pandas.DataFrame.eval"><code class="xref py py-meth docutils literal"><span class="pre">DataFrame.eval()</span></code></a>表达式，还有一个好处，到您想要评估的列的<a class="reference internal" href="generated/pandas.DataFrame.html#pandas.DataFrame" title="pandas.DataFrame"><code class="xref py py-class docutils literal"><span class="pre">DataFrame</span></code></a>的名称。</span></p>
+<p><span class="yiyi-st" id="yiyi-199">此外，您可以在表达式中执行列的分配。</span><span class="yiyi-st" id="yiyi-200">这允许<em>公式计算</em>。</span><span class="yiyi-st" id="yiyi-201">分配目标可以是新的列名称或现有的列名称，它必须是有效的Python标识符。</span></p>
+<div class="versionadded">
+<p><span class="yiyi-st" id="yiyi-202"><span class="versionmodified">版本0.18.0中的新功能。</span></span></p>
+</div>
+<p><span class="yiyi-st" id="yiyi-203"><code class="docutils literal"><span class="pre">inplace</span></code>关键字确定此分配是否对原始<code class="docutils literal"><span class="pre">DataFrame</span></code>执行，或返回带有新列的副本。</span></p>
+<div class="admonition warning">
+<p class="first admonition-title"><span class="yiyi-st" id="yiyi-204">警告</span></p>
+<p class="last"><span class="yiyi-st" id="yiyi-205">对于向后兼容性，如果未指定，<code class="docutils literal"><span class="pre">inplace</span></code>默认为<code class="docutils literal"><span class="pre">True</span></code>。</span><span class="yiyi-st" id="yiyi-206">这将在未来版本的pandas中改变 - 如果你的代码依赖于一个内部赋值，你应该更新来显式设置<code class="docutils literal"><span class="pre">inplace=True</span></code></span></p>
+</div>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [24]: </span><span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="n">a</span><span class="o">=</span><span class="nb">range</span><span class="p">(</span><span class="mi">5</span><span class="p">),</span> <span class="n">b</span><span class="o">=</span><span class="nb">range</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">10</span><span class="p">)))</span>
+
+<span class="gp">In [25]: </span><span class="n">df</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="s1">&apos;c = a + b&apos;</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+<span class="gp">In [26]: </span><span class="n">df</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="s1">&apos;d = a + b + c&apos;</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+<span class="gp">In [27]: </span><span class="n">df</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="s1">&apos;a = 1&apos;</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+<span class="gp">In [28]: </span><span class="n">df</span>
+<span class="gr">Out[28]: </span>
+<span class="go">   a  b   c   d</span>
+<span class="go">0  1  5   5  10</span>
+<span class="go">1  1  6   7  14</span>
+<span class="go">2  1  7   9  18</span>
+<span class="go">3  1  8  11  22</span>
+<span class="go">4  1  9  13  26</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-207">当<code class="docutils literal"><span class="pre">inplace</span></code>设置为<code class="docutils literal"><span class="pre">False</span></code>时，将返回带有新列或已修改列的<code class="docutils literal"><span class="pre">DataFrame</span></code>的副本，原始帧不变。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [29]: </span><span class="n">df</span>
+<span class="gr">Out[29]: </span>
+<span class="go">   a  b   c   d</span>
+<span class="go">0  1  5   5  10</span>
+<span class="go">1  1  6   7  14</span>
+<span class="go">2  1  7   9  18</span>
+<span class="go">3  1  8  11  22</span>
+<span class="go">4  1  9  13  26</span>
+
+<span class="gp">In [30]: </span><span class="n">df</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="s1">&apos;e = a - c&apos;</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="gr">Out[30]: </span>
+<span class="go">   a  b   c   d   e</span>
+<span class="go">0  1  5   5  10  -4</span>
+<span class="go">1  1  6   7  14  -6</span>
+<span class="go">2  1  7   9  18  -8</span>
+<span class="go">3  1  8  11  22 -10</span>
+<span class="go">4  1  9  13  26 -12</span>
+
+<span class="gp">In [31]: </span><span class="n">df</span>
+<span class="gr">Out[31]: </span>
+<span class="go">   a  b   c   d</span>
+<span class="go">0  1  5   5  10</span>
+<span class="go">1  1  6   7  14</span>
+<span class="go">2  1  7   9  18</span>
+<span class="go">3  1  8  11  22</span>
+<span class="go">4  1  9  13  26</span>
+</pre></div>
+</div>
+<div class="versionadded">
+<p><span class="yiyi-st" id="yiyi-208"><span class="versionmodified">版本0.18.0中的新功能。</span></span></p>
+</div>
+<p><span class="yiyi-st" id="yiyi-209">为了方便，可以通过使用多行字符串来执行多个分配。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [32]: </span><span class="n">df</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="gp">   ....:</span><span class="s2"> c = a + b</span>
+<span class="gp">   ....:</span><span class="s2"> d = a + b + c</span>
+<span class="gp">   ....:</span><span class="s2"> a = 1&quot;&quot;&quot;</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="gp">   ....:</span> 
+<span class="gr">Out[32]: </span>
+<span class="go">   a  b   c   d</span>
+<span class="go">0  1  5   6  12</span>
+<span class="go">1  1  6   7  14</span>
+<span class="go">2  1  7   8  16</span>
+<span class="go">3  1  8   9  18</span>
+<span class="go">4  1  9  10  20</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-210">在标准Python中的等价将是</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [33]: </span><span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="n">a</span><span class="o">=</span><span class="nb">range</span><span class="p">(</span><span class="mi">5</span><span class="p">),</span> <span class="n">b</span><span class="o">=</span><span class="nb">range</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">10</span><span class="p">)))</span>
+
+<span class="gp">In [34]: </span><span class="n">df</span><span class="p">[</span><span class="s1">&apos;c&apos;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">a</span> <span class="o">+</span> <span class="n">df</span><span class="o">.</span><span class="n">b</span>
+
+<span class="gp">In [35]: </span><span class="n">df</span><span class="p">[</span><span class="s1">&apos;d&apos;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">a</span> <span class="o">+</span> <span class="n">df</span><span class="o">.</span><span class="n">b</span> <span class="o">+</span> <span class="n">df</span><span class="o">.</span><span class="n">c</span>
+
+<span class="gp">In [36]: </span><span class="n">df</span><span class="p">[</span><span class="s1">&apos;a&apos;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+
+<span class="gp">In [37]: </span><span class="n">df</span>
+<span class="gr">Out[37]: </span>
+<span class="go">   a  b   c   d</span>
+<span class="go">0  1  5   5  10</span>
+<span class="go">1  1  6   7  14</span>
+<span class="go">2  1  7   9  18</span>
+<span class="go">3  1  8  11  22</span>
+<span class="go">4  1  9  13  26</span>
+</pre></div>
+</div>
+<div class="versionadded">
+<p><span class="yiyi-st" id="yiyi-211"><span class="versionmodified">版本0.18.0中的新功能。</span></span></p>
+</div>
+<p><span class="yiyi-st" id="yiyi-212"><code class="docutils literal"><span class="pre">query</span></code>方法获得了<code class="docutils literal"><span class="pre">inplace</span></code>关键字，该关键字确定查询是否修改原始帧。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [38]: </span><span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="n">a</span><span class="o">=</span><span class="nb">range</span><span class="p">(</span><span class="mi">5</span><span class="p">),</span> <span class="n">b</span><span class="o">=</span><span class="nb">range</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">10</span><span class="p">)))</span>
+
+<span class="gp">In [39]: </span><span class="n">df</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s1">&apos;a &gt; 2&apos;</span><span class="p">)</span>
+<span class="gr">Out[39]: </span>
+<span class="go">   a  b</span>
+<span class="go">3  3  8</span>
+<span class="go">4  4  9</span>
+
+<span class="gp">In [40]: </span><span class="n">df</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s1">&apos;a &gt; 2&apos;</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+<span class="gp">In [41]: </span><span class="n">df</span>
+<span class="gr">Out[41]: </span>
+<span class="go">   a  b</span>
+<span class="go">3  3  8</span>
+<span class="go">4  4  9</span>
+</pre></div>
+</div>
+<div class="admonition warning">
+<p class="first admonition-title"><span class="yiyi-st" id="yiyi-213">警告</span></p>
+<p class="last"><span class="yiyi-st" id="yiyi-214">Unlike with <code class="docutils literal"><span class="pre">eval</span></code>, the default value for <code class="docutils literal"><span class="pre">inplace</span></code> for <code class="docutils literal"><span class="pre">query</span></code> is <code class="docutils literal"><span class="pre">False</span></code>. </span><span class="yiyi-st" id="yiyi-215">这与以前版本的熊猫一致。</span></p>
+</div>
+</div>
+<div class="section" id="local-variables">
+<h3><span class="yiyi-st" id="yiyi-216">Local Variables</span></h3>
+<p><span class="yiyi-st" id="yiyi-217">在pandas版本0.14中，本地变量API已更改。</span><span class="yiyi-st" id="yiyi-218">在pandas 0.13.x中，你可以像在标准Python中一样引用局部变量。</span><span class="yiyi-st" id="yiyi-219">例如，</span></p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&apos;a&apos;</span><span class="p">,</span> <span class="s1">&apos;b&apos;</span><span class="p">])</span>
+<span class="n">newcol</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">df</span><span class="p">))</span>
+<span class="n">df</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="s1">&apos;b + newcol&apos;</span><span class="p">)</span>
+
+<span class="n">UndefinedVariableError</span><span class="p">:</span> <span class="n">name</span> <span class="s1">&apos;newcol&apos;</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">defined</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-220">从生成的异常中可以看出，不再允许使用此语法。</span><span class="yiyi-st" id="yiyi-221">您必须通过将<code class="docutils literal"><span class="pre">@</span></code>字符放在名称前，<em>显式引用</em>要在表达式中使用的任何局部变量。</span><span class="yiyi-st" id="yiyi-222">例如，</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [42]: </span><span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="n">columns</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="s1">&apos;ab&apos;</span><span class="p">))</span>
+
+<span class="gp">In [43]: </span><span class="n">newcol</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">df</span><span class="p">))</span>
+
+<span class="gp">In [44]: </span><span class="n">df</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="s1">&apos;b + @newcol&apos;</span><span class="p">)</span>
+<span class="gr">Out[44]: </span>
+<span class="go">0   -0.173926</span>
+<span class="go">1    2.493083</span>
+<span class="go">2   -0.881831</span>
+<span class="go">3   -0.691045</span>
+<span class="go">4    1.334703</span>
+<span class="go">dtype: float64</span>
+
+<span class="gp">In [45]: </span><span class="n">df</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s1">&apos;b &lt; @newcol&apos;</span><span class="p">)</span>
+<span class="gr">Out[45]: </span>
+<span class="go">          a         b</span>
+<span class="go">0  0.863987 -0.115998</span>
+<span class="go">2 -2.621419 -1.297879</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-223">如果你不用局部变量前缀<code class="docutils literal"><span class="pre">@</span></code>，pandas将引发一个异常告诉你该变量是未定义的。</span></p>
+<p><span class="yiyi-st" id="yiyi-224">当使用<a class="reference internal" href="generated/pandas.DataFrame.eval.html#pandas.DataFrame.eval" title="pandas.DataFrame.eval"><code class="xref py py-meth docutils literal"><span class="pre">DataFrame.eval()</span></code></a>和<a class="reference internal" href="generated/pandas.DataFrame.query.html#pandas.DataFrame.query" title="pandas.DataFrame.query"><code class="xref py py-meth docutils literal"><span class="pre">DataFrame.query()</span></code></a>时，这允许您有一个局部变量和一个<a class="reference internal" href="generated/pandas.DataFrame.html#pandas.DataFrame" title="pandas.DataFrame"><code class="xref py py-class docutils literal"><span class="pre">DataFrame</span></code></a>表达式中的名称。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [46]: </span><span class="n">a</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">()</span>
+
+<span class="gp">In [47]: </span><span class="n">df</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s1">&apos;@a &lt; a&apos;</span><span class="p">)</span>
+<span class="gr">Out[47]: </span>
+<span class="go">          a         b</span>
+<span class="go">0  0.863987 -0.115998</span>
+
+<span class="gp">In [48]: </span><span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">a</span> <span class="o">&lt;</span> <span class="n">df</span><span class="o">.</span><span class="n">a</span><span class="p">]</span>  <span class="c1"># same as the previous expression</span>
+<span class="gr">Out[48]: </span>
+<span class="go">          a         b</span>
+<span class="go">0  0.863987 -0.115998</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-225">With <a class="reference internal" href="generated/pandas.eval.html#pandas.eval" title="pandas.eval"><code class="xref py py-func docutils literal"><span class="pre">pandas.eval()</span></code></a> you cannot use the <code class="docutils literal"><span class="pre">@</span></code> prefix <em>at all</em>, because it isn’t defined in that context. </span><span class="yiyi-st" id="yiyi-226">如果您尝试在对<a class="reference internal" href="generated/pandas.eval.html#pandas.eval" title="pandas.eval"><code class="xref py py-func docutils literal"><span class="pre">pandas.eval()</span></code></a>的顶级调用中尝试使用<code class="docutils literal"><span class="pre">@</span></code>，则<code class="docutils literal"><span class="pre">pandas</span></code>会让您知道这一点。</span><span class="yiyi-st" id="yiyi-227">例如，</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [49]: </span><span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span>
+
+<span class="gp">In [50]: </span><span class="n">pd</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="s1">&apos;@a + b&apos;</span><span class="p">)</span>
+<span class="go">  File &quot;&lt;string&gt;&quot;, line unknown</span>
+<span class="go">SyntaxError: The &apos;@&apos; prefix is not allowed in top-level eval calls, </span>
+<span class="go">please refer to your variables by name without the &apos;@&apos; prefix</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-228">在这种情况下，你应该像在标准Python中那样引用变量。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [51]: </span><span class="n">pd</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="s1">&apos;a + b&apos;</span><span class="p">)</span>
+<span class="gr">Out[51]: </span><span class="mi">3</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="pandas-eval-parsers">
+<h3><span class="yiyi-st" id="yiyi-229"><a class="reference internal" href="generated/pandas.eval.html#pandas.eval" title="pandas.eval"><code class="xref py py-func docutils literal"><span class="pre">pandas.eval()</span></code></a> Parsers</span></h3>
+<p><span class="yiyi-st" id="yiyi-230">有两个不同的解析器和两个不同的引擎可以用作后端。</span></p>
+<p><span class="yiyi-st" id="yiyi-231">默认的<code class="docutils literal"><span class="pre">&apos;pandas&apos;</span></code>解析器允许更直观的语法来表达类查询操作（比较，连接和析取）。</span><span class="yiyi-st" id="yiyi-232">特别地，使<code class="docutils literal"><span class="pre">&amp;</span></code>和<code class="docutils literal"><span class="pre">|</span></code>运算符的优先级等于相应的布尔运算<code class="docutils literal"><span class="pre">and</span></code>和<code class="docutils literal"><span class="pre">or</span></code>。</span></p>
+<p><span class="yiyi-st" id="yiyi-233">例如，上述连接可以不用括号写。</span><span class="yiyi-st" id="yiyi-234">或者，您可以使用<code class="docutils literal"><span class="pre">&apos;python&apos;</span></code>解析器强制执行严格的Python语义。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [52]: </span><span class="n">expr</span> <span class="o">=</span> <span class="s1">&apos;(df1 &gt; 0) &amp; (df2 &gt; 0) &amp; (df3 &gt; 0) &amp; (df4 &gt; 0)&apos;</span>
+
+<span class="gp">In [53]: </span><span class="n">x</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="n">expr</span><span class="p">,</span> <span class="n">parser</span><span class="o">=</span><span class="s1">&apos;python&apos;</span><span class="p">)</span>
+
+<span class="gp">In [54]: </span><span class="n">expr_no_parens</span> <span class="o">=</span> <span class="s1">&apos;df1 &gt; 0 &amp; df2 &gt; 0 &amp; df3 &gt; 0 &amp; df4 &gt; 0&apos;</span>
+
+<span class="gp">In [55]: </span><span class="n">y</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="n">expr_no_parens</span><span class="p">,</span> <span class="n">parser</span><span class="o">=</span><span class="s1">&apos;pandas&apos;</span><span class="p">)</span>
+
+<span class="gp">In [56]: </span><span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">x</span> <span class="o">==</span> <span class="n">y</span><span class="p">)</span>
+<span class="gr">Out[56]: </span><span class="bp">True</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-235">相同的表达式可以与字<a class="reference external" href="https://docs.python.org/3/reference/expressions.html#and" title="(in Python v3.6)"><code class="xref std std-keyword docutils literal"><span class="pre">and</span></code></a>一起被“anded”：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [57]: </span><span class="n">expr</span> <span class="o">=</span> <span class="s1">&apos;(df1 &gt; 0) &amp; (df2 &gt; 0) &amp; (df3 &gt; 0) &amp; (df4 &gt; 0)&apos;</span>
+
+<span class="gp">In [58]: </span><span class="n">x</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="n">expr</span><span class="p">,</span> <span class="n">parser</span><span class="o">=</span><span class="s1">&apos;python&apos;</span><span class="p">)</span>
+
+<span class="gp">In [59]: </span><span class="n">expr_with_ands</span> <span class="o">=</span> <span class="s1">&apos;df1 &gt; 0 and df2 &gt; 0 and df3 &gt; 0 and df4 &gt; 0&apos;</span>
+
+<span class="gp">In [60]: </span><span class="n">y</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="n">expr_with_ands</span><span class="p">,</span> <span class="n">parser</span><span class="o">=</span><span class="s1">&apos;pandas&apos;</span><span class="p">)</span>
+
+<span class="gp">In [61]: </span><span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">x</span> <span class="o">==</span> <span class="n">y</span><span class="p">)</span>
+<span class="gr">Out[61]: </span><span class="bp">True</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-236">这里的<code class="docutils literal"><span class="pre">and</span></code>和<code class="docutils literal"><span class="pre">or</span></code>运算符具有与在vanilla Python中相同的优先级。</span></p>
+</div>
+<div class="section" id="pandas-eval-backends">
+<h3><span class="yiyi-st" id="yiyi-237"><a class="reference internal" href="generated/pandas.eval.html#pandas.eval" title="pandas.eval"><code class="xref py py-func docutils literal"><span class="pre">pandas.eval()</span></code></a> Backends</span></h3>
+<p><span class="yiyi-st" id="yiyi-238">还有一个选项让<a class="reference internal" href="generated/pandas.eval.html#pandas.eval" title="pandas.eval"><code class="xref py py-func docutils literal"><span class="pre">eval()</span></code></a>操作与纯粹的Python相同。</span></p>
+<div class="admonition note">
+<p class="first admonition-title"><span class="yiyi-st" id="yiyi-239">注意</span></p>
+<p class="last"><span class="yiyi-st" id="yiyi-240">使用<code class="docutils literal"><span class="pre">&apos;python&apos;</span></code>引擎通常<em>不</em>有用，除了测试其他评估引擎。</span><span class="yiyi-st" id="yiyi-241">您将使用<a class="reference internal" href="generated/pandas.eval.html#pandas.eval" title="pandas.eval"><code class="xref py py-func docutils literal"><span class="pre">eval()</span></code></a>和<code class="docutils literal"><span class="pre">engine=&apos;python&apos;</span></code>实现<strong>no</strong>性能优势，实际上可能会造成性能损失。</span></p>
+</div>
+<p><span class="yiyi-st" id="yiyi-242">你可以通过使用<a class="reference internal" href="generated/pandas.eval.html#pandas.eval" title="pandas.eval"><code class="xref py py-func docutils literal"><span class="pre">pandas.eval()</span></code></a>和<code class="docutils literal"><span class="pre">&apos;python&apos;</span></code>引擎来看到这一点。</span><span class="yiyi-st" id="yiyi-243">它比在Python中评估同一个表达式慢一点（不是太多）</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [62]: </span><span class="o">%</span><span class="n">timeit</span> <span class="n">df1</span> <span class="o">+</span> <span class="n">df2</span> <span class="o">+</span> <span class="n">df3</span> <span class="o">+</span> <span class="n">df4</span>
+<span class="go">10 loops, best of 3: 24.2 ms per loop</span>
+</pre></div>
+</div>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [63]: </span><span class="o">%</span><span class="n">timeit</span> <span class="n">pd</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="s1">&apos;df1 + df2 + df3 + df4&apos;</span><span class="p">,</span> <span class="n">engine</span><span class="o">=</span><span class="s1">&apos;python&apos;</span><span class="p">)</span>
+<span class="go">10 loops, best of 3: 25.2 ms per loop</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="pandas-eval-performance">
+<h3><span class="yiyi-st" id="yiyi-244"><a class="reference internal" href="generated/pandas.eval.html#pandas.eval" title="pandas.eval"><code class="xref py py-func docutils literal"><span class="pre">pandas.eval()</span></code></a> Performance</span></h3>
+<p><span class="yiyi-st" id="yiyi-245"><a class="reference internal" href="generated/pandas.eval.html#pandas.eval" title="pandas.eval"><code class="xref py py-func docutils literal"><span class="pre">eval()</span></code></a>旨在加速某些类型的操作。</span><span class="yiyi-st" id="yiyi-246">特别地，涉及具有大的<a class="reference internal" href="generated/pandas.DataFrame.html#pandas.DataFrame" title="pandas.DataFrame"><code class="xref py py-class docutils literal"><span class="pre">DataFrame</span></code></a> / <a class="reference internal" href="generated/pandas.Series.html#pandas.Series" title="pandas.Series"><code class="xref py py-class docutils literal"><span class="pre">Series</span></code></a>对象的复杂表达式的那些操作应当看到显着的性能益处。</span><span class="yiyi-st" id="yiyi-247">这里是一个图表，显示<a class="reference internal" href="generated/pandas.eval.html#pandas.eval" title="pandas.eval"><code class="xref py py-func docutils literal"><span class="pre">pandas.eval()</span></code></a>的运行时间作为计算中涉及的框架大小的函数。</span><span class="yiyi-st" id="yiyi-248">这两条线是两个不同的引擎。</span></p>
+<img alt="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/eval-perf.png" src="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/eval-perf.png">
+<div class="admonition note">
+<p class="first admonition-title"><span class="yiyi-st" id="yiyi-249">注意</span></p>
+<p><span class="yiyi-st" id="yiyi-250">使用纯Python，较小对象（大约15k-20k行）的操作速度更快：</span></p>
+<blockquote class="last">
+<div><img alt="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/eval-perf-small.png" src="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/eval-perf-small.png">
+</div></blockquote>
+</div>
+<p><span class="yiyi-st" id="yiyi-251">此图使用<code class="docutils literal"><span class="pre">DataFrame</span></code>创建，每个列包含使用<code class="docutils literal"><span class="pre">numpy.random.randn()</span></code>生成的浮点值。</span></p>
+</div>
+<div class="section" id="technical-minutia-regarding-expression-evaluation">
+<h3><span class="yiyi-st" id="yiyi-252">Technical Minutia Regarding Expression Evaluation</span></h3>
+<p><span class="yiyi-st" id="yiyi-253">必须在Python空间中评估导致对象dtype或涉及datetime操作（因为<code class="docutils literal"><span class="pre">NaT</span></code>）的表达式。</span><span class="yiyi-st" id="yiyi-254">此行为的主要原因是保持与numpy版本的向后兼容性</span><span class="yiyi-st" id="yiyi-255">在<code class="docutils literal"><span class="pre">numpy</span></code>的这些版本中，对<code class="docutils literal"><span class="pre">ndarray.astype(str)</span></code>的调用将截断长度超过60个字符的任何字符串。</span><span class="yiyi-st" id="yiyi-256">第二，我们不能将<code class="docutils literal"><span class="pre">object</span></code>数组传递到<code class="docutils literal"><span class="pre">numexpr</span></code>，因此字符串比较必须在Python空间中求值。</span></p>
+<p><span class="yiyi-st" id="yiyi-257">结果是，这<em>仅</em>适用于object-dtype的表达式。</span><span class="yiyi-st" id="yiyi-258">所以，如果你有一个表达式 - 例如</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [64]: </span><span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s1">&apos;strings&apos;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="s1">&apos;cba&apos;</span><span class="p">),</span> <span class="mi">3</span><span class="p">),</span>
+<span class="gp">   ....:</span>                    <span class="s1">&apos;nums&apos;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span> <span class="mi">3</span><span class="p">)})</span>
+<span class="gp">   ....:</span> 
+
+<span class="gp">In [65]: </span><span class="n">df</span>
+<span class="gr">Out[65]: </span>
+<span class="go">   nums strings</span>
+<span class="go">0     0       c</span>
+<span class="go">1     0       c</span>
+<span class="go">2     0       c</span>
+<span class="go">3     1       b</span>
+<span class="go">4     1       b</span>
+<span class="go">5     1       b</span>
+<span class="go">6     2       a</span>
+<span class="go">7     2       a</span>
+<span class="go">8     2       a</span>
+
+<span class="gp">In [66]: </span><span class="n">df</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s1">&apos;strings == &quot;a&quot; and nums == 1&apos;</span><span class="p">)</span>
+<span class="gr">Out[66]: </span>
+<span class="go">Empty DataFrame</span>
+<span class="go">Columns: [nums, strings]</span>
+<span class="go">Index: []</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-259">比较的数字部分（<code class="docutils literal"><span class="pre">nums</span> <span class="pre">==</span> <span class="pre">1</span></code>）将由<code class="docutils literal"><span class="pre">numexpr</span></code></span></p>
+<p><span class="yiyi-st" id="yiyi-260">In general, <a class="reference internal" href="generated/pandas.DataFrame.query.html#pandas.DataFrame.query" title="pandas.DataFrame.query"><code class="xref py py-meth docutils literal"><span class="pre">DataFrame.query()</span></code></a>/<a class="reference internal" href="generated/pandas.eval.html#pandas.eval" title="pandas.eval"><code class="xref py py-func docutils literal"><span class="pre">pandas.eval()</span></code></a> will evaluate the subexpressions that <em>can</em> be evaluated by <code class="docutils literal"><span class="pre">numexpr</span></code> and those that must be evaluated in Python space transparently to the user. </span><span class="yiyi-st" id="yiyi-261">这是通过从其参数和运算符推断表达式的结果类型来完成的。</span></p>
+</div>
+</div>

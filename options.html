@@ -1,0 +1,682 @@
+
+<span id="options"></span><h1><span class="yiyi-st" id="yiyi-54">Options and Settings</span></h1>
+        <blockquote>
+        <p>原文：<a href="http://pandas.pydata.org/pandas-docs/stable/options.html">http://pandas.pydata.org/pandas-docs/stable/options.html</a></p>
+        <p>译者：<a href="https://github.com/wizardforcel">飞龙</a> <a href="http://usyiyi.cn/">UsyiyiCN</a></p>
+        <p>校对：（虚位以待）</p>
+        </blockquote>
+    
+<div class="section" id="overview">
+<h2><span class="yiyi-st" id="yiyi-55">Overview</span></h2>
+<p><span class="yiyi-st" id="yiyi-56">pandas有一个选项系统，让您自定义其行为的一些方面，显示相关选项是用户最可能调整的。</span></p>
+<p><span class="yiyi-st" id="yiyi-57">选项有完整的“点线样式”，不区分大小写的名称（例如<code class="docutils literal"><span class="pre">display.max_rows</span></code>）。</span><span class="yiyi-st" id="yiyi-58">您可以直接获取/设置选项作为顶层<code class="docutils literal"><span class="pre">options</span></code>属性的属性：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [1]: </span><span class="kn">import</span> <span class="nn">pandas</span> <span class="kn">as</span> <span class="nn">pd</span>
+
+<span class="gp">In [2]: </span><span class="n">pd</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">display</span><span class="o">.</span><span class="n">max_rows</span>
+<span class="gr">Out[2]: </span><span class="mi">15</span>
+
+<span class="gp">In [3]: </span><span class="n">pd</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">display</span><span class="o">.</span><span class="n">max_rows</span> <span class="o">=</span> <span class="mi">999</span>
+
+<span class="gp">In [4]: </span><span class="n">pd</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">display</span><span class="o">.</span><span class="n">max_rows</span>
+<span class="gr">Out[4]: </span><span class="mi">999</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-59">还有一个由5个相关函数组成的API，可从<code class="docutils literal"><span class="pre">pandas</span></code>命名空间直接获得：</span></p>
+<ul class="simple">
+<li><span class="yiyi-st" id="yiyi-60"><a class="reference internal" href="generated/pandas.get_option.html#pandas.get_option" title="pandas.get_option"><code class="xref py py-func docutils literal"><span class="pre">get_option()</span></code></a> / <a class="reference internal" href="generated/pandas.set_option.html#pandas.set_option" title="pandas.set_option"><code class="xref py py-func docutils literal"><span class="pre">set_option()</span></code></a>  - 获取/设置单个选项的值。</span></li>
+<li><span class="yiyi-st" id="yiyi-61"><a class="reference internal" href="generated/pandas.reset_option.html#pandas.reset_option" title="pandas.reset_option"><code class="xref py py-func docutils literal"><span class="pre">reset_option()</span></code></a>  - 将一个或多个选项重置为其默认值。</span></li>
+<li><span class="yiyi-st" id="yiyi-62"><a class="reference internal" href="generated/pandas.describe_option.html#pandas.describe_option" title="pandas.describe_option"><code class="xref py py-func docutils literal"><span class="pre">describe_option()</span></code></a>  - 打印一个或多个选项的描述。</span></li>
+<li><span class="yiyi-st" id="yiyi-63"><a class="reference internal" href="generated/pandas.option_context.html#pandas.option_context" title="pandas.option_context"><code class="xref py py-func docutils literal"><span class="pre">option_context()</span></code></a>  - 使用一组选项执行代码块，这些选项在执行后还原为之前的设置。</span></li>
+</ul>
+<p><span class="yiyi-st" id="yiyi-64"><strong>注意：</strong>开发人员可以查看pandas / core / config.py了解更多信息。</span></p>
+<p><span class="yiyi-st" id="yiyi-65">上面的所有函数都接受一个regexp模式（<code class="docutils literal"><span class="pre">re.search</span></code> style）作为参数，因此传入一个子字符串将工作 - 只要它是明确的：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [5]: </span><span class="n">pd</span><span class="o">.</span><span class="n">get_option</span><span class="p">(</span><span class="s2">&quot;display.max_rows&quot;</span><span class="p">)</span>
+<span class="gr">Out[5]: </span><span class="mi">999</span>
+
+<span class="gp">In [6]: </span><span class="n">pd</span><span class="o">.</span><span class="n">set_option</span><span class="p">(</span><span class="s2">&quot;display.max_rows&quot;</span><span class="p">,</span><span class="mi">101</span><span class="p">)</span>
+
+<span class="gp">In [7]: </span><span class="n">pd</span><span class="o">.</span><span class="n">get_option</span><span class="p">(</span><span class="s2">&quot;display.max_rows&quot;</span><span class="p">)</span>
+<span class="gr">Out[7]: </span><span class="mi">101</span>
+
+<span class="gp">In [8]: </span><span class="n">pd</span><span class="o">.</span><span class="n">set_option</span><span class="p">(</span><span class="s2">&quot;max_r&quot;</span><span class="p">,</span><span class="mi">102</span><span class="p">)</span>
+
+<span class="gp">In [9]: </span><span class="n">pd</span><span class="o">.</span><span class="n">get_option</span><span class="p">(</span><span class="s2">&quot;display.max_rows&quot;</span><span class="p">)</span>
+<span class="gr">Out[9]: </span><span class="mi">102</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-66">以下将<strong>不会起作用</strong>，因为它匹配多个选项名称，例如<code class="docutils literal"><span class="pre">display.max_colwidth</span></code>，<code class="docutils literal"><span class="pre">display.max_rows</span></code>，<code class="docutils literal"><span class="pre">display.max_columns</span></code>：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [10]: </span><span class="k">try</span><span class="p">:</span>
+<span class="gp">   ....:</span>     <span class="n">pd</span><span class="o">.</span><span class="n">get_option</span><span class="p">(</span><span class="s2">&quot;column&quot;</span><span class="p">)</span>
+<span class="gp">   ....:</span> <span class="k">except</span> <span class="ne">KeyError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+<span class="gp">   ....:</span>     <span class="k">print</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+<span class="gp">   ....:</span> 
+<span class="go">&apos;Pattern matched multiple keys&apos;</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-67"><strong>注意：</strong>如果在将来的版本中添加具有相似名称的新选项，使用此形式的缩写可能会导致代码断开。</span></p>
+<p><span class="yiyi-st" id="yiyi-68">您可以使用<code class="docutils literal"><span class="pre">describe_option</span></code>获取可用选项及其说明的列表。</span><span class="yiyi-st" id="yiyi-69">当调用时没有参数<code class="docutils literal"><span class="pre">describe_option</span></code>将打印出所有可用选项的描述。</span></p>
+</div>
+<div class="section" id="getting-and-setting-options">
+<h2><span class="yiyi-st" id="yiyi-70">Getting and Setting Options</span></h2>
+<p><span class="yiyi-st" id="yiyi-71">如上所述，从pandas命名空间可以获得<code class="docutils literal"><span class="pre">get_option()</span></code>和<code class="docutils literal"><span class="pre">set_option()</span></code>。</span><span class="yiyi-st" id="yiyi-72">要更改选项，请调用<code class="docutils literal"><span class="pre">set_option（&apos;option</span> <span class="pre">regex&apos;，</span> <span class="pre">new_value）</span> </code></span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [11]: </span><span class="n">pd</span><span class="o">.</span><span class="n">get_option</span><span class="p">(</span><span class="s1">&apos;mode.sim_interactive&apos;</span><span class="p">)</span>
+<span class="gr">Out[11]: </span><span class="bp">False</span>
+
+<span class="gp">In [12]: </span><span class="n">pd</span><span class="o">.</span><span class="n">set_option</span><span class="p">(</span><span class="s1">&apos;mode.sim_interactive&apos;</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
+
+<span class="gp">In [13]: </span><span class="n">pd</span><span class="o">.</span><span class="n">get_option</span><span class="p">(</span><span class="s1">&apos;mode.sim_interactive&apos;</span><span class="p">)</span>
+<span class="gr">Out[13]: </span><span class="bp">True</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-73"><strong>注意：</strong>选项&apos;mode.sim_interactive&apos;主要用于调试目的。</span></p>
+<p><span class="yiyi-st" id="yiyi-74">所有选项也有默认值，您可以使用<code class="docutils literal"><span class="pre">reset_option</span></code>来做到这一点：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [14]: </span><span class="n">pd</span><span class="o">.</span><span class="n">get_option</span><span class="p">(</span><span class="s2">&quot;display.max_rows&quot;</span><span class="p">)</span>
+<span class="gr">Out[14]: </span><span class="mi">60</span>
+
+<span class="gp">In [15]: </span><span class="n">pd</span><span class="o">.</span><span class="n">set_option</span><span class="p">(</span><span class="s2">&quot;display.max_rows&quot;</span><span class="p">,</span><span class="mi">999</span><span class="p">)</span>
+
+<span class="gp">In [16]: </span><span class="n">pd</span><span class="o">.</span><span class="n">get_option</span><span class="p">(</span><span class="s2">&quot;display.max_rows&quot;</span><span class="p">)</span>
+<span class="gr">Out[16]: </span><span class="mi">999</span>
+
+<span class="gp">In [17]: </span><span class="n">pd</span><span class="o">.</span><span class="n">reset_option</span><span class="p">(</span><span class="s2">&quot;display.max_rows&quot;</span><span class="p">)</span>
+
+<span class="gp">In [18]: </span><span class="n">pd</span><span class="o">.</span><span class="n">get_option</span><span class="p">(</span><span class="s2">&quot;display.max_rows&quot;</span><span class="p">)</span>
+<span class="gr">Out[18]: </span><span class="mi">60</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-75">也可以一次重置多个选项（使用正则表达式）：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [19]: </span><span class="n">pd</span><span class="o">.</span><span class="n">reset_option</span><span class="p">(</span><span class="s2">&quot;^display&quot;</span><span class="p">)</span>
+<span class="go">height has been deprecated.</span>
+
+<span class="go">line_width has been deprecated, use display.width instead (currently both are</span>
+<span class="go">identical)</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-76"><code class="docutils literal"><span class="pre">option_context</span></code>上下文管理器已通过顶级API公开，允许您使用给定的选项值执行代码。</span><span class="yiyi-st" id="yiyi-77">当您使用块退出<cite>时，选项值会自动恢复：</cite></span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [20]: </span><span class="k">with</span> <span class="n">pd</span><span class="o">.</span><span class="n">option_context</span><span class="p">(</span><span class="s2">&quot;display.max_rows&quot;</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="s2">&quot;display.max_columns&quot;</span><span class="p">,</span> <span class="mi">5</span><span class="p">):</span>
+<span class="gp">   ....:</span>      <span class="k">print</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">get_option</span><span class="p">(</span><span class="s2">&quot;display.max_rows&quot;</span><span class="p">))</span>
+<span class="gp">   ....:</span>      <span class="k">print</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">get_option</span><span class="p">(</span><span class="s2">&quot;display.max_columns&quot;</span><span class="p">))</span>
+<span class="gp">   ....:</span> 
+<span class="go">10</span>
+<span class="go">5</span>
+
+<span class="gp">In [21]: </span><span class="k">print</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">get_option</span><span class="p">(</span><span class="s2">&quot;display.max_rows&quot;</span><span class="p">))</span>
+<span class="go">60</span>
+
+<span class="gp">In [22]: </span><span class="k">print</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">get_option</span><span class="p">(</span><span class="s2">&quot;display.max_columns&quot;</span><span class="p">))</span>
+<span class="go">20</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="setting-startup-options-in-python-ipython-environment">
+<h2><span class="yiyi-st" id="yiyi-78">Setting Startup Options in python/ipython Environment</span></h2>
+<p><span class="yiyi-st" id="yiyi-79">使用python / ipython环境的启动脚本导入pandas和设置选项使得使用pandas更有效率。</span><span class="yiyi-st" id="yiyi-80">为此，请在所需配置文件的启动目录中创建.py或.ipy脚本。</span><span class="yiyi-st" id="yiyi-81">可以在以下位置找到启动文件夹位于缺省ipython概要文件中的示例：</span></p>
+<div class="highlight-none"><div class="highlight"><pre><span></span>$IPYTHONDIR/profile_default/startup
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-82">有关详细信息，请参阅<a class="reference external" href="http://ipython.org/ipython-doc/stable/interactive/tutorial.html#startup-files">ipython文档</a>。</span><span class="yiyi-st" id="yiyi-83">下面显示了一个用于pandas的示例启动脚本：</span></p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">pandas</span> <span class="kn">as</span> <span class="nn">pd</span>
+<span class="n">pd</span><span class="o">.</span><span class="n">set_option</span><span class="p">(</span><span class="s1">&apos;display.max_rows&apos;</span><span class="p">,</span> <span class="mi">999</span><span class="p">)</span>
+<span class="n">pd</span><span class="o">.</span><span class="n">set_option</span><span class="p">(</span><span class="s1">&apos;precision&apos;</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="frequently-used-options">
+<span id="options-frequently-used"></span><h2><span class="yiyi-st" id="yiyi-84">Frequently Used Options</span></h2>
+<p><span class="yiyi-st" id="yiyi-85">以下是更频繁使用的显示选项的演练。</span></p>
+<p><span class="yiyi-st" id="yiyi-86"><code class="docutils literal"><span class="pre">display.max_rows</span></code>和<code class="docutils literal"><span class="pre">display.max_columns</span></code>设置在精美打印框架时显示的最大行数和列数。</span><span class="yiyi-st" id="yiyi-87">截断的行由省略号替换。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [23]: </span><span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">7</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span>
+
+<span class="gp">In [24]: </span><span class="n">pd</span><span class="o">.</span><span class="n">set_option</span><span class="p">(</span><span class="s1">&apos;max_rows&apos;</span><span class="p">,</span> <span class="mi">7</span><span class="p">)</span>
+
+<span class="gp">In [25]: </span><span class="n">df</span>
+<span class="gr">Out[25]: </span>
+<span class="go">          0         1</span>
+<span class="go">0  0.469112 -0.282863</span>
+<span class="go">1 -1.509059 -1.135632</span>
+<span class="go">2  1.212112 -0.173215</span>
+<span class="go">3  0.119209 -1.044236</span>
+<span class="go">4 -0.861849 -2.104569</span>
+<span class="go">5 -0.494929  1.071804</span>
+<span class="go">6  0.721555 -0.706771</span>
+
+<span class="gp">In [26]: </span><span class="n">pd</span><span class="o">.</span><span class="n">set_option</span><span class="p">(</span><span class="s1">&apos;max_rows&apos;</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+
+<span class="gp">In [27]: </span><span class="n">df</span>
+<span class="gr">Out[27]: </span>
+<span class="go">           0         1</span>
+<span class="go">0   0.469112 -0.282863</span>
+<span class="go">1  -1.509059 -1.135632</span>
+<span class="go">..       ...       ...</span>
+<span class="go">5  -0.494929  1.071804</span>
+<span class="go">6   0.721555 -0.706771</span>
+
+<span class="go">[7 rows x 2 columns]</span>
+
+<span class="gp">In [28]: </span><span class="n">pd</span><span class="o">.</span><span class="n">reset_option</span><span class="p">(</span><span class="s1">&apos;max_rows&apos;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-88"><code class="docutils literal"><span class="pre">display.expand_frame_repr</span></code>允许数据框架的表示在页面之间展开，包括整个列与行。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [29]: </span><span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
+
+<span class="gp">In [30]: </span><span class="n">pd</span><span class="o">.</span><span class="n">set_option</span><span class="p">(</span><span class="s1">&apos;expand_frame_repr&apos;</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
+
+<span class="gp">In [31]: </span><span class="n">df</span>
+<span class="gr">Out[31]: </span>
+<span class="go">          0         1         2         3         4         5         6  \</span>
+<span class="go">0 -1.039575  0.271860 -0.424972  0.567020  0.276232 -1.087401 -0.673690   </span>
+<span class="go">1  0.404705  0.577046 -1.715002 -1.039268 -0.370647 -1.157892 -1.344312   </span>
+<span class="go">2  1.643563 -1.469388  0.357021 -0.674600 -1.776904 -0.968914 -1.294524   </span>
+<span class="go">3 -0.013960 -0.362543 -0.006154 -0.923061  0.895717  0.805244 -1.206412   </span>
+<span class="go">4 -1.170299 -0.226169  0.410835  0.813850  0.132003 -0.827317 -0.076467   </span>
+
+<span class="go">          7         8         9  </span>
+<span class="go">0  0.113648 -1.478427  0.524988  </span>
+<span class="go">1  0.844885  1.075770 -0.109050  </span>
+<span class="go">2  0.413738  0.276662 -0.472035  </span>
+<span class="go">3  2.565646  1.431256  1.340309  </span>
+<span class="go">4 -1.187678  1.130127 -1.436737  </span>
+
+<span class="gp">In [32]: </span><span class="n">pd</span><span class="o">.</span><span class="n">set_option</span><span class="p">(</span><span class="s1">&apos;expand_frame_repr&apos;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
+
+<span class="gp">In [33]: </span><span class="n">df</span>
+<span class="gr">Out[33]: </span>
+<span class="go">          0         1         2         3         4         5         6         7         8         9</span>
+<span class="go">0 -1.039575  0.271860 -0.424972  0.567020  0.276232 -1.087401 -0.673690  0.113648 -1.478427  0.524988</span>
+<span class="go">1  0.404705  0.577046 -1.715002 -1.039268 -0.370647 -1.157892 -1.344312  0.844885  1.075770 -0.109050</span>
+<span class="go">2  1.643563 -1.469388  0.357021 -0.674600 -1.776904 -0.968914 -1.294524  0.413738  0.276662 -0.472035</span>
+<span class="go">3 -0.013960 -0.362543 -0.006154 -0.923061  0.895717  0.805244 -1.206412  2.565646  1.431256  1.340309</span>
+<span class="go">4 -1.170299 -0.226169  0.410835  0.813850  0.132003 -0.827317 -0.076467 -1.187678  1.130127 -1.436737</span>
+
+<span class="gp">In [34]: </span><span class="n">pd</span><span class="o">.</span><span class="n">reset_option</span><span class="p">(</span><span class="s1">&apos;expand_frame_repr&apos;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-89"><code class="docutils literal"><span class="pre">display.large_repr</span></code>可让您选择是否将超过<code class="docutils literal"><span class="pre">max_columns</span></code>或<code class="docutils literal"><span class="pre">max_rows</span></code>的数据框显示为截断框架或汇总。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [35]: </span><span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
+
+<span class="gp">In [36]: </span><span class="n">pd</span><span class="o">.</span><span class="n">set_option</span><span class="p">(</span><span class="s1">&apos;max_rows&apos;</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+
+<span class="gp">In [37]: </span><span class="n">pd</span><span class="o">.</span><span class="n">set_option</span><span class="p">(</span><span class="s1">&apos;large_repr&apos;</span><span class="p">,</span> <span class="s1">&apos;truncate&apos;</span><span class="p">)</span>
+
+<span class="gp">In [38]: </span><span class="n">df</span>
+<span class="gr">Out[38]: </span>
+<span class="go">           0         1         2         3         4         5         6  \</span>
+<span class="go">0  -1.413681  1.607920  1.024180  0.569605  0.875906 -2.211372  0.974466   </span>
+<span class="go">1   0.545952 -1.219217 -1.226825  0.769804 -1.281247 -0.727707 -0.121306   </span>
+<span class="go">..       ...       ...       ...       ...       ...       ...       ...   </span>
+<span class="go">8  -2.484478 -0.281461  0.030711  0.109121  1.126203 -0.977349  1.474071   </span>
+<span class="go">9  -1.071357  0.441153  2.353925  0.583787  0.221471 -0.744471  0.758527   </span>
+
+<span class="go">           7         8         9  </span>
+<span class="go">0  -2.006747 -0.410001 -0.078638  </span>
+<span class="go">1  -0.097883  0.695775  0.341734  </span>
+<span class="go">..       ...       ...       ...  </span>
+<span class="go">8  -0.064034 -1.282782  0.781836  </span>
+<span class="go">9   1.729689 -0.964980 -0.845696  </span>
+
+<span class="go">[10 rows x 10 columns]</span>
+
+<span class="gp">In [39]: </span><span class="n">pd</span><span class="o">.</span><span class="n">set_option</span><span class="p">(</span><span class="s1">&apos;large_repr&apos;</span><span class="p">,</span> <span class="s1">&apos;info&apos;</span><span class="p">)</span>
+
+<span class="gp">In [40]: </span><span class="n">df</span>
+<span class="gr">Out[40]: </span>
+<span class="go">&lt;class &apos;pandas.core.frame.DataFrame&apos;&gt;</span>
+<span class="go">RangeIndex: 10 entries, 0 to 9</span>
+<span class="go">Data columns (total 10 columns):</span>
+<span class="go">0    10 non-null float64</span>
+<span class="go">1    10 non-null float64</span>
+<span class="go">2    10 non-null float64</span>
+<span class="go">3    10 non-null float64</span>
+<span class="go">4    10 non-null float64</span>
+<span class="go">5    10 non-null float64</span>
+<span class="go">6    10 non-null float64</span>
+<span class="go">7    10 non-null float64</span>
+<span class="go">8    10 non-null float64</span>
+<span class="go">9    10 non-null float64</span>
+<span class="go">dtypes: float64(10)</span>
+<span class="go">memory usage: 872.0 bytes</span>
+
+<span class="gp">In [41]: </span><span class="n">pd</span><span class="o">.</span><span class="n">reset_option</span><span class="p">(</span><span class="s1">&apos;large_repr&apos;</span><span class="p">)</span>
+
+<span class="gp">In [42]: </span><span class="n">pd</span><span class="o">.</span><span class="n">reset_option</span><span class="p">(</span><span class="s1">&apos;max_rows&apos;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-90"><code class="docutils literal"><span class="pre">display.max_colwidth</span></code>设置列的最大宽度。</span><span class="yiyi-st" id="yiyi-91">此长度或更长的单元格将被省略号截断。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [43]: </span><span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="s1">&apos;foo&apos;</span><span class="p">,</span> <span class="s1">&apos;bar&apos;</span><span class="p">,</span> <span class="s1">&apos;bim&apos;</span><span class="p">,</span> <span class="s1">&apos;uncomfortably long string&apos;</span><span class="p">],</span>
+<span class="gp">   ....:</span>                             <span class="p">[</span><span class="s1">&apos;horse&apos;</span><span class="p">,</span> <span class="s1">&apos;cow&apos;</span><span class="p">,</span> <span class="s1">&apos;banana&apos;</span><span class="p">,</span> <span class="s1">&apos;apple&apos;</span><span class="p">]]))</span>
+<span class="gp">   ....:</span> 
+
+<span class="gp">In [44]: </span><span class="n">pd</span><span class="o">.</span><span class="n">set_option</span><span class="p">(</span><span class="s1">&apos;max_colwidth&apos;</span><span class="p">,</span><span class="mi">40</span><span class="p">)</span>
+
+<span class="gp">In [45]: </span><span class="n">df</span>
+<span class="gr">Out[45]: </span>
+<span class="go">       0    1       2                          3</span>
+<span class="go">0    foo  bar     bim  uncomfortably long string</span>
+<span class="go">1  horse  cow  banana                      apple</span>
+
+<span class="gp">In [46]: </span><span class="n">pd</span><span class="o">.</span><span class="n">set_option</span><span class="p">(</span><span class="s1">&apos;max_colwidth&apos;</span><span class="p">,</span> <span class="mi">6</span><span class="p">)</span>
+
+<span class="gp">In [47]: </span><span class="n">df</span>
+<span class="gr">Out[47]: </span>
+<span class="go">       0    1      2      3</span>
+<span class="go">0    foo  bar    bim  un...</span>
+<span class="go">1  horse  cow  ba...  apple</span>
+
+<span class="gp">In [48]: </span><span class="n">pd</span><span class="o">.</span><span class="n">reset_option</span><span class="p">(</span><span class="s1">&apos;max_colwidth&apos;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-92"><code class="docutils literal"><span class="pre">display.max_info_columns</span></code>设置将给出列向列信息的阈值。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [49]: </span><span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
+
+<span class="gp">In [50]: </span><span class="n">pd</span><span class="o">.</span><span class="n">set_option</span><span class="p">(</span><span class="s1">&apos;max_info_columns&apos;</span><span class="p">,</span> <span class="mi">11</span><span class="p">)</span>
+
+<span class="gp">In [51]: </span><span class="n">df</span><span class="o">.</span><span class="n">info</span><span class="p">()</span>
+<span class="go">&lt;class &apos;pandas.core.frame.DataFrame&apos;&gt;</span>
+<span class="go">RangeIndex: 10 entries, 0 to 9</span>
+<span class="go">Data columns (total 10 columns):</span>
+<span class="go">0    10 non-null float64</span>
+<span class="go">1    10 non-null float64</span>
+<span class="go">2    10 non-null float64</span>
+<span class="go">3    10 non-null float64</span>
+<span class="go">4    10 non-null float64</span>
+<span class="go">5    10 non-null float64</span>
+<span class="go">6    10 non-null float64</span>
+<span class="go">7    10 non-null float64</span>
+<span class="go">8    10 non-null float64</span>
+<span class="go">9    10 non-null float64</span>
+<span class="go">dtypes: float64(10)</span>
+<span class="go">memory usage: 872.0 bytes</span>
+
+<span class="gp">In [52]: </span><span class="n">pd</span><span class="o">.</span><span class="n">set_option</span><span class="p">(</span><span class="s1">&apos;max_info_columns&apos;</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+
+<span class="gp">In [53]: </span><span class="n">df</span><span class="o">.</span><span class="n">info</span><span class="p">()</span>
+<span class="go">&lt;class &apos;pandas.core.frame.DataFrame&apos;&gt;</span>
+<span class="go">RangeIndex: 10 entries, 0 to 9</span>
+<span class="go">Columns: 10 entries, 0 to 9</span>
+<span class="go">dtypes: float64(10)</span>
+<span class="go">memory usage: 872.0 bytes</span>
+
+<span class="gp">In [54]: </span><span class="n">pd</span><span class="o">.</span><span class="n">reset_option</span><span class="p">(</span><span class="s1">&apos;max_info_columns&apos;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-93"><code class="docutils literal"><span class="pre">display.max_info_rows</span></code>：<code class="docutils literal"><span class="pre">df.info()</span></code>通常会显示每列的空值。</span><span class="yiyi-st" id="yiyi-94">对于大型帧，这可能会很慢。</span><span class="yiyi-st" id="yiyi-95"><code class="docutils literal"><span class="pre">max_info_rows</span></code>和<code class="docutils literal"><span class="pre">max_info_cols</span></code>仅将此空检查限制为指定较小尺寸的帧。</span><span class="yiyi-st" id="yiyi-96">请注意，您可以指定选项<code class="docutils literal"><span class="pre">df.info(null_counts=True)</span></code>以覆盖显示特定框架。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [55]: </span><span class="n">df</span>  <span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">],</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">)))</span>
+
+<span class="gp">In [56]: </span><span class="n">df</span>
+<span class="gr">Out[56]: </span>
+<span class="go">     0    1    2    3    4    5    6    7    8    9</span>
+<span class="go">0  0.0  1.0  1.0  0.0  1.0  1.0  0.0  NaN  1.0  NaN</span>
+<span class="go">1  1.0  NaN  0.0  0.0  1.0  1.0  NaN  1.0  0.0  1.0</span>
+<span class="go">2  NaN  NaN  NaN  1.0  1.0  0.0  NaN  0.0  1.0  NaN</span>
+<span class="go">3  0.0  1.0  1.0  NaN  0.0  NaN  1.0  NaN  NaN  0.0</span>
+<span class="go">4  0.0  1.0  0.0  0.0  1.0  0.0  0.0  NaN  0.0  0.0</span>
+<span class="go">5  0.0  NaN  1.0  NaN  NaN  NaN  NaN  0.0  1.0  NaN</span>
+<span class="go">6  0.0  1.0  0.0  0.0  NaN  1.0  NaN  NaN  0.0  NaN</span>
+<span class="go">7  0.0  NaN  1.0  1.0  NaN  1.0  1.0  1.0  1.0  NaN</span>
+<span class="go">8  0.0  0.0  NaN  0.0  NaN  1.0  0.0  0.0  NaN  NaN</span>
+<span class="go">9  NaN  NaN  0.0  NaN  NaN  NaN  0.0  1.0  1.0  NaN</span>
+
+<span class="gp">In [57]: </span><span class="n">pd</span><span class="o">.</span><span class="n">set_option</span><span class="p">(</span><span class="s1">&apos;max_info_rows&apos;</span><span class="p">,</span> <span class="mi">11</span><span class="p">)</span>
+
+<span class="gp">In [58]: </span><span class="n">df</span><span class="o">.</span><span class="n">info</span><span class="p">()</span>
+<span class="go">&lt;class &apos;pandas.core.frame.DataFrame&apos;&gt;</span>
+<span class="go">RangeIndex: 10 entries, 0 to 9</span>
+<span class="go">Data columns (total 10 columns):</span>
+<span class="go">0    8 non-null float64</span>
+<span class="go">1    5 non-null float64</span>
+<span class="go">2    8 non-null float64</span>
+<span class="go">3    7 non-null float64</span>
+<span class="go">4    5 non-null float64</span>
+<span class="go">5    7 non-null float64</span>
+<span class="go">6    6 non-null float64</span>
+<span class="go">7    6 non-null float64</span>
+<span class="go">8    8 non-null float64</span>
+<span class="go">9    3 non-null float64</span>
+<span class="go">dtypes: float64(10)</span>
+<span class="go">memory usage: 872.0 bytes</span>
+
+<span class="gp">In [59]: </span><span class="n">pd</span><span class="o">.</span><span class="n">set_option</span><span class="p">(</span><span class="s1">&apos;max_info_rows&apos;</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+
+<span class="gp">In [60]: </span><span class="n">df</span><span class="o">.</span><span class="n">info</span><span class="p">()</span>
+<span class="go">&lt;class &apos;pandas.core.frame.DataFrame&apos;&gt;</span>
+<span class="go">RangeIndex: 10 entries, 0 to 9</span>
+<span class="go">Data columns (total 10 columns):</span>
+<span class="go">0    float64</span>
+<span class="go">1    float64</span>
+<span class="go">2    float64</span>
+<span class="go">3    float64</span>
+<span class="go">4    float64</span>
+<span class="go">5    float64</span>
+<span class="go">6    float64</span>
+<span class="go">7    float64</span>
+<span class="go">8    float64</span>
+<span class="go">9    float64</span>
+<span class="go">dtypes: float64(10)</span>
+<span class="go">memory usage: 872.0 bytes</span>
+
+<span class="gp">In [61]: </span><span class="n">pd</span><span class="o">.</span><span class="n">reset_option</span><span class="p">(</span><span class="s1">&apos;max_info_rows&apos;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-97"><code class="docutils literal"><span class="pre">display.precision</span></code>以小数位数设置输出显示精度。</span><span class="yiyi-st" id="yiyi-98">这只是一个建议。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [62]: </span><span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span><span class="mi">5</span><span class="p">))</span>
+
+<span class="gp">In [63]: </span><span class="n">pd</span><span class="o">.</span><span class="n">set_option</span><span class="p">(</span><span class="s1">&apos;precision&apos;</span><span class="p">,</span><span class="mi">7</span><span class="p">)</span>
+
+<span class="gp">In [64]: </span><span class="n">df</span>
+<span class="gr">Out[64]: </span>
+<span class="go">           0          1          2          3          4</span>
+<span class="go">0 -2.0490276  2.8466122 -1.2080493 -0.4503923  2.4239054</span>
+<span class="go">1  0.1211080  0.2669165  0.8438259 -0.2225400  2.0219807</span>
+<span class="go">2 -0.7167894 -2.2244851 -1.0611370 -0.2328247  0.4307933</span>
+<span class="go">3 -0.6654779  1.8298075 -1.4065093  1.0782481  0.3227741</span>
+<span class="go">4  0.2003243  0.8900241  0.1948132  0.3516326  0.4488815</span>
+
+<span class="gp">In [65]: </span><span class="n">pd</span><span class="o">.</span><span class="n">set_option</span><span class="p">(</span><span class="s1">&apos;precision&apos;</span><span class="p">,</span><span class="mi">4</span><span class="p">)</span>
+
+<span class="gp">In [66]: </span><span class="n">df</span>
+<span class="gr">Out[66]: </span>
+<span class="go">        0       1       2       3       4</span>
+<span class="go">0 -2.0490  2.8466 -1.2080 -0.4504  2.4239</span>
+<span class="go">1  0.1211  0.2669  0.8438 -0.2225  2.0220</span>
+<span class="go">2 -0.7168 -2.2245 -1.0611 -0.2328  0.4308</span>
+<span class="go">3 -0.6655  1.8298 -1.4065  1.0782  0.3228</span>
+<span class="go">4  0.2003  0.8900  0.1948  0.3516  0.4489</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-99"><code class="docutils literal"><span class="pre">display.chop_threshold</span></code>设置当显示一系列DataFrame时，pandas是否为0。</span><span class="yiyi-st" id="yiyi-100">注意，这不会影响存储数字的精度。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [67]: </span><span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span><span class="mi">6</span><span class="p">))</span>
+
+<span class="gp">In [68]: </span><span class="n">pd</span><span class="o">.</span><span class="n">set_option</span><span class="p">(</span><span class="s1">&apos;chop_threshold&apos;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+<span class="gp">In [69]: </span><span class="n">df</span>
+<span class="gr">Out[69]: </span>
+<span class="go">        0       1       2       3       4       5</span>
+<span class="go">0 -0.1979  0.9657 -1.5229 -0.1166  0.2956 -1.0477</span>
+<span class="go">1  1.6406  1.9058  2.7721  0.0888 -1.1442 -0.6334</span>
+<span class="go">2  0.9254 -0.0064 -0.8204 -0.6009 -1.0393  0.8248</span>
+<span class="go">3 -0.8241 -0.3377 -0.9278 -0.8401  0.2485 -0.1093</span>
+<span class="go">4  0.4320 -0.4607  0.3365 -3.2076 -1.5359  0.4098</span>
+<span class="go">5 -0.6731 -0.7411 -0.1109 -2.6729  0.8645  0.0609</span>
+
+<span class="gp">In [70]: </span><span class="n">pd</span><span class="o">.</span><span class="n">set_option</span><span class="p">(</span><span class="s1">&apos;chop_threshold&apos;</span><span class="p">,</span> <span class="o">.</span><span class="mi">5</span><span class="p">)</span>
+
+<span class="gp">In [71]: </span><span class="n">df</span>
+<span class="gr">Out[71]: </span>
+<span class="go">        0       1       2       3       4       5</span>
+<span class="go">0  0.0000  0.9657 -1.5229  0.0000  0.0000 -1.0477</span>
+<span class="go">1  1.6406  1.9058  2.7721  0.0000 -1.1442 -0.6334</span>
+<span class="go">2  0.9254  0.0000 -0.8204 -0.6009 -1.0393  0.8248</span>
+<span class="go">3 -0.8241  0.0000 -0.9278 -0.8401  0.0000  0.0000</span>
+<span class="go">4  0.0000  0.0000  0.0000 -3.2076 -1.5359  0.0000</span>
+<span class="go">5 -0.6731 -0.7411  0.0000 -2.6729  0.8645  0.0000</span>
+
+<span class="gp">In [72]: </span><span class="n">pd</span><span class="o">.</span><span class="n">reset_option</span><span class="p">(</span><span class="s1">&apos;chop_threshold&apos;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-101"><code class="docutils literal"><span class="pre">display.colheader_justify</span></code>控制标头的对齐。</span><span class="yiyi-st" id="yiyi-102">选项是“right”和“left”。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [73]: </span><span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">6</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">9</span><span class="p">,</span><span class="mi">6</span><span class="p">)</span><span class="o">*.</span><span class="mi">1</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">6</span><span class="p">)])</span><span class="o">.</span><span class="n">T</span><span class="p">,</span>
+<span class="gp">   ....:</span>                   <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&apos;A&apos;</span><span class="p">,</span> <span class="s1">&apos;B&apos;</span><span class="p">,</span> <span class="s1">&apos;C&apos;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&apos;float&apos;</span><span class="p">)</span>
+<span class="gp">   ....:</span> 
+
+<span class="gp">In [74]: </span><span class="n">pd</span><span class="o">.</span><span class="n">set_option</span><span class="p">(</span><span class="s1">&apos;colheader_justify&apos;</span><span class="p">,</span> <span class="s1">&apos;right&apos;</span><span class="p">)</span>
+
+<span class="gp">In [75]: </span><span class="n">df</span>
+<span class="gr">Out[75]: </span>
+<span class="go">        A    B    C</span>
+<span class="go">0  0.9331  0.3  0.0</span>
+<span class="go">1  0.2888  0.2  0.0</span>
+<span class="go">2  1.3250  0.2  0.0</span>
+<span class="go">3  0.5892  0.7  0.0</span>
+<span class="go">4  0.5314  0.1  0.0</span>
+<span class="go">5 -1.1987  0.7  0.0</span>
+
+<span class="gp">In [76]: </span><span class="n">pd</span><span class="o">.</span><span class="n">set_option</span><span class="p">(</span><span class="s1">&apos;colheader_justify&apos;</span><span class="p">,</span> <span class="s1">&apos;left&apos;</span><span class="p">)</span>
+
+<span class="gp">In [77]: </span><span class="n">df</span>
+<span class="gr">Out[77]: </span>
+<span class="go">   A       B    C  </span>
+<span class="go">0  0.9331  0.3  0.0</span>
+<span class="go">1  0.2888  0.2  0.0</span>
+<span class="go">2  1.3250  0.2  0.0</span>
+<span class="go">3  0.5892  0.7  0.0</span>
+<span class="go">4  0.5314  0.1  0.0</span>
+<span class="go">5 -1.1987  0.7  0.0</span>
+
+<span class="gp">In [78]: </span><span class="n">pd</span><span class="o">.</span><span class="n">reset_option</span><span class="p">(</span><span class="s1">&apos;colheader_justify&apos;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="available-options">
+<span id="options-available"></span><h2><span class="yiyi-st" id="yiyi-103">Available Options</span></h2>
+<table border="1" class="docutils">
+<colgroup>
+<col width="31%">
+<col width="14%">
+<col width="55%">
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head"><span class="yiyi-st" id="yiyi-104">选项</span></th>
+<th class="head"><span class="yiyi-st" id="yiyi-105">默认</span></th>
+<th class="head"><span class="yiyi-st" id="yiyi-106">功能</span></th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><span class="yiyi-st" id="yiyi-107">display.chop_threshold</span></td>
+<td><span class="yiyi-st" id="yiyi-108">没有</span></td>
+<td><span class="yiyi-st" id="yiyi-109">如果设置为浮点值，小于给定阈值的所有浮点值将由repr和friends显示为0。</span></td>
+</tr>
+<tr class="row-odd"><td><span class="yiyi-st" id="yiyi-110">display.colheader_justify</span></td>
+<td><span class="yiyi-st" id="yiyi-111">对</span></td>
+<td><span class="yiyi-st" id="yiyi-112">控制列标题的对齐方式。</span><span class="yiyi-st" id="yiyi-113">用于DataFrameFormatter。</span></td>
+</tr>
+<tr class="row-even"><td><span class="yiyi-st" id="yiyi-114">display.column_space</span></td>
+<td><span class="yiyi-st" id="yiyi-115">12</span></td>
+<td><span class="yiyi-st" id="yiyi-116">没有可用的描述。</span></td>
+</tr>
+<tr class="row-odd"><td><span class="yiyi-st" id="yiyi-117">display.date_dayfirst</span></td>
+<td><span class="yiyi-st" id="yiyi-118">假</span></td>
+<td><span class="yiyi-st" id="yiyi-119">当为True时，打印和解析日期以天为前，例如20/01/2005</span></td>
+</tr>
+<tr class="row-even"><td><span class="yiyi-st" id="yiyi-120">display.date_yearfirst</span></td>
+<td><span class="yiyi-st" id="yiyi-121">假</span></td>
+<td><span class="yiyi-st" id="yiyi-122">当为True时，打印并解析年份为第一年的日期，例如2005/01/20</span></td>
+</tr>
+<tr class="row-odd"><td><span class="yiyi-st" id="yiyi-123">display.encoding</span></td>
+<td><span class="yiyi-st" id="yiyi-124">UTF-8</span></td>
+<td><span class="yiyi-st" id="yiyi-125">默认为检测到的控制台的编码。</span><span class="yiyi-st" id="yiyi-126">指定要用于to_string返回的字符串的编码，这些字符串通常是要显示在控制台上的字符串。</span></td>
+</tr>
+<tr class="row-even"><td><span class="yiyi-st" id="yiyi-127">display.expand_frame_repr</span></td>
+<td><span class="yiyi-st" id="yiyi-128">真正</span></td>
+<td><span class="yiyi-st" id="yiyi-129">是否打印出跨多行的宽数据帧的完整DataFrame repr，<cite>max_columns</cite>仍然受到尊重，但如果其宽度超过<cite>，输出将环绕多个“页面”display.width 。</cite></span></td>
+</tr>
+<tr class="row-odd"><td><span class="yiyi-st" id="yiyi-130">display.float_format</span></td>
+<td><span class="yiyi-st" id="yiyi-131">没有</span></td>
+<td><span class="yiyi-st" id="yiyi-132">callable应该接受一个浮点数并返回一个具有所需数字格式的字符串。</span><span class="yiyi-st" id="yiyi-133">这在一些地方如SeriesFormatter中使用。</span><span class="yiyi-st" id="yiyi-134">有关示例，请参阅core.format.EngFormatter。</span></td>
+</tr>
+<tr class="row-even"><td><span class="yiyi-st" id="yiyi-135">display.height</span></td>
+<td><span class="yiyi-st" id="yiyi-136">60</span></td>
+<td><span class="yiyi-st" id="yiyi-137">已弃用。</span><span class="yiyi-st" id="yiyi-138">请改用<cite>display.max_rows</cite>。</span></td>
+</tr>
+<tr class="row-odd"><td><span class="yiyi-st" id="yiyi-139">display.large_repr</span></td>
+<td><span class="yiyi-st" id="yiyi-140">截短</span></td>
+<td><span class="yiyi-st" id="yiyi-141">对于超过max_rows / max_cols的DataFrames，repr（和HTML repr）可以显示截断表（默认值为0.13），或者从df.info()（早期版本的pandas中的行为）切换到视图。</span><span class="yiyi-st" id="yiyi-142">允许的设置，[&apos;truncate&apos;，&apos;info&apos;]</span></td>
+</tr>
+<tr class="row-even"><td><span class="yiyi-st" id="yiyi-143">display.latex.repr</span></td>
+<td><span class="yiyi-st" id="yiyi-144">假</span></td>
+<td><span class="yiyi-st" id="yiyi-145">是否为支持它的jupyter前端生成一个乳胶DataFrame表示。</span></td>
+</tr>
+<tr class="row-odd"><td><span class="yiyi-st" id="yiyi-146">display.latex.escape</span></td>
+<td><span class="yiyi-st" id="yiyi-147">真正</span></td>
+<td><span class="yiyi-st" id="yiyi-148">当使用to_latex方法时，在Dataframes中转义特殊字符。</span></td>
+</tr>
+<tr class="row-even"><td><span class="yiyi-st" id="yiyi-149">display.latex.longtable</span></td>
+<td><span class="yiyi-st" id="yiyi-150">假</span></td>
+<td><span class="yiyi-st" id="yiyi-151">指定Dataframe的to_latex方法是否使用longtable格式。</span></td>
+</tr>
+<tr class="row-odd"><td><span class="yiyi-st" id="yiyi-152">display.line_width</span></td>
+<td><span class="yiyi-st" id="yiyi-153">80</span></td>
+<td><span class="yiyi-st" id="yiyi-154">已弃用。</span><span class="yiyi-st" id="yiyi-155">请改用<cite>display.width</cite>。</span></td>
+</tr>
+<tr class="row-even"><td><span class="yiyi-st" id="yiyi-156">display.max_columns</span></td>
+<td><span class="yiyi-st" id="yiyi-157">20</span></td>
+<td><span class="yiyi-st" id="yiyi-158">max_rows和max_columns在__repr __()方法中使用，以决定是否使用to_string()或info()将对象渲染为字符串。</span><span class="yiyi-st" id="yiyi-159">如果python / IPython在终端中运行，这可以设置为0，并且pandas将正确地自动检测终端的宽度，并且在所有列都不适合垂直时交换为较小的格式。</span><span class="yiyi-st" id="yiyi-160">IPython笔记本，IPython qtconsole或IDLE不在终端中运行，因此无法进行正确的自动检测。</span><span class="yiyi-st" id="yiyi-161">“无”值意味着无限。</span></td>
+</tr>
+<tr class="row-odd"><td><span class="yiyi-st" id="yiyi-162">display.max_colwidth</span></td>
+<td><span class="yiyi-st" id="yiyi-163">50</span></td>
+<td><span class="yiyi-st" id="yiyi-164">pandas数据结构的repr中的列的最大字符宽度。</span><span class="yiyi-st" id="yiyi-165">当列溢出时，在输出中嵌入一个“...”占位符。</span></td>
+</tr>
+<tr class="row-even"><td><span class="yiyi-st" id="yiyi-166">display.max_info_columns</span></td>
+<td><span class="yiyi-st" id="yiyi-167">100</span></td>
+<td><span class="yiyi-st" id="yiyi-168">max_info_columns用于DataFrame.info方法中，以确定是否将打印每列信息。</span></td>
+</tr>
+<tr class="row-odd"><td><span class="yiyi-st" id="yiyi-169">display.max_info_rows</span></td>
+<td><span class="yiyi-st" id="yiyi-170">1690785</span></td>
+<td><span class="yiyi-st" id="yiyi-171">df.info()通常会显示每个列的空值。</span><span class="yiyi-st" id="yiyi-172">对于大型帧，这可能会很慢。</span><span class="yiyi-st" id="yiyi-173">max_info_rows和max_info_cols仅将此空检查限制到指定的较小维度的帧。</span></td>
+</tr>
+<tr class="row-even"><td><span class="yiyi-st" id="yiyi-174">display.max_rows</span></td>
+<td><span class="yiyi-st" id="yiyi-175">60</span></td>
+<td><span class="yiyi-st" id="yiyi-176">这设置了打印输出各种输出时pandas应该输出的最大行数。</span><span class="yiyi-st" id="yiyi-177">例如，此值确定数据帧的repr()是完全打印还是仅打印摘要repr。</span><span class="yiyi-st" id="yiyi-178">“无”值意味着无限。</span></td>
+</tr>
+<tr class="row-odd"><td><span class="yiyi-st" id="yiyi-179">display.max_seq_items</span></td>
+<td><span class="yiyi-st" id="yiyi-180">100</span></td>
+<td><span class="yiyi-st" id="yiyi-181">当漂亮打印一个长序列时，不会再打印<cite>max_seq_items</cite>。</span><span class="yiyi-st" id="yiyi-182">如果省略项目，则通过向生成的字符串添加“...”来表示。</span><span class="yiyi-st" id="yiyi-183">如果设置为无，则要打印的项目数不受限制。</span></td>
+</tr>
+<tr class="row-even"><td><span class="yiyi-st" id="yiyi-184">display.memory_usage</span></td>
+<td><span class="yiyi-st" id="yiyi-185">真正</span></td>
+<td><span class="yiyi-st" id="yiyi-186">这指定在调用df.info()方法时是否应显示DataFrame的内存使用情况。</span></td>
+</tr>
+<tr class="row-odd"><td><span class="yiyi-st" id="yiyi-187">display.multi_sparse</span></td>
+<td><span class="yiyi-st" id="yiyi-188">真正</span></td>
+<td><span class="yiyi-st" id="yiyi-189">“Sparsify”MultiIndex显示（不在组内的外层中显示重复的元素）</span></td>
+</tr>
+<tr class="row-even"><td><span class="yiyi-st" id="yiyi-190">display.notebook_repr_html</span></td>
+<td><span class="yiyi-st" id="yiyi-191">真正</span></td>
+<td><span class="yiyi-st" id="yiyi-192">当为True时，IPython笔记本将使用html表示形式的pandas对象（如果可用）。</span></td>
+</tr>
+<tr class="row-odd"><td><span class="yiyi-st" id="yiyi-193">display.pprint_nest_depth</span></td>
+<td><span class="yiyi-st" id="yiyi-194">3</span></td>
+<td><span class="yiyi-st" id="yiyi-195">控制漂亮打印时要处理的嵌套级别的数量</span></td>
+</tr>
+<tr class="row-even"><td><span class="yiyi-st" id="yiyi-196">display.precision</span></td>
+<td><span class="yiyi-st" id="yiyi-197">6</span></td>
+<td><span class="yiyi-st" id="yiyi-198">浮点输出精度在小数后的位数，用于常规格式以及科学记数法。</span><span class="yiyi-st" id="yiyi-199">类似于numpy的<code class="docutils literal"><span class="pre">precision</span></code>打印选项</span></td>
+</tr>
+<tr class="row-odd"><td><span class="yiyi-st" id="yiyi-200">display.show_dimensions</span></td>
+<td><span class="yiyi-st" id="yiyi-201">截短</span></td>
+<td><span class="yiyi-st" id="yiyi-202">是否在DataFrame repr结尾打印尺寸。</span><span class="yiyi-st" id="yiyi-203">如果指定了“truncate”，则只有在框架被截断时才打印出尺寸（例如，不显示所有行和/或列）</span></td>
+</tr>
+<tr class="row-even"><td><span class="yiyi-st" id="yiyi-204">display.width</span></td>
+<td><span class="yiyi-st" id="yiyi-205">80</span></td>
+<td><span class="yiyi-st" id="yiyi-206">显示的宽度（以字符为单位）。</span><span class="yiyi-st" id="yiyi-207">如果python / IPython在终端中运行，这可以设置为None，并且pandas将正确地自动检测宽度。</span><span class="yiyi-st" id="yiyi-208">请注意，IPython笔记本，IPython qtconsole或IDLE不在终端中运行，因此无法正确检测宽度。</span></td>
+</tr>
+<tr class="row-odd"><td><span class="yiyi-st" id="yiyi-209">html.border</span></td>
+<td><span class="yiyi-st" id="yiyi-210">1</span></td>
+<td><span class="yiyi-st" id="yiyi-211">在DataFrame HTML代码的<code class="docutils literal"><span class="pre">&lt;table&gt;</span></code>标记中插入<code class="docutils literal"><span class="pre">border=value</span></code>属性。</span></td>
+</tr>
+<tr class="row-even"><td><span class="yiyi-st" id="yiyi-212">io.excel.xls.writer</span></td>
+<td><span class="yiyi-st" id="yiyi-213">xlwt</span></td>
+<td><span class="yiyi-st" id="yiyi-214">&apos;xls&apos;文件的默认Excel writer引擎。</span></td>
+</tr>
+<tr class="row-odd"><td><span class="yiyi-st" id="yiyi-215">io.excel.xlsm.writer</span></td>
+<td><span class="yiyi-st" id="yiyi-216">openpyxl</span></td>
+<td><span class="yiyi-st" id="yiyi-217">&apos;xlsm&apos;文件的默认Excel写入器引擎。</span><span class="yiyi-st" id="yiyi-218">可用选项：&apos;openpyxl&apos;（默认值）。</span></td>
+</tr>
+<tr class="row-even"><td><span class="yiyi-st" id="yiyi-219">io.excel.xlsx.writer</span></td>
+<td><span class="yiyi-st" id="yiyi-220">openpyxl</span></td>
+<td><span class="yiyi-st" id="yiyi-221">&apos;xlsx&apos;文件的默认Excel写入器引擎。</span></td>
+</tr>
+<tr class="row-odd"><td><span class="yiyi-st" id="yiyi-222">io.hdf.default_format</span></td>
+<td><span class="yiyi-st" id="yiyi-223">没有</span></td>
+<td><span class="yiyi-st" id="yiyi-224">默认格式写入格式，如果None，则put将默认为&apos;fixed&apos;，append将默认为&apos;table&apos;</span></td>
+</tr>
+<tr class="row-even"><td><span class="yiyi-st" id="yiyi-225">io.hdf.dropna_table</span></td>
+<td><span class="yiyi-st" id="yiyi-226">真正</span></td>
+<td><span class="yiyi-st" id="yiyi-227">在追加到表时删除所有的nan行</span></td>
+</tr>
+<tr class="row-odd"><td><span class="yiyi-st" id="yiyi-228">mode.chained_assignment</span></td>
+<td><span class="yiyi-st" id="yiyi-229">警告</span></td>
+<td><span class="yiyi-st" id="yiyi-230">如果尝试使用链接分配，则引发异常，警告或无操作，默认值为warn</span></td>
+</tr>
+<tr class="row-even"><td><span class="yiyi-st" id="yiyi-231">mode.sim_interactive</span></td>
+<td><span class="yiyi-st" id="yiyi-232">假</span></td>
+<td><span class="yiyi-st" id="yiyi-233">是否模拟交互模式以进行测试</span></td>
+</tr>
+<tr class="row-odd"><td><span class="yiyi-st" id="yiyi-234">mode.use_inf_as_null</span></td>
+<td><span class="yiyi-st" id="yiyi-235">假</span></td>
+<td><span class="yiyi-st" id="yiyi-236">True表示无，NaN，-INF，INF为空（旧方式），False表示无，NaN为空，但INF，-INF不为空（新方式）。</span></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="number-formatting">
+<span id="basics-console-output"></span><h2><span class="yiyi-st" id="yiyi-237">Number Formatting</span></h2>
+<p><span class="yiyi-st" id="yiyi-238">pandas还允许您设置数字在控制台中的显示方式。</span><span class="yiyi-st" id="yiyi-239">此选项不是通过<code class="docutils literal"><span class="pre">set_options</span></code> API设置的。</span></p>
+<p><span class="yiyi-st" id="yiyi-240">使用<code class="docutils literal"><span class="pre">set_eng_float_format</span></code>函数更改pandas对象的浮点格式，以生成特定格式。</span></p>
+<p><span class="yiyi-st" id="yiyi-241">例如：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [79]: </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+
+<span class="gp">In [80]: </span><span class="n">pd</span><span class="o">.</span><span class="n">set_eng_float_format</span><span class="p">(</span><span class="n">accuracy</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">use_eng_prefix</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+<span class="gp">In [81]: </span><span class="n">s</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">5</span><span class="p">),</span> <span class="n">index</span><span class="o">=</span><span class="p">[</span><span class="s1">&apos;a&apos;</span><span class="p">,</span> <span class="s1">&apos;b&apos;</span><span class="p">,</span> <span class="s1">&apos;c&apos;</span><span class="p">,</span> <span class="s1">&apos;d&apos;</span><span class="p">,</span> <span class="s1">&apos;e&apos;</span><span class="p">])</span>
+
+<span class="gp">In [82]: </span><span class="n">s</span><span class="o">/</span><span class="mf">1.e3</span>
+<span class="gr">Out[82]: </span>
+<span class="go">a   -236.866u</span>
+<span class="go">b    846.974u</span>
+<span class="go">c   -685.597u</span>
+<span class="go">d    609.099u</span>
+<span class="go">e   -303.961u</span>
+<span class="go">dtype: float64</span>
+
+<span class="gp">In [83]: </span><span class="n">s</span><span class="o">/</span><span class="mf">1.e6</span>
+<span class="gr">Out[83]: </span>
+<span class="go">a   -236.866n</span>
+<span class="go">b    846.974n</span>
+<span class="go">c   -685.597n</span>
+<span class="go">d    609.099n</span>
+<span class="go">e   -303.961n</span>
+<span class="go">dtype: float64</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-242">要根据具体情况圆形浮动，您还可以使用<a class="reference internal" href="generated/pandas.Series.round.html#pandas.Series.round" title="pandas.Series.round"><code class="xref py py-meth docutils literal"><span class="pre">round()</span></code></a>和<a class="reference internal" href="generated/pandas.DataFrame.round.html#pandas.DataFrame.round" title="pandas.DataFrame.round"><code class="xref py py-meth docutils literal"><span class="pre">round()</span></code></a>。</span></p>
+</div>
+<div class="section" id="unicode-formatting">
+<span id="options-east-asian-width"></span><h2><span class="yiyi-st" id="yiyi-243">Unicode Formatting</span></h2>
+<div class="admonition warning">
+<p class="first admonition-title"><span class="yiyi-st" id="yiyi-244">警告</span></p>
+<p class="last"><span class="yiyi-st" id="yiyi-245"></span><span class="yiyi-st" id="yiyi-246">仅在实际需要时使用。</span></p>
+</div>
+<p><span class="yiyi-st" id="yiyi-247">一些东亚国家使用Unicode字符，其宽度对应于2个字母。</span><span class="yiyi-st" id="yiyi-248">如果DataFrame或Series包含这些字符，则默认输出无法正确对齐。</span></p>
+<div class="admonition note">
+<p class="first admonition-title"><span class="yiyi-st" id="yiyi-249">注意</span></p>
+<p class="last"><span class="yiyi-st" id="yiyi-250">为每个输出附加屏幕截图以显示实际结果。</span></p>
+</div>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [84]: </span><span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s1">u&apos;国籍&apos;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&apos;UK&apos;</span><span class="p">,</span> <span class="s1">u&apos;日本&apos;</span><span class="p">],</span> <span class="s1">u&apos;名前&apos;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&apos;Alice&apos;</span><span class="p">,</span> <span class="s1">u&apos;しのぶ&apos;</span><span class="p">]})</span>
+
+<span class="gp">In [85]: </span><span class="n">df</span><span class="p">;</span>
+</pre></div>
+</div>
+<img alt="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/option_unicode01.png" src="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/option_unicode01.png">
+<p><span class="yiyi-st" id="yiyi-251">启用<code class="docutils literal"><span class="pre">display.unicode.east_asian_width</span></code>允许大熊猫检查每个字符的“东亚宽度”属性。</span><span class="yiyi-st" id="yiyi-252">通过检查此属性可以正确对齐这些字符，但它比标准的<code class="docutils literal"><span class="pre">len</span></code>函数需要更长的时间。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [86]: </span><span class="n">pd</span><span class="o">.</span><span class="n">set_option</span><span class="p">(</span><span class="s1">&apos;display.unicode.east_asian_width&apos;</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
+
+<span class="gp">In [87]: </span><span class="n">df</span><span class="p">;</span>
+</pre></div>
+</div>
+<img alt="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/option_unicode02.png" src="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/option_unicode02.png">
+<p><span class="yiyi-st" id="yiyi-253">此外，Unicode包含宽度为“模糊”的字符。</span><span class="yiyi-st" id="yiyi-254">这些字符的宽度应为1或2，具体取决于终端设置或编码。</span><span class="yiyi-st" id="yiyi-255">由于无法与Python区分开，因此添加了<code class="docutils literal"><span class="pre">display.unicode.ambiguous_as_wide</span></code>选项来处理此问题。</span></p>
+<p><span class="yiyi-st" id="yiyi-256">默认情况下，“模糊”字符的宽度，“&#xA1;”（反转感叹号）在下面的示例中，被视为1。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [88]: </span><span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s1">&apos;a&apos;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&apos;xxx&apos;</span><span class="p">,</span> <span class="s1">u&apos;&#xA1;&#xA1;&apos;</span><span class="p">],</span> <span class="s1">&apos;b&apos;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&apos;yyy&apos;</span><span class="p">,</span> <span class="s1">u&apos;&#xA1;&#xA1;&apos;</span><span class="p">]})</span>
+
+<span class="gp">In [89]: </span><span class="n">df</span><span class="p">;</span>
+</pre></div>
+</div>
+<img alt="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/option_unicode03.png" src="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/option_unicode03.png">
+<p><span class="yiyi-st" id="yiyi-257">启用<code class="docutils literal"><span class="pre">display.unicode.ambiguous_as_wide</span></code>让pandas将这些字符的宽度设为2。</span><span class="yiyi-st" id="yiyi-258">请注意，只有在启用<code class="docutils literal"><span class="pre">display.unicode.east_asian_width</span></code>时，此选项才有效。</span><span class="yiyi-st" id="yiyi-259">确认开始位置已更改，但未正确对齐，因为设置与此环境不匹配。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [90]: </span><span class="n">pd</span><span class="o">.</span><span class="n">set_option</span><span class="p">(</span><span class="s1">&apos;display.unicode.ambiguous_as_wide&apos;</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
+
+<span class="gp">In [91]: </span><span class="n">df</span><span class="p">;</span>
+</pre></div>
+</div>
+<img alt="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/option_unicode04.png" src="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/option_unicode04.png">
+</div>

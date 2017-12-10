@@ -1,0 +1,259 @@
+
+<span id="install"></span><h1><span class="yiyi-st" id="yiyi-59">Installation</span></h1>
+        <blockquote>
+        <p>原文：<a href="http://pandas.pydata.org/pandas-docs/stable/install.html">http://pandas.pydata.org/pandas-docs/stable/install.html</a></p>
+        <p>译者：<a href="https://github.com/wizardforcel">飞龙</a> <a href="http://usyiyi.cn/">UsyiyiCN</a></p>
+        <p>校对：（虚位以待）</p>
+        </blockquote>
+    
+<p><span class="yiyi-st" id="yiyi-60">大多数用户安装 pandas 的最简单的方法是将其安装为<a class="reference external" href="http://docs.continuum.io/anaconda/"> Anaconda </a>发行版的一部分，这是一个用于数据分析和科学计算的跨平台发行版。</span><span class="yiyi-st" id="yiyi-61">这是大多数 pandas 用户选择的安装方式</span></p>
+<p><span class="yiyi-st" id="yiyi-62">此外这里还提供了从源码，<a class="reference external" href="http://pypi.python.org/pypi/pandas">PyPI</a>，各种Linux发行版或<a class="reference external" href="http://github.com/pandas-dev/pandas">开发版本</a>安装的说明。</span></p>
+<div class="section" id="python-version-support">
+<h2><span class="yiyi-st" id="yiyi-63">支持的 Python 版本</span></h2>
+<p><span class="yiyi-st" id="yiyi-64">官方Python 2.7,3.4,3.5和3.6</span></p>
+</div>
+<div class="section" id="installing-pandas">
+<h2><span class="yiyi-st" id="yiyi-65">安装 pandas</span></h2>
+<div class="section" id="trying-out-pandas-no-installation-required">
+<h3><span class="yiyi-st" id="yiyi-66">最简单的使用pandas的方法（无需安装）!</span></h3>
+<p><span class="yiyi-st" id="yiyi-67">最简单开始尝试pandas方式，不需要安装pandas，方式如下</span></p>
+<p><span class="yiyi-st" id="yiyi-68"><a class="reference external" href="https://wakari.io">Wakari</a>是一项免费服务，可在云中提供托管的<a class="reference external" href="http://ipython.org/notebook.html">IPython Notebook</a>服务。</span></p>
+<p><span class="yiyi-st" id="yiyi-69">只需创建一个帐户，即可在几分钟内通过<a class="reference external" href="http://ipython.org/notebook.html">IPython Notebook</a>在浏览器中访问pandas。</span></p>
+</div>
+<div class="section" id="installing-pandas-with-anaconda">
+<span id="install-anaconda"></span><h3><span class="yiyi-st" id="yiyi-70">在 Anaconda 中安装 pandas</span></h3>
+<p><span class="yiyi-st" id="yiyi-71">对于没有经验的用户安装Pandas、<a class="reference external" href="http://www.numpy.org/">NumPy</a>和<a class="reference external" href="http://www.scipy.org/">SciPy</a>数据科学分析体系的其余部分可能有点困难。</span></p>
+<p><span class="yiyi-st" id="yiyi-72">最简单的方法不仅安装pandas，而且还安装Python和构成<a class="reference external" href="http://www.scipy.org/">SciPy</a>辅助（<a class="reference external" href="http://ipython.org/">IPython</a>，<a class="reference external" href="http://www.numpy.org/">NumPy</a>，<a class="reference external" href="http://matplotlib.org/">Matplotlib</a>，...）与用于数据分析和科学计算的跨平台（Linux，Mac OS X，Windows）Python分发版<a class="reference external" href="http://docs.continuum.io/anaconda/">Anaconda</a>。</span></p>
+<p><span class="yiyi-st" id="yiyi-73">运行简单的安装程序后，用户将可以访问pandas和<a class="reference external" href="http://www.scipy.org/">SciPy</a>体系的其余部分，而无需安装任何其他内容，无需等待任何软件编译。</span></p>
+<p><span class="yiyi-st" id="yiyi-74">可在此处找到<a class="reference external" href="http://docs.continuum.io/anaconda/">Anaconda</a> <a class="reference external" href="http://docs.continuum.io/anaconda/install.html">的安装说明</a>。</span></p>
+<p><span class="yiyi-st" id="yiyi-75">作为<a class="reference external" href="http://docs.continuum.io/anaconda/">Anaconda</a>分发<a class="reference external" href="http://docs.continuum.io/anaconda/pkg-docs.html">一部分的软件包的完整列表可在此处找到</a>。</span></p>
+<p><span class="yiyi-st" id="yiyi-76">安装Anaconda的另一个好处是，你不需要管理员权限安装它，它会安装在用户的主目录，这也使得在日后删除Anaconda（只是删除该文件夹）变得简单。</span></p>
+</div>
+<div class="section" id="installing-pandas-with-miniconda">
+<span id="install-miniconda"></span><h3><span class="yiyi-st" id="yiyi-77">在 Miniconda 中安装 pandas </span></h3>
+<p><span class="yiyi-st" id="yiyi-78">上一节概述了如何将 pandas 安装为<a class="reference external" href="http://docs.continuum.io/anaconda/">Anaconda</a>发行版的一部分。</span><span class="yiyi-st" id="yiyi-79">然而，这种方法意味着您将安装超过一百个软件包，并且涉及下载大小为几百兆字节的安装程序。</span></p>
+<p><span class="yiyi-st" id="yiyi-80">如果您想要更多地控制哪些软件包或者有限的互联网带宽，那么使用<a class="reference external" href="http://conda.pydata.org/miniconda.html">Miniconda</a>安装 pandas 可能是一个更好的解决方案。</span></p>
+<p><span class="yiyi-st" id="yiyi-81"><a class="reference external" href="http://conda.pydata.org/docs/">Conda</a>是基于<a class="reference external" href="http://docs.continuum.io/anaconda/">Anaconda</a>分发的软件包管理器。</span><span class="yiyi-st" id="yiyi-82">它是一个跨平台和语言不可知的包管理器（它可以扮演类似于pip和virtualenv组合的角色）。</span></p>
+<p><span class="yiyi-st" id="yiyi-83"><a class="reference external" href="http://conda.pydata.org/miniconda.html">Miniconda</a>允许创建最小的自包含Python安装，然后使用<a class="reference external" href="http://conda.pydata.org/docs/">Conda</a>命令安装其他软件包。</span></p>
+<p><span class="yiyi-st" id="yiyi-84">首先，您需要安装<a class="reference external" href="http://conda.pydata.org/docs/">Conda</a>并下载并运行<a class="reference external" href="http://conda.pydata.org/miniconda.html">​​ Miniconda</a>才能为您完成此操作。</span><span class="yiyi-st" id="yiyi-85">可在此处找到安装程序<a class="reference external" href="http://conda.pydata.org/miniconda.html"></a></span></p>
+<p><span class="yiyi-st" id="yiyi-86">下一步是创建一个新的conda环境（这些类似于virtualenv，但它们也允许您精确指定要安装的Python版本）。</span><span class="yiyi-st" id="yiyi-87">从终端窗口运行以下命令：</span></p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">create</span> <span class="o">-</span><span class="n">n</span> <span class="n">name_of_my_env</span> <span class="n">python</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-88">这将创建一个只安装了Python的最小环境。</span><span class="yiyi-st" id="yiyi-89">要将你自己放在这个环境中运行：</span></p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">source</span> <span class="n">activate</span> <span class="n">name_of_my_env</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-90">在Windows上，命令是：</span></p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">activate</span> <span class="n">name_of_my_env</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-91">所需的最后一步是安装pandas。</span><span class="yiyi-st" id="yiyi-92">可以使用以下命令完成：</span></p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">install</span> <span class="n">pandas</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-93">要安装特定的pandas版本：</span></p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">install</span> <span class="n">pandas</span><span class="o">=</span><span class="mf">0.13</span><span class="o">.</span><span class="mi">1</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-94">要安装其他软件包，例如IPython：</span></p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">install</span> <span class="n">ipython</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-95">要安装完整的<a class="reference external" href="http://docs.continuum.io/anaconda/">Anaconda</a>发行版：</span></p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">install</span> <span class="n">anaconda</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-96">如果你需要任何可用的pip，但不能conda，只需安装pip，并使用pip安装这些软件包：</span></p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">install</span> <span class="n">pip</span>
+<span class="n">pip</span> <span class="n">install</span> <span class="n">django</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="installing-from-pypi">
+<h3><span class="yiyi-st" id="yiyi-97">从 PyPI 安装</span></h3>
+<p><span class="yiyi-st" id="yiyi-98">pandas还可以通过pip从<a class="reference external" href="http://pypi.python.org/pypi/pandas">PyPI</a>安装。</span></p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">pandas</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-99">这可能需要安装一些依赖项，包括NumPy，将需要一个编译器来编译所需的代码位，并且可能需要几分钟时间才能完成。</span></p>
+</div>
+<div class="section" id="installing-using-your-linux-distribution-s-package-manager">
+<h3><span class="yiyi-st" id="yiyi-100">Installing using your Linux distribution’s package manager.</span></h3>
+<p><span class="yiyi-st" id="yiyi-101">此表中的命令将从您的分发中安装用于Python 2的pandas。</span><span class="yiyi-st" id="yiyi-102">要为Python 3安装pandas，您可能需要使用包<code class="docutils literal"><span class="pre">python3-pandas</span></code>。</span></p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="11%">
+<col width="11%">
+<col width="22%">
+<col width="56%">
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head"><span class="yiyi-st" id="yiyi-103">分配</span></th>
+<th class="head"><span class="yiyi-st" id="yiyi-104">状态</span></th>
+<th class="head"><span class="yiyi-st" id="yiyi-105">下载/ Repository链接</span></th>
+<th class="head"><span class="yiyi-st" id="yiyi-106">安装方法</span></th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><span class="yiyi-st" id="yiyi-107">Debian</span></td>
+<td><span class="yiyi-st" id="yiyi-108">稳定</span></td>
+<td><span class="yiyi-st" id="yiyi-109"><a class="reference external" href="http://packages.debian.org/search?keywords=pandas&amp;searchon=names&amp;suite=all&amp;section=all">官方Debian存储库</a></span></td>
+<td><span class="yiyi-st" id="yiyi-110"><code class="docutils literal"><span class="pre">sudo</span> <span class="pre">apt-get</span> <span class="pre">安装</span> <span class="pre">python-pandas</span> </code></span></td>
+</tr>
+<tr class="row-odd"><td><span class="yiyi-st" id="yiyi-111">Debian和Ubuntu</span></td>
+<td><span class="yiyi-st" id="yiyi-112">unstable（最新软件包）</span></td>
+<td><span class="yiyi-st" id="yiyi-113"><a class="reference external" href="http://neuro.debian.net/index.html#how-to-use-this-repository">NeuroDebian</a></span></td>
+<td><span class="yiyi-st" id="yiyi-114"><code class="docutils literal"><span class="pre">sudo</span> <span class="pre">apt-get</span> <span class="pre">安装</span> <span class="pre">python-pandas</span> </code></span></td>
+</tr>
+<tr class="row-even"><td><span class="yiyi-st" id="yiyi-115">Ubuntu</span></td>
+<td><span class="yiyi-st" id="yiyi-116">稳定</span></td>
+<td><span class="yiyi-st" id="yiyi-117"><a class="reference external" href="http://packages.ubuntu.com/search?keywords=pandas&amp;searchon=names&amp;suite=all&amp;section=all">官方Ubuntu存储库</a></span></td>
+<td><span class="yiyi-st" id="yiyi-118"><code class="docutils literal"><span class="pre">sudo</span> <span class="pre">apt-get</span> <span class="pre">安装</span> <span class="pre">python-pandas</span> </code></span></td>
+</tr>
+<tr class="row-odd"><td><span class="yiyi-st" id="yiyi-119">Ubuntu</span></td>
+<td><span class="yiyi-st" id="yiyi-120">不稳定（每日构建）</span></td>
+<td><span class="yiyi-st" id="yiyi-121"><a class="reference external" href="https://code.launchpad.net/~pythonxy/+archive/pythonxy-devel">PythonXY PPA</a>； activate by：<code class="docutils literal"><span class="pre">sudo</span> <span class="pre">add-apt-repository</span> <span class="pre">ppa：pythonxy / pythonxy-devel</span> <span class="pre">＆amp；＆amp； &gt; <span class="pre">sudo</span> <span class="pre">apt-get</span> <span class="pre">更新</span> </span></code></span></td>
+<td><span class="yiyi-st" id="yiyi-122"><code class="docutils literal"><span class="pre">sudo</span> <span class="pre">apt-get</span> <span class="pre">安装</span> <span class="pre">python-pandas</span> </code></span></td>
+</tr>
+<tr class="row-even"><td><span class="yiyi-st" id="yiyi-123">OpenSuse</span></td>
+<td><span class="yiyi-st" id="yiyi-124">稳定</span></td>
+<td><span class="yiyi-st" id="yiyi-125"><a class="reference external" href="http://software.opensuse.org/package/python-pandas?search_term=pandas">OpenSuse存储库</a></span></td>
+<td><span class="yiyi-st" id="yiyi-126"><code class="docutils literal"><span class="pre">zypper</span> <span class="pre">在</span> <span class="pre">python-pandas</span></code></span></td>
+</tr>
+<tr class="row-odd"><td><span class="yiyi-st" id="yiyi-127">Fedora</span></td>
+<td><span class="yiyi-st" id="yiyi-128">稳定</span></td>
+<td><span class="yiyi-st" id="yiyi-129"><a class="reference external" href="https://admin.fedoraproject.org/pkgdb/package/rpms/python-pandas/">官方Fedora存储库</a></span></td>
+<td><span class="yiyi-st" id="yiyi-130"><code class="docutils literal"><span class="pre">dnf</span> <span class="pre">安装</span> <span class="pre">python-pandas</span></code></span></td>
+</tr>
+<tr class="row-even"><td><span class="yiyi-st" id="yiyi-131">Centos / RHEL</span></td>
+<td><span class="yiyi-st" id="yiyi-132">稳定</span></td>
+<td><span class="yiyi-st" id="yiyi-133"><a class="reference external" href="https://admin.fedoraproject.org/pkgdb/package/rpms/python-pandas/">EPEL存储库</a></span></td>
+<td><span class="yiyi-st" id="yiyi-134"><code class="docutils literal"><span class="pre">yum</span> <span class="pre">安装</span> <span class="pre">python-pandas</span></code></span></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="installing-from-source">
+<h3><span class="yiyi-st" id="yiyi-135">Installing from source</span></h3>
+<p><span class="yiyi-st" id="yiyi-136">有关从git源代码树构建的完整说明，请参阅<a class="reference internal" href="contributing.html#contributing"><span class="std std-ref">contributing documentation</span></a>。</span><span class="yiyi-st" id="yiyi-137">此外，如果您要创建<em>pandas</em>开发环境，请参阅<a class="reference internal" href="contributing.html#contributing-dev-env"><span class="std std-ref">creating a development environment</span></a>。</span></p>
+</div>
+<div class="section" id="running-the-test-suite">
+<h3><span class="yiyi-st" id="yiyi-138">Running the test suite</span></h3>
+<p><span class="yiyi-st" id="yiyi-139">pandas配备了一套详尽的单元测试，涵盖了大约97％的代码库。</span><span class="yiyi-st" id="yiyi-140">要在您的计算机上运行它以验证一切是否正常（并且已经安装了所有依赖项，软硬件安装），请确保您已经<a class="reference external" href="https://nose.readthedocs.io/en/latest/">察觉</a>并运行：</span></p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pd</span><span class="o">.</span><span class="n">test</span><span class="p">()</span>
+<span class="go">Running unit tests for pandas</span>
+<span class="go">pandas version 0.18.0</span>
+<span class="go">numpy version 1.10.2</span>
+<span class="go">pandas is installed in pandas</span>
+<span class="go">Python version 2.7.11 |Continuum Analytics, Inc.|</span>
+<span class="go">   (default, Dec  6 2015, 18:57:58) [GCC 4.2.1 (Apple Inc. build 5577)]</span>
+<span class="go">nose version 1.3.7</span>
+<span class="go">..................................................................S......</span>
+<span class="go">........S................................................................</span>
+<span class="go">.........................................................................</span>
+
+<span class="go">----------------------------------------------------------------------</span>
+<span class="go">Ran 9252 tests in 368.339s</span>
+
+<span class="go">OK (SKIP=117)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="dependencies">
+<h2><span class="yiyi-st" id="yiyi-141">Dependencies</span></h2>
+<ul class="simple">
+<li><span class="yiyi-st" id="yiyi-142"><a class="reference external" href="http://pythonhosted.org/setuptools">setuptools</a></span></li>
+<li><span class="yiyi-st" id="yiyi-143"><a class="reference external" href="http://www.numpy.org">NumPy</a>：1.7.1或更高版本</span></li>
+<li><span class="yiyi-st" id="yiyi-144"><a class="reference external" href="http://labix.org/python-dateutil">python-dateutil</a>：1.5或更高</span></li>
+<li><span class="yiyi-st" id="yiyi-145"><a class="reference external" href="http://pytz.sourceforge.net/">pytz</a>：需要时区支持</span></li>
+</ul>
+<div class="section" id="recommended-dependencies">
+<span id="install-recommended-dependencies"></span><h3><span class="yiyi-st" id="yiyi-146">推荐的依赖关系</span></h3>
+<ul class="simple">
+<li><span class="yiyi-st" id="yiyi-147"><a class="reference external" href="https://github.com/pydata/numexpr">numexpr</a>：用于加速某些数值操作。</span><span class="yiyi-st" id="yiyi-148"><code class="docutils literal"><span class="pre">numexpr</span></code>使用多个内核以及智能分块和缓存来实现大型加速。</span><span class="yiyi-st" id="yiyi-149">如果已安装，则必须为2.1或更高版本（不包括2.4.4版本）。</span><span class="yiyi-st" id="yiyi-150">强烈建议使用版本2.4.6或更高版本。</span></li>
+<li><span class="yiyi-st" id="yiyi-151"><a class="reference external" href="http://berkeleyanalytics.com/bottleneck"> bottleneck </a>：用于加速某些类型的<code class="docutils literal"><span class="pre">nan</span></code>评估。</span><span class="yiyi-st" id="yiyi-152"><code class="docutils literal"><span class="pre">bottleneck</span></code>使用专用的cython例程来实现大的加速。</span></li>
+</ul>
+<div class="admonition note">
+<p class="first admonition-title"><span class="yiyi-st" id="yiyi-153">注意</span></p>
+<p class="last"><span class="yiyi-st" id="yiyi-154">强烈建议您安装这些库，因为它们提供大的加速，尤其是使用大型数据集时。</span></p>
+</div>
+</div>
+<div class="section" id="optional-dependencies">
+<span id="install-optional-dependencies"></span><h3><span class="yiyi-st" id="yiyi-155">可选依赖关系</span></h3>
+<ul>
+<li><p class="first"><span class="yiyi-st" id="yiyi-156"><a class="reference external" href="http://www.cython.org">Cython</a>：只需要构建开发版本。</span><span class="yiyi-st" id="yiyi-157">版本0.19.1或更高版本。</span></p>
+</li>
+<li><p class="first"><span class="yiyi-st" id="yiyi-158"><a class="reference external" href="http://www.scipy.org">SciPy</a>：其他统计函数</span></p>
+</li>
+<li><p class="first"><span class="yiyi-st" id="yiyi-159"><a class="reference external" href="http://xarray.pydata.org">xarray</a>：pandas像处理&gt; 2 dims，需要将面板转换为xarray对象。</span><span class="yiyi-st" id="yiyi-160">建议使用0.7.0或更高版本。</span></p>
+</li>
+<li><p class="first"><span class="yiyi-st" id="yiyi-161"><a class="reference external" href="http://www.pytables.org">PyTables</a>：基于HDF5的存储所必需。</span><span class="yiyi-st" id="yiyi-162">强烈建议需要3.0.0或更高版本，3.2.1或更高版本。</span></p>
+</li>
+<li><p class="first"><span class="yiyi-st" id="yiyi-163"><a class="reference external" href="http://www.sqlalchemy.org">SQLAlchemy</a>：用于SQL数据库支持。</span><span class="yiyi-st" id="yiyi-164">建议使用0.8.1或更高版本。</span><span class="yiyi-st" id="yiyi-165">除了SQLAlchemy，还需要一个数据库特定的驱动程序。</span><span class="yiyi-st" id="yiyi-166">您可以在<a class="reference external" href="http://docs.sqlalchemy.org/en/latest/dialects/index.html">SQLAlchemy docs</a>中找到每种SQL方言的支持的驱动程序的概述。</span><span class="yiyi-st" id="yiyi-167">一些常见的驱动程序是：</span></p>
+<blockquote>
+<div><ul class="simple">
+<li><span class="yiyi-st" id="yiyi-168"><a class="reference external" href="http://initd.org/psycopg/">psycopg2</a>：用于PostgreSQL</span></li>
+<li><span class="yiyi-st" id="yiyi-169"><a class="reference external" href="https://github.com/PyMySQL/PyMySQL">pymysql</a>：for MySQL。</span></li>
+<li><span class="yiyi-st" id="yiyi-170"><a class="reference external" href="https://docs.python.org/3.5/library/sqlite3.html">SQLite</a>：对于SQLite，默认情况下包含在Python的标准库中。</span></li>
+</ul>
+</div></blockquote>
+</li>
+<li><p class="first"><span class="yiyi-st" id="yiyi-171"><a class="reference external" href="http://matplotlib.org/">matplotlib</a>：用于绘图</span></p>
+</li>
+<li><p class="first"><span class="yiyi-st" id="yiyi-172">对于Excel I / O：</span></p>
+<ul class="simple">
+<li><span class="yiyi-st" id="yiyi-173"><a class="reference external" href="http://www.python-excel.org/">xlrd / xlwt</a>：Excel阅读（xlrd）和书写（xlwt）</span></li>
+<li><span class="yiyi-st" id="yiyi-174"><a class="reference external" href="http://packages.python.org/openpyxl/">openpyxl</a>：openpyxl版本1.6.1或更高版本（但低于2.0.0）或版本2.2或更高版本，用于写入.xlsx文件（xlrd&gt; = 0.9.0）</span></li>
+<li><span class="yiyi-st" id="yiyi-175"><a class="reference external" href="https://pypi.python.org/pypi/XlsxWriter">XlsxWriter</a>：备用Excel编写器</span></li>
+</ul>
+</li>
+<li><p class="first"><span class="yiyi-st" id="yiyi-176"><a class="reference external" href="http://jinja.pocoo.org/">Jinja2</a>：用于条件HTML格式化的模板引擎。</span></p>
+</li>
+<li><p class="first"><span class="yiyi-st" id="yiyi-177"><a class="reference external" href="https://pypi.python.org/pypi/boto">boto</a>：对于Amazon S3访问必需的。</span></p>
+</li>
+<li><p class="first"><span class="yiyi-st" id="yiyi-178"><a class="reference external" href="https://pypi.python.org/pypi/blosc">blosc</a>：用于使用<code class="docutils literal"><span class="pre">blosc</span></code>的msgpack压缩</span></p>
+</li>
+<li><p class="first"><span class="yiyi-st" id="yiyi-179"><a class="reference external" href="http://www.riverbankcomputing.com/software/pyqt/download">PyQt4</a>，<a class="reference external" href="http://qt-project.org/wiki/Category:LanguageBindings::PySide">PySide</a>，<a class="reference external" href="http://www.pygtk.org/">pygtk</a>，<a class="reference external" href="http://www.vergenet.net/~conrad/software/xsel/">xsel</a>或<a class="reference external" href="https://github.com/astrand/xclip/">xclip</a>之一：必要使用<a class="reference internal" href="generated/pandas.read_clipboard.html#pandas.read_clipboard" title="pandas.read_clipboard"><code class="xref py py-func docutils literal"><span class="pre">read_clipboard()</span></code></a>。</span><span class="yiyi-st" id="yiyi-180">Linux发行版上的大多数软件包管理器都会立即提供<code class="docutils literal"><span class="pre">xclip</span></code>和/或<code class="docutils literal"><span class="pre">xsel</span></code>。</span></p>
+</li>
+<li><p class="first"><span class="yiyi-st" id="yiyi-181">Google的<a href="#id1"><span class="problematic" id="id2">`python-gflags &lt;&lt;https://github.com/google/python-gflags/&gt;`__</span></a>，<a class="reference external" href="https://github.com/google/oauth2client">oauth2client</a>，<a class="reference external" href="http://pypi.python.org/pypi/httplib2">httplib2 和<a class="reference external" href="http://github.com/google/google-api-python-client">google-api-python-client</a>：需要<code class="xref py py-mod docutils literal"><span class="pre">gbq</span></code></a></span></p>
+</li>
+<li><p class="first"><span class="yiyi-st" id="yiyi-182"><a class="reference external" href="https://pypi.python.org/pypi/backports.lzma/">Backports.lzma</a>：仅适用于Python 2，用于在CSV中写入和/或读取xz压缩的DataFrame； Python 3支持内置到标准库中。</span></p>
+</li>
+<li><p class="first"><span class="yiyi-st" id="yiyi-183">需要使用以下库的组合之一来使用顶层<a class="reference internal" href="generated/pandas.read_html.html#pandas.read_html" title="pandas.read_html"><code class="xref py py-func docutils literal"><span class="pre">read_html()</span></code></a>函数：</span></p>
+<ul class="simple">
+<li><span class="yiyi-st" id="yiyi-184"><a class="reference external" href="http://www.crummy.com/software/BeautifulSoup">BeautifulSoup4</a>和<a class="reference external" href="https://github.com/html5lib/html5lib-python">html5lib</a>（任何最新版本的<a class="reference external" href="https://github.com/html5lib/html5lib-python">html5lib</a>都可以。）</span></li>
+<li><span class="yiyi-st" id="yiyi-185"><a class="reference external" href="http://www.crummy.com/software/BeautifulSoup">BeautifulSoup4</a>和<a class="reference external" href="http://lxml.de">lxml</a></span></li>
+<li><span class="yiyi-st" id="yiyi-186"><a class="reference external" href="http://www.crummy.com/software/BeautifulSoup">BeautifulSoup4</a>和<a class="reference external" href="https://github.com/html5lib/html5lib-python">html5lib</a>和<a class="reference external" href="http://lxml.de">lxml</a></span></li>
+<li><span class="yiyi-st" id="yiyi-187">只有<a class="reference external" href="http://lxml.de">lxml</a>，因为您可能需要<strong>而不</strong>采取这种方法，因此请参阅<a class="reference internal" href="gotchas.html#html-gotchas"><span class="std std-ref">HTML reading gotchas</span></a>。</span></li>
+</ul>
+<div class="admonition warning">
+<p class="first admonition-title"><span class="yiyi-st" id="yiyi-188">警告</span></p>
+<ul class="last simple">
+<li><span class="yiyi-st" id="yiyi-189">如果您安装<a class="reference external" href="http://www.crummy.com/software/BeautifulSoup">BeautifulSoup4</a>，则必须安装<a class="reference external" href="http://lxml.de">lxml</a>或<a class="reference external" href="https://github.com/html5lib/html5lib-python">html5lib</a>或两者。</span><span class="yiyi-st" id="yiyi-190"><a class="reference internal" href="generated/pandas.read_html.html#pandas.read_html" title="pandas.read_html"><code class="xref py py-func docutils literal"><span class="pre">read_html()</span></code></a>将<strong>不</strong>仅处理<em></em> <a class="reference external" href="http://www.crummy.com/software/BeautifulSoup">BeautifulSoup4</a>。</span></li>
+<li><span class="yiyi-st" id="yiyi-191">我们非常鼓励您阅读<a class="reference internal" href="gotchas.html#html-gotchas"><span class="std std-ref">HTML reading gotchas</span></a>。</span><span class="yiyi-st" id="yiyi-192">它解释了关于上述三个库的安装和使用的问题</span></li>
+<li><span class="yiyi-st" id="yiyi-193">您可能需要安装旧版本的<a class="reference external" href="http://www.crummy.com/software/BeautifulSoup">BeautifulSoup4</a>：版本4.2.1,4.1.3和4.0.2已经确认64和32位Ubuntu / Debian</span></li>
+<li><span class="yiyi-st" id="yiyi-194">此外，如果您使用<a class="reference external" href="https://store.continuum.io/cshop/anaconda">Anaconda</a>，您应该阅读<a class="reference internal" href="gotchas.html#html-gotchas"><span class="std std-ref">the gotchas about HTML parsing libraries</span></a></span></li>
+</ul>
+</div>
+<div class="admonition note">
+<p class="first admonition-title"><span class="yiyi-st" id="yiyi-195">注意</span></p>
+<ul class="last">
+<li><p class="first"><span class="yiyi-st" id="yiyi-196">如果你使用<code class="docutils literal"><span class="pre">apt-get</span></code>的系统，你可以这样做</span></p>
+<div class="highlight-sh"><div class="highlight"><pre><span></span>sudo apt-get build-dep python-lxml
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-197">以获取安装<a class="reference external" href="http://lxml.de">lxml</a>所需的依赖关系。</span><span class="yiyi-st" id="yiyi-198">这可以防止下面进程中出现错误。</span></p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+<div class="admonition note">
+<p class="first admonition-title"><span class="yiyi-st" id="yiyi-199">注意</span></p>
+<p class="last"><span class="yiyi-st" id="yiyi-200">没有可选的依赖项，许多有用的功能将不工作。</span><span class="yiyi-st" id="yiyi-201">因此，强烈建议您安装这些。</span><span class="yiyi-st" id="yiyi-202">像<a class="reference external" href="http://docs.continuum.io/anaconda/">Anaconda</a>或<a class="reference external" href="http://enthought.com/products/canopy">Enthought Canopy</a>的打包分发可能值得考虑。</span></p>
+</div>
+</div>
+</div>

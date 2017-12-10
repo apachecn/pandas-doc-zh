@@ -1,0 +1,725 @@
+
+<span id="text"></span><h1><span class="yiyi-st" id="yiyi-55">Working with Text Data</span></h1>
+        <blockquote>
+        <p>原文：<a href="http://pandas.pydata.org/pandas-docs/stable/text.html">http://pandas.pydata.org/pandas-docs/stable/text.html</a></p>
+        <p>译者：<a href="https://github.com/wizardforcel">飞龙</a> <a href="http://usyiyi.cn/">UsyiyiCN</a></p>
+        <p>校对：（虚位以待）</p>
+        </blockquote>
+    
+<p id="text-string-methods"><span class="yiyi-st" id="yiyi-56">系列和索引都配备了一组字符串处理方法，使其易于对数组的每个元素进行操作。</span><span class="yiyi-st" id="yiyi-57">也许最重要的是，这些方法自动排除丢失/ NA值。</span><span class="yiyi-st" id="yiyi-58">这些通过<code class="docutils literal"><span class="pre">str</span></code>属性访问，通常具有与等效（标量）内置字符串方法匹配的名称：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [1]: </span><span class="n">s</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">([</span><span class="s1">&apos;A&apos;</span><span class="p">,</span> <span class="s1">&apos;B&apos;</span><span class="p">,</span> <span class="s1">&apos;C&apos;</span><span class="p">,</span> <span class="s1">&apos;Aaba&apos;</span><span class="p">,</span> <span class="s1">&apos;Baca&apos;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="s1">&apos;CABA&apos;</span><span class="p">,</span> <span class="s1">&apos;dog&apos;</span><span class="p">,</span> <span class="s1">&apos;cat&apos;</span><span class="p">])</span>
+
+<span class="gp">In [2]: </span><span class="n">s</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+<span class="gr">Out[2]: </span>
+<span class="go">0       a</span>
+<span class="go">1       b</span>
+<span class="go">2       c</span>
+<span class="go">3    aaba</span>
+<span class="go">4    baca</span>
+<span class="go">5     NaN</span>
+<span class="go">6    caba</span>
+<span class="go">7     dog</span>
+<span class="go">8     cat</span>
+<span class="go">dtype: object</span>
+
+<span class="gp">In [3]: </span><span class="n">s</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+<span class="gr">Out[3]: </span>
+<span class="go">0       A</span>
+<span class="go">1       B</span>
+<span class="go">2       C</span>
+<span class="go">3    AABA</span>
+<span class="go">4    BACA</span>
+<span class="go">5     NaN</span>
+<span class="go">6    CABA</span>
+<span class="go">7     DOG</span>
+<span class="go">8     CAT</span>
+<span class="go">dtype: object</span>
+
+<span class="gp">In [4]: </span><span class="n">s</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">len</span><span class="p">()</span>
+<span class="gr">Out[4]: </span>
+<span class="go">0    1.0</span>
+<span class="go">1    1.0</span>
+<span class="go">2    1.0</span>
+<span class="go">3    4.0</span>
+<span class="go">4    4.0</span>
+<span class="go">5    NaN</span>
+<span class="go">6    4.0</span>
+<span class="go">7    3.0</span>
+<span class="go">8    3.0</span>
+<span class="go">dtype: float64</span>
+</pre></div>
+</div>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [5]: </span><span class="n">idx</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Index</span><span class="p">([</span><span class="s1">&apos; jack&apos;</span><span class="p">,</span> <span class="s1">&apos;jill &apos;</span><span class="p">,</span> <span class="s1">&apos; jesse &apos;</span><span class="p">,</span> <span class="s1">&apos;frank&apos;</span><span class="p">])</span>
+
+<span class="gp">In [6]: </span><span class="n">idx</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+<span class="gr">Out[6]: </span><span class="n">Index</span><span class="p">([</span><span class="s1">u&apos;jack&apos;</span><span class="p">,</span> <span class="s1">u&apos;jill&apos;</span><span class="p">,</span> <span class="s1">u&apos;jesse&apos;</span><span class="p">,</span> <span class="s1">u&apos;frank&apos;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&apos;object&apos;</span><span class="p">)</span>
+
+<span class="gp">In [7]: </span><span class="n">idx</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">lstrip</span><span class="p">()</span>
+<span class="gr">Out[7]: </span><span class="n">Index</span><span class="p">([</span><span class="s1">u&apos;jack&apos;</span><span class="p">,</span> <span class="s1">u&apos;jill &apos;</span><span class="p">,</span> <span class="s1">u&apos;jesse &apos;</span><span class="p">,</span> <span class="s1">u&apos;frank&apos;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&apos;object&apos;</span><span class="p">)</span>
+
+<span class="gp">In [8]: </span><span class="n">idx</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">rstrip</span><span class="p">()</span>
+<span class="gr">Out[8]: </span><span class="n">Index</span><span class="p">([</span><span class="s1">u&apos; jack&apos;</span><span class="p">,</span> <span class="s1">u&apos;jill&apos;</span><span class="p">,</span> <span class="s1">u&apos; jesse&apos;</span><span class="p">,</span> <span class="s1">u&apos;frank&apos;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&apos;object&apos;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-59">Index上的字符串方法对清理或转换DataFrame列特别有用。</span><span class="yiyi-st" id="yiyi-60">例如，您可能有具有前导或尾随空格的列：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [9]: </span><span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">randn</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&apos; Column A &apos;</span><span class="p">,</span> <span class="s1">&apos; Column B &apos;</span><span class="p">],</span>
+<span class="gp">   ...:</span>                   <span class="n">index</span><span class="o">=</span><span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">))</span>
+<span class="gp">   ...:</span> 
+
+<span class="gp">In [10]: </span><span class="n">df</span>
+<span class="gr">Out[10]: </span>
+<span class="go">    Column A    Column B </span>
+<span class="go">0    0.017428    0.039049</span>
+<span class="go">1   -2.240248    0.847859</span>
+<span class="go">2   -1.342107    0.368828</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-61">由于<code class="docutils literal"><span class="pre">df.columns</span></code>是一个Index对象，我们可以使用<code class="docutils literal"><span class="pre">.str</span></code>存取器</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [11]: </span><span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+<span class="gr">Out[11]: </span><span class="n">Index</span><span class="p">([</span><span class="s1">u&apos;Column A&apos;</span><span class="p">,</span> <span class="s1">u&apos;Column B&apos;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&apos;object&apos;</span><span class="p">)</span>
+
+<span class="gp">In [12]: </span><span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+<span class="gr">Out[12]: </span><span class="n">Index</span><span class="p">([</span><span class="s1">u&apos; column a &apos;</span><span class="p">,</span> <span class="s1">u&apos; column b &apos;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&apos;object&apos;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-62">然后可以根据需要使用这些字符串方法来清理列。</span><span class="yiyi-st" id="yiyi-63">这里我们删除前导和尾随空格，缩小所有名称，并用下划线替换任何剩余的空白：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [13]: </span><span class="n">df</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&apos; &apos;</span><span class="p">,</span> <span class="s1">&apos;_&apos;</span><span class="p">)</span>
+
+<span class="gp">In [14]: </span><span class="n">df</span>
+<span class="gr">Out[14]: </span>
+<span class="go">   column_a  column_b</span>
+<span class="go">0  0.017428  0.039049</span>
+<span class="go">1 -2.240248  0.847859</span>
+<span class="go">2 -1.342107  0.368828</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title"><span class="yiyi-st" id="yiyi-64">注意</span></p>
+<p><span class="yiyi-st" id="yiyi-65">假如你有一个许多元素都重复的 <code class="docutils literal"><span class="pre">Series</span></code> (i.e.  <code class="docutils literal"><span class="pre">Series</span></code> 中唯一元素的数量远小于<code class="docutils literal"><span class="pre">Series</span></code>的长度),将原始的 <code class="docutils literal"><span class="pre">Series</span></code> 转换成<code class="docutils literal"><span class="pre">category</span></code> 然后使用 <code class="docutils literal"><span class="pre">.str.&lt;method&gt;</span></code> or <code class="docutils literal"><span class="pre">.dt.&lt;property&gt;</span></code>将会更快.</span><span class="yiyi-st" id="yiyi-66">性能差异来自于对<code class="docutils literal"><span class="pre">category</span></code>类型的<code class="docutils literal"><span class="pre">Series</span></code>，字符串操作在<code class="docutils literal"><span class="pre">.categories</span></code>上完成，而不是在每个元素的<code class="docutils literal"><span class="pre">Series</span></code>。</span></p>
+<p class="last"><span class="yiyi-st" id="yiyi-67">请注意，类型字符串<code class="docutils literal"><span class="pre">Series</span></code>的比较类型<code class="docutils literal"><span class="pre">category</span></code>与字符串<code class="docutils literal"><span class="pre">.categories</span></code>的<code class="docutils literal"><span class="pre">Series</span></code> （例如，您不能向对方添加字符串：<code class="docutils literal"><span class="pre">s</span> <span class="pre">+</span> <span class="pre">“</span> <span class="pre">”</span> <span class="pre">如果<code class="docutils literal"><span class="pre">s</span></code>是类型<code class="docutils literal"><span class="pre">category</span></code>的<code class="docutils literal"><span class="pre">Series</span></code>，则 <span class="pre"></span> ）。</span></code></span><span class="yiyi-st" id="yiyi-68">此外，对类型<code class="docutils literal"><span class="pre">list</span></code>的元素进行操作的<code class="docutils literal"><span class="pre">.str</span></code>方法在这种<code class="docutils literal"><span class="pre">Series</span></code>上不可用。</span></p>
+</div>
+<div class="section" id="splitting-and-replacing-strings">
+<h2><span class="yiyi-st" id="yiyi-69">Splitting and Replacing Strings</span></h2>
+<p id="text-split"><span class="yiyi-st" id="yiyi-70"><code class="docutils literal"><span class="pre">split</span></code>等方法返回一系列列表：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [15]: </span><span class="n">s2</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">([</span><span class="s1">&apos;a_b_c&apos;</span><span class="p">,</span> <span class="s1">&apos;c_d_e&apos;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="s1">&apos;f_g_h&apos;</span><span class="p">])</span>
+
+<span class="gp">In [16]: </span><span class="n">s2</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&apos;_&apos;</span><span class="p">)</span>
+<span class="gr">Out[16]: </span>
+<span class="go">0    [a, b, c]</span>
+<span class="go">1    [c, d, e]</span>
+<span class="go">2          NaN</span>
+<span class="go">3    [f, g, h]</span>
+<span class="go">dtype: object</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-71">可以使用<code class="docutils literal"><span class="pre">get</span></code>或<code class="docutils literal"><span class="pre">[]</span></code>符号访问拆分列表中的元素：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [17]: </span><span class="n">s2</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&apos;_&apos;</span><span class="p">)</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="gr">Out[17]: </span>
+<span class="go">0      b</span>
+<span class="go">1      d</span>
+<span class="go">2    NaN</span>
+<span class="go">3      g</span>
+<span class="go">dtype: object</span>
+
+<span class="gp">In [18]: </span><span class="n">s2</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&apos;_&apos;</span><span class="p">)</span><span class="o">.</span><span class="n">str</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+<span class="gr">Out[18]: </span>
+<span class="go">0      b</span>
+<span class="go">1      d</span>
+<span class="go">2    NaN</span>
+<span class="go">3      g</span>
+<span class="go">dtype: object</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-72">使用<code class="docutils literal"><span class="pre">expand</span></code>可以轻松扩展此操作以返回DataFrame。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [19]: </span><span class="n">s2</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&apos;_&apos;</span><span class="p">,</span> <span class="n">expand</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="gr">Out[19]: </span>
+<span class="go">     0     1     2</span>
+<span class="go">0    a     b     c</span>
+<span class="go">1    c     d     e</span>
+<span class="go">2  NaN  None  None</span>
+<span class="go">3    f     g     h</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-73">也可以限制分割数：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [20]: </span><span class="n">s2</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&apos;_&apos;</span><span class="p">,</span> <span class="n">expand</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="gr">Out[20]: </span>
+<span class="go">     0     1</span>
+<span class="go">0    a   b_c</span>
+<span class="go">1    c   d_e</span>
+<span class="go">2  NaN  None</span>
+<span class="go">3    f   g_h</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-74"><code class="docutils literal"><span class="pre">rsplit</span></code>类似于<code class="docutils literal"><span class="pre">split</span></code>，除了它在反向工作，即从字符串的末尾到字符串的开头：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [21]: </span><span class="n">s2</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">rsplit</span><span class="p">(</span><span class="s1">&apos;_&apos;</span><span class="p">,</span> <span class="n">expand</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="gr">Out[21]: </span>
+<span class="go">     0     1</span>
+<span class="go">0  a_b     c</span>
+<span class="go">1  c_d     e</span>
+<span class="go">2  NaN  None</span>
+<span class="go">3  f_g     h</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-75">类似<code class="docutils literal"><span class="pre">replace</span></code>和<code class="docutils literal"><span class="pre">findall</span></code>的方法也可以使用<a class="reference external" href="https://docs.python.org/2/library/re.html">正则表达式</a>：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [22]: </span><span class="n">s3</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">([</span><span class="s1">&apos;A&apos;</span><span class="p">,</span> <span class="s1">&apos;B&apos;</span><span class="p">,</span> <span class="s1">&apos;C&apos;</span><span class="p">,</span> <span class="s1">&apos;Aaba&apos;</span><span class="p">,</span> <span class="s1">&apos;Baca&apos;</span><span class="p">,</span>
+<span class="gp">   ....:</span>                <span class="s1">&apos;&apos;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="s1">&apos;CABA&apos;</span><span class="p">,</span> <span class="s1">&apos;dog&apos;</span><span class="p">,</span> <span class="s1">&apos;cat&apos;</span><span class="p">])</span>
+<span class="gp">   ....:</span> 
+
+<span class="gp">In [23]: </span><span class="n">s3</span>
+<span class="gr">Out[23]: </span>
+<span class="go">0       A</span>
+<span class="go">1       B</span>
+<span class="go">2       C</span>
+<span class="go">3    Aaba</span>
+<span class="go">4    Baca</span>
+<span class="go">5        </span>
+<span class="go">6     NaN</span>
+<span class="go">7    CABA</span>
+<span class="go">8     dog</span>
+<span class="go">9     cat</span>
+<span class="go">dtype: object</span>
+
+<span class="gp">In [24]: </span><span class="n">s3</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&apos;^.a|dog&apos;</span><span class="p">,</span> <span class="s1">&apos;XX-XX &apos;</span><span class="p">,</span> <span class="n">case</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="gr">Out[24]: </span>
+<span class="go">0           A</span>
+<span class="go">1           B</span>
+<span class="go">2           C</span>
+<span class="go">3    XX-XX ba</span>
+<span class="go">4    XX-XX ca</span>
+<span class="go">5            </span>
+<span class="go">6         NaN</span>
+<span class="go">7    XX-XX BA</span>
+<span class="go">8      XX-XX </span>
+<span class="go">9     XX-XX t</span>
+<span class="go">dtype: object</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-76">必须注意保持正则表达式！</span><span class="yiyi-st" id="yiyi-77">例如，以下代码会因为<cite>$</cite>的正则表达式含义而导致麻烦：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="c"># Consider the following badly formatted financial data</span>
+<span class="gp">In [25]: </span><span class="n">dollars</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">([</span><span class="s1">&apos;12&apos;</span><span class="p">,</span> <span class="s1">&apos;-$10&apos;</span><span class="p">,</span> <span class="s1">&apos;$10,000&apos;</span><span class="p">])</span>
+
+<span class="c"># This does what you&apos;d naively expect:</span>
+<span class="gp">In [26]: </span><span class="n">dollars</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&apos;$&apos;</span><span class="p">,</span> <span class="s1">&apos;&apos;</span><span class="p">)</span>
+<span class="gr">Out[26]: </span>
+<span class="go">0        12</span>
+<span class="go">1       -10</span>
+<span class="go">2    10,000</span>
+<span class="go">dtype: object</span>
+
+<span class="c"># But this doesn&apos;t:</span>
+<span class="gp">In [27]: </span><span class="n">dollars</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&apos;-$&apos;</span><span class="p">,</span> <span class="s1">&apos;-&apos;</span><span class="p">)</span>
+<span class="gr">Out[27]: </span>
+<span class="go">0         12</span>
+<span class="go">1       -$10</span>
+<span class="go">2    $10,000</span>
+<span class="go">dtype: object</span>
+
+<span class="c"># We need to escape the special character (for &gt;1 len patterns)</span>
+<span class="gp">In [28]: </span><span class="n">dollars</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">r&apos;-\$&apos;</span><span class="p">,</span> <span class="s1">&apos;-&apos;</span><span class="p">)</span>
+<span class="gr">Out[28]: </span>
+<span class="go">0         12</span>
+<span class="go">1        -10</span>
+<span class="go">2    $10,000</span>
+<span class="go">dtype: object</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="indexing-with-str">
+<h2><span class="yiyi-st" id="yiyi-78">Indexing with <code class="docutils literal"><span class="pre">.str</span></code></span></h2>
+<p id="text-indexing"><span class="yiyi-st" id="yiyi-79">您可以使用<code class="docutils literal"><span class="pre">[]</span></code>表示法直接通过位置位置索引。</span><span class="yiyi-st" id="yiyi-80">如果索引超过字符串的末尾，结果将是<code class="docutils literal"><span class="pre">NaN</span></code>。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [29]: </span><span class="n">s</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">([</span><span class="s1">&apos;A&apos;</span><span class="p">,</span> <span class="s1">&apos;B&apos;</span><span class="p">,</span> <span class="s1">&apos;C&apos;</span><span class="p">,</span> <span class="s1">&apos;Aaba&apos;</span><span class="p">,</span> <span class="s1">&apos;Baca&apos;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span>
+<span class="gp">   ....:</span>                <span class="s1">&apos;CABA&apos;</span><span class="p">,</span> <span class="s1">&apos;dog&apos;</span><span class="p">,</span> <span class="s1">&apos;cat&apos;</span><span class="p">])</span>
+<span class="gp">   ....:</span> 
+
+<span class="gp">In [30]: </span><span class="n">s</span><span class="o">.</span><span class="n">str</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="gr">Out[30]: </span>
+<span class="go">0      A</span>
+<span class="go">1      B</span>
+<span class="go">2      C</span>
+<span class="go">3      A</span>
+<span class="go">4      B</span>
+<span class="go">5    NaN</span>
+<span class="go">6      C</span>
+<span class="go">7      d</span>
+<span class="go">8      c</span>
+<span class="go">dtype: object</span>
+
+<span class="gp">In [31]: </span><span class="n">s</span><span class="o">.</span><span class="n">str</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+<span class="gr">Out[31]: </span>
+<span class="go">0    NaN</span>
+<span class="go">1    NaN</span>
+<span class="go">2    NaN</span>
+<span class="go">3      a</span>
+<span class="go">4      a</span>
+<span class="go">5    NaN</span>
+<span class="go">6      A</span>
+<span class="go">7      o</span>
+<span class="go">8      a</span>
+<span class="go">dtype: object</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="extracting-substrings">
+<h2><span class="yiyi-st" id="yiyi-81">Extracting Substrings</span></h2>
+<div class="section" id="extract-first-match-in-each-subject-extract">
+<span id="text-extract"></span><h3><span class="yiyi-st" id="yiyi-82">Extract first match in each subject (extract)</span></h3>
+<div class="versionadded">
+<p><span class="yiyi-st" id="yiyi-83"><span class="versionmodified">版本0.13.0中的新功能。</span></span></p>
+</div>
+<div class="admonition warning">
+<p class="first admonition-title"><span class="yiyi-st" id="yiyi-84">警告</span></p>
+<p class="last"><span class="yiyi-st" id="yiyi-85">在版本0.18.0中，<code class="docutils literal"><span class="pre">extract</span></code>获得了<code class="docutils literal"><span class="pre">expand</span></code>参数。</span><span class="yiyi-st" id="yiyi-86">当<code class="docutils literal"><span class="pre">expand=False</span></code>时，根据主题和正则表达式模式，它返回<code class="docutils literal"><span class="pre">Series</span></code>，<code class="docutils literal"><span class="pre">Index</span></code>或<code class="docutils literal"><span class="pre">DataFrame</span></code> （与0.18.0之前的行为相同）。</span><span class="yiyi-st" id="yiyi-87">当<code class="docutils literal"><span class="pre">expand=True</span></code>时，它始终返回一个<code class="docutils literal"><span class="pre">DataFrame</span></code>，这从用户的角度来看更一致，更少混淆。</span></p>
+</div>
+<p><span class="yiyi-st" id="yiyi-88"><code class="docutils literal"><span class="pre">extract</span></code>方法接受具有至少一个捕获组的<a class="reference external" href="https://docs.python.org/2/library/re.html">正则表达式</a>。</span></p>
+<p><span class="yiyi-st" id="yiyi-89">使用多个组提取正则表达式会返回每个组一个列的DataFrame。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [32]: </span><span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">([</span><span class="s1">&apos;a1&apos;</span><span class="p">,</span> <span class="s1">&apos;b2&apos;</span><span class="p">,</span> <span class="s1">&apos;c3&apos;</span><span class="p">])</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">extract</span><span class="p">(</span><span class="s1">&apos;([ab])(\d)&apos;</span><span class="p">,</span> <span class="n">expand</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="gr">Out[32]: </span>
+<span class="go">     0    1</span>
+<span class="go">0    a    1</span>
+<span class="go">1    b    2</span>
+<span class="go">2  NaN  NaN</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-90">不匹配的元素返回填充有<code class="docutils literal"><span class="pre">NaN</span></code>的行。</span><span class="yiyi-st" id="yiyi-91">因此，一系列乱码字符串可以被“转换”为清理过的或更有用的字符串的索引相同的系列或数据帧，而不需要<code class="docutils literal"><span class="pre">get()</span></code>来访问元组或<code class="docutils literal"><span class="pre">re.match</span></code>对象。</span><span class="yiyi-st" id="yiyi-92">结果的dtype始终为对象，即使未找到匹配项，结果只包含<code class="docutils literal"><span class="pre">NaN</span></code>。</span></p>
+<p><span class="yiyi-st" id="yiyi-93">命名组喜欢</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [33]: </span><span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">([</span><span class="s1">&apos;a1&apos;</span><span class="p">,</span> <span class="s1">&apos;b2&apos;</span><span class="p">,</span> <span class="s1">&apos;c3&apos;</span><span class="p">])</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">extract</span><span class="p">(</span><span class="s1">&apos;(?P&lt;letter&gt;[ab])(?P&lt;digit&gt;\d)&apos;</span><span class="p">,</span> <span class="n">expand</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="gr">Out[33]: </span>
+<span class="go">  letter digit</span>
+<span class="go">0      a     1</span>
+<span class="go">1      b     2</span>
+<span class="go">2    NaN   NaN</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-94">和可选组</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [34]: </span><span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">([</span><span class="s1">&apos;a1&apos;</span><span class="p">,</span> <span class="s1">&apos;b2&apos;</span><span class="p">,</span> <span class="s1">&apos;3&apos;</span><span class="p">])</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">extract</span><span class="p">(</span><span class="s1">&apos;([ab])?(\d)&apos;</span><span class="p">,</span> <span class="n">expand</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="gr">Out[34]: </span>
+<span class="go">     0  1</span>
+<span class="go">0    a  1</span>
+<span class="go">1    b  2</span>
+<span class="go">2  NaN  3</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-95">也可以使用。</span><span class="yiyi-st" id="yiyi-96">请注意，正则表达式中的任何捕获组名称都将用于列名称；否则将使用捕获组编号。</span></p>
+<p><span class="yiyi-st" id="yiyi-97">如果<code class="docutils literal"><span class="pre">expand=True</span></code>，则提取具有一个组的正则表达式将返回一个具有一列的<code class="docutils literal"><span class="pre">DataFrame</span></code>。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [35]: </span><span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">([</span><span class="s1">&apos;a1&apos;</span><span class="p">,</span> <span class="s1">&apos;b2&apos;</span><span class="p">,</span> <span class="s1">&apos;c3&apos;</span><span class="p">])</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">extract</span><span class="p">(</span><span class="s1">&apos;[ab](\d)&apos;</span><span class="p">,</span> <span class="n">expand</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="gr">Out[35]: </span>
+<span class="go">     0</span>
+<span class="go">0    1</span>
+<span class="go">1    2</span>
+<span class="go">2  NaN</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-98">如果<code class="docutils literal"><span class="pre">expand=False</span></code>，则返回一个系列。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [36]: </span><span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">([</span><span class="s1">&apos;a1&apos;</span><span class="p">,</span> <span class="s1">&apos;b2&apos;</span><span class="p">,</span> <span class="s1">&apos;c3&apos;</span><span class="p">])</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">extract</span><span class="p">(</span><span class="s1">&apos;[ab](\d)&apos;</span><span class="p">,</span> <span class="n">expand</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="gr">Out[36]: </span>
+<span class="go">0      1</span>
+<span class="go">1      2</span>
+<span class="go">2    NaN</span>
+<span class="go">dtype: object</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-99">调用具有正好一个捕获组的正则表达式的<code class="docutils literal"><span class="pre">Index</span></code>，如果<code class="docutils literal"><span class="pre">expand=True</span></code>，则返回一个具有一列的<code class="docutils literal"><span class="pre">DataFrame</span></code></span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [37]: </span><span class="n">s</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">([</span><span class="s2">&quot;a1&quot;</span><span class="p">,</span> <span class="s2">&quot;b2&quot;</span><span class="p">,</span> <span class="s2">&quot;c3&quot;</span><span class="p">],</span> <span class="p">[</span><span class="s2">&quot;A11&quot;</span><span class="p">,</span> <span class="s2">&quot;B22&quot;</span><span class="p">,</span> <span class="s2">&quot;C33&quot;</span><span class="p">])</span>
+
+<span class="gp">In [38]: </span><span class="n">s</span>
+<span class="gr">Out[38]: </span>
+<span class="go">A11    a1</span>
+<span class="go">B22    b2</span>
+<span class="go">C33    c3</span>
+<span class="go">dtype: object</span>
+
+<span class="gp">In [39]: </span><span class="n">s</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">extract</span><span class="p">(</span><span class="s2">&quot;(?P&lt;letter&gt;[a-zA-Z])&quot;</span><span class="p">,</span> <span class="n">expand</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="gr">Out[39]: </span>
+<span class="go">  letter</span>
+<span class="go">0      A</span>
+<span class="go">1      B</span>
+<span class="go">2      C</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-100">如果<code class="docutils literal"><span class="pre">expand=False</span></code>，则返回<code class="docutils literal"><span class="pre">Index</span></code>。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [40]: </span><span class="n">s</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">extract</span><span class="p">(</span><span class="s2">&quot;(?P&lt;letter&gt;[a-zA-Z])&quot;</span><span class="p">,</span> <span class="n">expand</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="gr">Out[40]: </span><span class="n">Index</span><span class="p">([</span><span class="s1">u&apos;A&apos;</span><span class="p">,</span> <span class="s1">u&apos;B&apos;</span><span class="p">,</span> <span class="s1">u&apos;C&apos;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&apos;object&apos;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">u&apos;letter&apos;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-101">使用具有多个捕获组的正则表达式调用<code class="docutils literal"><span class="pre">Index</span></code>，如果<code class="docutils literal"><span class="pre">expand=True</span></code>，则会返回<code class="docutils literal"><span class="pre">DataFrame</span></code>。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [41]: </span><span class="n">s</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">extract</span><span class="p">(</span><span class="s2">&quot;(?P&lt;letter&gt;[a-zA-Z])([0-9]+)&quot;</span><span class="p">,</span> <span class="n">expand</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="gr">Out[41]: </span>
+<span class="go">  letter   1</span>
+<span class="go">0      A  11</span>
+<span class="go">1      B  22</span>
+<span class="go">2      C  33</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-102">如果<code class="docutils literal"><span class="pre">expand=False</span></code>，则会引发<code class="docutils literal"><span class="pre">ValueError</span></code>。</span></p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">extract</span><span class="p">(</span><span class="s2">&quot;(?P&lt;letter&gt;[a-zA-Z])([0-9]+)&quot;</span><span class="p">,</span> <span class="n">expand</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="go">ValueError: only one regex group is supported with Index</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-103">下表总结了<code class="docutils literal"><span class="pre">extract(expand=False)</span></code>（第一列中的输入主题，第一行中正则表达式中的组数）</span></p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="28%">
+<col width="31%">
+<col width="41%">
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td>&#xA0;</td>
+<td><span class="yiyi-st" id="yiyi-104">1组</span></td>
+<td><span class="yiyi-st" id="yiyi-105">&gt; 1组</span></td>
+</tr>
+<tr class="row-even"><td><span class="yiyi-st" id="yiyi-106">指数</span></td>
+<td><span class="yiyi-st" id="yiyi-107">指数</span></td>
+<td><span class="yiyi-st" id="yiyi-108">ValueError</span></td>
+</tr>
+<tr class="row-odd"><td><span class="yiyi-st" id="yiyi-109">系列</span></td>
+<td><span class="yiyi-st" id="yiyi-110">系列</span></td>
+<td><span class="yiyi-st" id="yiyi-111">DataFrame</span></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="extract-all-matches-in-each-subject-extractall">
+<h3><span class="yiyi-st" id="yiyi-112">Extract all matches in each subject (extractall)</span></h3>
+<div class="versionadded" id="text-extractall">
+<p><span class="yiyi-st" id="yiyi-113"><span class="versionmodified">版本0.18.0中的新功能。</span></span></p>
+</div>
+<p><span class="yiyi-st" id="yiyi-114">与<code class="docutils literal"><span class="pre">extract</span></code>（仅返回第一个匹配项）不同，</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [42]: </span><span class="n">s</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">([</span><span class="s2">&quot;a1a2&quot;</span><span class="p">,</span> <span class="s2">&quot;b1&quot;</span><span class="p">,</span> <span class="s2">&quot;c1&quot;</span><span class="p">],</span> <span class="n">index</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;A&quot;</span><span class="p">,</span> <span class="s2">&quot;B&quot;</span><span class="p">,</span> <span class="s2">&quot;C&quot;</span><span class="p">])</span>
+
+<span class="gp">In [43]: </span><span class="n">s</span>
+<span class="gr">Out[43]: </span>
+<span class="go">A    a1a2</span>
+<span class="go">B      b1</span>
+<span class="go">C      c1</span>
+<span class="go">dtype: object</span>
+
+<span class="gp">In [44]: </span><span class="n">two_groups</span> <span class="o">=</span> <span class="s1">&apos;(?P&lt;letter&gt;[a-z])(?P&lt;digit&gt;[0-9])&apos;</span>
+
+<span class="gp">In [45]: </span><span class="n">s</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">extract</span><span class="p">(</span><span class="n">two_groups</span><span class="p">,</span> <span class="n">expand</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="gr">Out[45]: </span>
+<span class="go">  letter digit</span>
+<span class="go">A      a     1</span>
+<span class="go">B      b     1</span>
+<span class="go">C      c     1</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-115"><code class="docutils literal"><span class="pre">extractall</span></code>方法返回每个匹配。</span><span class="yiyi-st" id="yiyi-116"><code class="docutils literal"><span class="pre">extractall</span></code>的结果始终是其行上具有<code class="docutils literal"><span class="pre">MultiIndex</span></code>的<code class="docutils literal"><span class="pre">DataFrame</span></code>。</span><span class="yiyi-st" id="yiyi-117"><code class="docutils literal"><span class="pre">MultiIndex</span></code>的最后一个级别命名为<code class="docutils literal"><span class="pre">match</span></code>，并指示主题中的顺序。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [46]: </span><span class="n">s</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">extractall</span><span class="p">(</span><span class="n">two_groups</span><span class="p">)</span>
+<span class="gr">Out[46]: </span>
+<span class="go">        letter digit</span>
+<span class="go">  match             </span>
+<span class="go">A 0          a     1</span>
+<span class="go">  1          a     2</span>
+<span class="go">B 0          b     1</span>
+<span class="go">C 0          c     1</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-118">当系列中的每个主题字符串完全匹配一个时，</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [47]: </span><span class="n">s</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">([</span><span class="s1">&apos;a3&apos;</span><span class="p">,</span> <span class="s1">&apos;b3&apos;</span><span class="p">,</span> <span class="s1">&apos;c2&apos;</span><span class="p">])</span>
+
+<span class="gp">In [48]: </span><span class="n">s</span>
+<span class="gr">Out[48]: </span>
+<span class="go">0    a3</span>
+<span class="go">1    b3</span>
+<span class="go">2    c2</span>
+<span class="go">dtype: object</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-119">then <code class="docutils literal"><span class="pre">extractall(pat).xs(0,</span> <span class="pre">level=&apos;match&apos;)</span></code> gives the same result as <code class="docutils literal"><span class="pre">extract(pat)</span></code>.</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [49]: </span><span class="n">extract_result</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">extract</span><span class="p">(</span><span class="n">two_groups</span><span class="p">,</span> <span class="n">expand</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+<span class="gp">In [50]: </span><span class="n">extract_result</span>
+<span class="gr">Out[50]: </span>
+<span class="go">  letter digit</span>
+<span class="go">0      a     3</span>
+<span class="go">1      b     3</span>
+<span class="go">2      c     2</span>
+
+<span class="gp">In [51]: </span><span class="n">extractall_result</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">extractall</span><span class="p">(</span><span class="n">two_groups</span><span class="p">)</span>
+
+<span class="gp">In [52]: </span><span class="n">extractall_result</span>
+<span class="gr">Out[52]: </span>
+<span class="go">        letter digit</span>
+<span class="go">  match             </span>
+<span class="go">0 0          a     3</span>
+<span class="go">1 0          b     3</span>
+<span class="go">2 0          c     2</span>
+
+<span class="gp">In [53]: </span><span class="n">extractall_result</span><span class="o">.</span><span class="n">xs</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="s2">&quot;match&quot;</span><span class="p">)</span>
+<span class="gr">Out[53]: </span>
+<span class="go">  letter digit</span>
+<span class="go">0      a     3</span>
+<span class="go">1      b     3</span>
+<span class="go">2      c     2</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-120"><code class="docutils literal"><span class="pre">Index</span></code>也支持<code class="docutils literal"><span class="pre">.str.extractall</span></code>。</span><span class="yiyi-st" id="yiyi-121">它返回一个<code class="docutils literal"><span class="pre">DataFrame</span></code>，其结果与具有默认索引（从0开始）的<code class="docutils literal"><span class="pre">Series.str.extractall</span></code>相同。</span></p>
+<div class="versionadded">
+<p><span class="yiyi-st" id="yiyi-122"><span class="versionmodified">版本0.19.0中的新功能。</span></span></p>
+</div>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [54]: </span><span class="n">pd</span><span class="o">.</span><span class="n">Index</span><span class="p">([</span><span class="s2">&quot;a1a2&quot;</span><span class="p">,</span> <span class="s2">&quot;b1&quot;</span><span class="p">,</span> <span class="s2">&quot;c1&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">extractall</span><span class="p">(</span><span class="n">two_groups</span><span class="p">)</span>
+<span class="gr">Out[54]: </span>
+<span class="go">        letter digit</span>
+<span class="go">  match             </span>
+<span class="go">0 0          a     1</span>
+<span class="go">  1          a     2</span>
+<span class="go">1 0          b     1</span>
+<span class="go">2 0          c     1</span>
+
+<span class="gp">In [55]: </span><span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">([</span><span class="s2">&quot;a1a2&quot;</span><span class="p">,</span> <span class="s2">&quot;b1&quot;</span><span class="p">,</span> <span class="s2">&quot;c1&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">extractall</span><span class="p">(</span><span class="n">two_groups</span><span class="p">)</span>
+<span class="gr">Out[55]: </span>
+<span class="go">        letter digit</span>
+<span class="go">  match             </span>
+<span class="go">0 0          a     1</span>
+<span class="go">  1          a     2</span>
+<span class="go">1 0          b     1</span>
+<span class="go">2 0          c     1</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="testing-for-strings-that-match-or-contain-a-pattern">
+<h2><span class="yiyi-st" id="yiyi-123">Testing for Strings that Match or Contain a Pattern</span></h2>
+<p><span class="yiyi-st" id="yiyi-124">您可以检查元素是否包含模式：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [56]: </span><span class="n">pattern</span> <span class="o">=</span> <span class="s1">r&apos;[a-z][0-9]&apos;</span>
+
+<span class="gp">In [57]: </span><span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">([</span><span class="s1">&apos;1&apos;</span><span class="p">,</span> <span class="s1">&apos;2&apos;</span><span class="p">,</span> <span class="s1">&apos;3a&apos;</span><span class="p">,</span> <span class="s1">&apos;3b&apos;</span><span class="p">,</span> <span class="s1">&apos;03c&apos;</span><span class="p">])</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">contains</span><span class="p">(</span><span class="n">pattern</span><span class="p">)</span>
+<span class="gr">Out[57]: </span>
+<span class="go">0    False</span>
+<span class="go">1    False</span>
+<span class="go">2    False</span>
+<span class="go">3    False</span>
+<span class="go">4    False</span>
+<span class="go">dtype: bool</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-125">或匹配模式：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [58]: </span><span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">([</span><span class="s1">&apos;1&apos;</span><span class="p">,</span> <span class="s1">&apos;2&apos;</span><span class="p">,</span> <span class="s1">&apos;3a&apos;</span><span class="p">,</span> <span class="s1">&apos;3b&apos;</span><span class="p">,</span> <span class="s1">&apos;03c&apos;</span><span class="p">])</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">pattern</span><span class="p">,</span> <span class="n">as_indexer</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="gr">Out[58]: </span>
+<span class="go">0    False</span>
+<span class="go">1    False</span>
+<span class="go">2    False</span>
+<span class="go">3    False</span>
+<span class="go">4    False</span>
+<span class="go">dtype: bool</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-126"><code class="docutils literal"><span class="pre">match</span></code>和<code class="docutils literal"><span class="pre">contains</span></code>是strictness：<code class="docutils literal"><span class="pre">match</span></code>依赖于strict <code class="docutils literal"><span class="pre">re.match</span></code>，而<code class="docutils literal"><span class="pre">contains</span></code>依赖于<code class="docutils literal"><span class="pre">re.search</span></code>。</span></p>
+<div class="admonition warning">
+<p class="first admonition-title"><span class="yiyi-st" id="yiyi-127">警告</span></p>
+<p><span class="yiyi-st" id="yiyi-128">在先前版本中，<code class="docutils literal"><span class="pre">match</span></code>用于<em>提取</em>组，返回不那么方便的系列元组。</span><span class="yiyi-st" id="yiyi-129">现在优选新方法<code class="docutils literal"><span class="pre">extract</span></code>（在上一部分中描述）。</span></p>
+<p class="last"><span class="yiyi-st" id="yiyi-130"><code class="docutils literal"><span class="pre">match</span></code>的旧的，已弃用的行为仍是默认行为。</span><span class="yiyi-st" id="yiyi-131">如上所述，通过设置<code class="docutils literal"><span class="pre">as_indexer=True</span></code>来使用新的行为。</span><span class="yiyi-st" id="yiyi-132">在此模式下，<code class="docutils literal"><span class="pre">match</span></code>类似于<code class="docutils literal"><span class="pre">contains</span></code>，返回一个布尔系列。</span><span class="yiyi-st" id="yiyi-133">新行为将成为未来版本中的默认行为。</span></p>
+</div>
+<dl class="docutils">
+<dt><span class="yiyi-st" id="yiyi-134"><code class="docutils literal"><span class="pre">match</span></code>，<code class="docutils literal"><span class="pre">contains</span></code>，<code class="docutils literal"><span class="pre">startswith</span></code>和<code class="docutils literal"><span class="pre">endswith</span></code> take</span></dt>
+<dd><span class="yiyi-st" id="yiyi-135">额外的<code class="docutils literal"><span class="pre">na</span></code>参数，因此缺少的值可以被视为True或False：</span></dd>
+</dl>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [59]: </span><span class="n">s4</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">([</span><span class="s1">&apos;A&apos;</span><span class="p">,</span> <span class="s1">&apos;B&apos;</span><span class="p">,</span> <span class="s1">&apos;C&apos;</span><span class="p">,</span> <span class="s1">&apos;Aaba&apos;</span><span class="p">,</span> <span class="s1">&apos;Baca&apos;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="s1">&apos;CABA&apos;</span><span class="p">,</span> <span class="s1">&apos;dog&apos;</span><span class="p">,</span> <span class="s1">&apos;cat&apos;</span><span class="p">])</span>
+
+<span class="gp">In [60]: </span><span class="n">s4</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">contains</span><span class="p">(</span><span class="s1">&apos;A&apos;</span><span class="p">,</span> <span class="n">na</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="gr">Out[60]: </span>
+<span class="go">0     True</span>
+<span class="go">1    False</span>
+<span class="go">2    False</span>
+<span class="go">3     True</span>
+<span class="go">4    False</span>
+<span class="go">5    False</span>
+<span class="go">6     True</span>
+<span class="go">7    False</span>
+<span class="go">8    False</span>
+<span class="go">dtype: bool</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="creating-indicator-variables">
+<span id="text-indicator"></span><h2><span class="yiyi-st" id="yiyi-136">Creating Indicator Variables</span></h2>
+<p><span class="yiyi-st" id="yiyi-137">您可以从字符串列中提取虚拟变量。</span><span class="yiyi-st" id="yiyi-138">例如，如果它们由<code class="docutils literal"><span class="pre">&apos;|&apos;</span></code>分隔：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [61]: </span><span class="n">s</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">([</span><span class="s1">&apos;a&apos;</span><span class="p">,</span> <span class="s1">&apos;a|b&apos;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="s1">&apos;a|c&apos;</span><span class="p">])</span>
+
+<span class="gp">In [62]: </span><span class="n">s</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">get_dummies</span><span class="p">(</span><span class="n">sep</span><span class="o">=</span><span class="s1">&apos;|&apos;</span><span class="p">)</span>
+<span class="gr">Out[62]: </span>
+<span class="go">   a  b  c</span>
+<span class="go">0  1  0  0</span>
+<span class="go">1  1  1  0</span>
+<span class="go">2  0  0  0</span>
+<span class="go">3  1  0  1</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-139">字符串<code class="docutils literal"><span class="pre">Index</span></code>还支持<code class="docutils literal"><span class="pre">get_dummies</span></code>，它返回<code class="docutils literal"><span class="pre">MultiIndex</span></code>。</span></p>
+<div class="versionadded">
+<p><span class="yiyi-st" id="yiyi-140"><span class="versionmodified">版本0.18.1中的新功能。</span></span></p>
+</div>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [63]: </span><span class="n">idx</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Index</span><span class="p">([</span><span class="s1">&apos;a&apos;</span><span class="p">,</span> <span class="s1">&apos;a|b&apos;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="s1">&apos;a|c&apos;</span><span class="p">])</span>
+
+<span class="gp">In [64]: </span><span class="n">idx</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">get_dummies</span><span class="p">(</span><span class="n">sep</span><span class="o">=</span><span class="s1">&apos;|&apos;</span><span class="p">)</span>
+<span class="gr">Out[64]: </span>
+<span class="go">MultiIndex(levels=[[0, 1], [0, 1], [0, 1]],</span>
+<span class="go">           labels=[[1, 1, 0, 1], [0, 1, 0, 0], [0, 0, 0, 1]],</span>
+<span class="go">           names=[u&apos;a&apos;, u&apos;b&apos;, u&apos;c&apos;])</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-141">另请参见<a class="reference internal" href="generated/pandas.get_dummies.html#pandas.get_dummies" title="pandas.get_dummies"><code class="xref py py-func docutils literal"><span class="pre">get_dummies()</span></code></a>。</span></p>
+</div>
+<div class="section" id="method-summary">
+<h2><span class="yiyi-st" id="yiyi-142">Method Summary</span></h2>
+<table border="1" class="docutils" id="text-summary">
+<colgroup>
+<col width="20%">
+<col width="80%">
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head"><span class="yiyi-st" id="yiyi-143">方法</span></th>
+<th class="head"><span class="yiyi-st" id="yiyi-144">描述</span></th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><span class="yiyi-st" id="yiyi-145"><a class="reference internal" href="generated/pandas.Series.str.cat.html#pandas.Series.str.cat" title="pandas.Series.str.cat"><code class="xref py py-meth docutils literal"><span class="pre">cat()</span></code></a></span></td>
+<td><span class="yiyi-st" id="yiyi-146">串联字符串</span></td>
+</tr>
+<tr class="row-odd"><td><span class="yiyi-st" id="yiyi-147"><a class="reference internal" href="generated/pandas.Series.str.split.html#pandas.Series.str.split" title="pandas.Series.str.split"><code class="xref py py-meth docutils literal"><span class="pre">split()</span></code></a></span></td>
+<td><span class="yiyi-st" id="yiyi-148">拆分分隔符上的字符串</span></td>
+</tr>
+<tr class="row-even"><td><span class="yiyi-st" id="yiyi-149"><a class="reference internal" href="generated/pandas.Series.str.rsplit.html#pandas.Series.str.rsplit" title="pandas.Series.str.rsplit"><code class="xref py py-meth docutils literal"><span class="pre">rsplit()</span></code></a></span></td>
+<td><span class="yiyi-st" id="yiyi-150">从字符串末尾拆分分隔符上的字符串</span></td>
+</tr>
+<tr class="row-odd"><td><span class="yiyi-st" id="yiyi-151"><a class="reference internal" href="generated/pandas.Series.str.get.html#pandas.Series.str.get" title="pandas.Series.str.get"><code class="xref py py-meth docutils literal"><span class="pre">get()</span></code></a></span></td>
+<td><span class="yiyi-st" id="yiyi-152">索引到每个元素（检索第i个元素）</span></td>
+</tr>
+<tr class="row-even"><td><span class="yiyi-st" id="yiyi-153"><a class="reference internal" href="generated/pandas.Series.str.join.html#pandas.Series.str.join" title="pandas.Series.str.join"><code class="xref py py-meth docutils literal"><span class="pre">join()</span></code></a></span></td>
+<td><span class="yiyi-st" id="yiyi-154">使用传递的分隔符在系列的每个元素中连接字符串</span></td>
+</tr>
+<tr class="row-odd"><td><span class="yiyi-st" id="yiyi-155"><a class="reference internal" href="generated/pandas.Series.str.get_dummies.html#pandas.Series.str.get_dummies" title="pandas.Series.str.get_dummies"><code class="xref py py-meth docutils literal"><span class="pre">get_dummies()</span></code></a></span></td>
+<td><span class="yiyi-st" id="yiyi-156">在分隔符上分割字符串，返回虚拟变量的DataFrame</span></td>
+</tr>
+<tr class="row-even"><td><span class="yiyi-st" id="yiyi-157"><a class="reference internal" href="generated/pandas.Series.str.contains.html#pandas.Series.str.contains" title="pandas.Series.str.contains"><code class="xref py py-meth docutils literal"><span class="pre">contains()</span></code></a></span></td>
+<td><span class="yiyi-st" id="yiyi-158">如果每个字符串包含pattern / regex，则返回布尔数组</span></td>
+</tr>
+<tr class="row-odd"><td><span class="yiyi-st" id="yiyi-159"><a class="reference internal" href="generated/pandas.Series.str.replace.html#pandas.Series.str.replace" title="pandas.Series.str.replace"><code class="xref py py-meth docutils literal"><span class="pre">replace()</span></code></a></span></td>
+<td><span class="yiyi-st" id="yiyi-160">用一些其他字符串替换模式/正则表达式的出现</span></td>
+</tr>
+<tr class="row-even"><td><span class="yiyi-st" id="yiyi-161"><a class="reference internal" href="generated/pandas.Series.str.repeat.html#pandas.Series.str.repeat" title="pandas.Series.str.repeat"><code class="xref py py-meth docutils literal"><span class="pre">repeat()</span></code></a></span></td>
+<td><span class="yiyi-st" id="yiyi-162">重复的值（<code class="docutils literal"><span class="pre">s.str.repeat(3)</span></code>等效于<code class="docutils literal"><span class="pre">x</span> <span class="pre">*</span> <span class="pre">3</span>  t2 &gt;）</code></span></td>
+</tr>
+<tr class="row-odd"><td><span class="yiyi-st" id="yiyi-163"><a class="reference internal" href="generated/pandas.Series.str.pad.html#pandas.Series.str.pad" title="pandas.Series.str.pad"><code class="xref py py-meth docutils literal"><span class="pre">pad()</span></code></a></span></td>
+<td><span class="yiyi-st" id="yiyi-164">向字符串的左侧，右侧或两侧添加空格</span></td>
+</tr>
+<tr class="row-even"><td><span class="yiyi-st" id="yiyi-165"><a class="reference internal" href="generated/pandas.Series.str.center.html#pandas.Series.str.center" title="pandas.Series.str.center"><code class="xref py py-meth docutils literal"><span class="pre">center()</span></code></a></span></td>
+<td><span class="yiyi-st" id="yiyi-166">等效于<code class="docutils literal"><span class="pre">str.center</span></code></span></td>
+</tr>
+<tr class="row-odd"><td><span class="yiyi-st" id="yiyi-167"><a class="reference internal" href="generated/pandas.Series.str.ljust.html#pandas.Series.str.ljust" title="pandas.Series.str.ljust"><code class="xref py py-meth docutils literal"><span class="pre">ljust()</span></code></a></span></td>
+<td><span class="yiyi-st" id="yiyi-168">等效于<code class="docutils literal"><span class="pre">str.ljust</span></code></span></td>
+</tr>
+<tr class="row-even"><td><span class="yiyi-st" id="yiyi-169"><a class="reference internal" href="generated/pandas.Series.str.rjust.html#pandas.Series.str.rjust" title="pandas.Series.str.rjust"><code class="xref py py-meth docutils literal"><span class="pre">rjust()</span></code></a></span></td>
+<td><span class="yiyi-st" id="yiyi-170">等效于<code class="docutils literal"><span class="pre">str.rjust</span></code></span></td>
+</tr>
+<tr class="row-odd"><td><span class="yiyi-st" id="yiyi-171"><a class="reference internal" href="generated/pandas.Series.str.zfill.html#pandas.Series.str.zfill" title="pandas.Series.str.zfill"><code class="xref py py-meth docutils literal"><span class="pre">zfill()</span></code></a></span></td>
+<td><span class="yiyi-st" id="yiyi-172">等效于<code class="docutils literal"><span class="pre">str.zfill</span></code></span></td>
+</tr>
+<tr class="row-even"><td><span class="yiyi-st" id="yiyi-173"><a class="reference internal" href="generated/pandas.Series.str.wrap.html#pandas.Series.str.wrap" title="pandas.Series.str.wrap"><code class="xref py py-meth docutils literal"><span class="pre">wrap()</span></code></a></span></td>
+<td><span class="yiyi-st" id="yiyi-174">将长字符串拆分成长度小于给定宽度的行</span></td>
+</tr>
+<tr class="row-odd"><td><span class="yiyi-st" id="yiyi-175"><a class="reference internal" href="generated/pandas.Series.str.slice.html#pandas.Series.str.slice" title="pandas.Series.str.slice"><code class="xref py py-meth docutils literal"><span class="pre">slice()</span></code></a></span></td>
+<td><span class="yiyi-st" id="yiyi-176">切割系列中的每个字符串</span></td>
+</tr>
+<tr class="row-even"><td><span class="yiyi-st" id="yiyi-177"><a class="reference internal" href="generated/pandas.Series.str.slice_replace.html#pandas.Series.str.slice_replace" title="pandas.Series.str.slice_replace"><code class="xref py py-meth docutils literal"><span class="pre">slice_replace()</span></code></a></span></td>
+<td><span class="yiyi-st" id="yiyi-178">使用传递的值替换每个字符串中的slice</span></td>
+</tr>
+<tr class="row-odd"><td><span class="yiyi-st" id="yiyi-179"><a class="reference internal" href="generated/pandas.Series.str.count.html#pandas.Series.str.count" title="pandas.Series.str.count"><code class="xref py py-meth docutils literal"><span class="pre">count()</span></code></a></span></td>
+<td><span class="yiyi-st" id="yiyi-180">计算模式的出现次数</span></td>
+</tr>
+<tr class="row-even"><td><span class="yiyi-st" id="yiyi-181"><a class="reference internal" href="generated/pandas.Series.str.startswith.html#pandas.Series.str.startswith" title="pandas.Series.str.startswith"><code class="xref py py-meth docutils literal"><span class="pre">startswith()</span></code></a></span></td>
+<td><span class="yiyi-st" id="yiyi-182">对于每个元素，等于<code class="docutils literal"><span class="pre">str.startswith(pat)</span></code></span></td>
+</tr>
+<tr class="row-odd"><td><span class="yiyi-st" id="yiyi-183"><a class="reference internal" href="generated/pandas.Series.str.endswith.html#pandas.Series.str.endswith" title="pandas.Series.str.endswith"><code class="xref py py-meth docutils literal"><span class="pre">endswith()</span></code></a></span></td>
+<td><span class="yiyi-st" id="yiyi-184">对于每个元素，等于<code class="docutils literal"><span class="pre">str.endswith(pat)</span></code></span></td>
+</tr>
+<tr class="row-even"><td><span class="yiyi-st" id="yiyi-185"><a class="reference internal" href="generated/pandas.Series.str.findall.html#pandas.Series.str.findall" title="pandas.Series.str.findall"><code class="xref py py-meth docutils literal"><span class="pre">findall()</span></code></a></span></td>
+<td><span class="yiyi-st" id="yiyi-186">计算每个字符串的所有匹配模式/正则表达式的列表</span></td>
+</tr>
+<tr class="row-odd"><td><span class="yiyi-st" id="yiyi-187"><a class="reference internal" href="generated/pandas.Series.str.match.html#pandas.Series.str.match" title="pandas.Series.str.match"><code class="xref py py-meth docutils literal"><span class="pre">match()</span></code></a></span></td>
+<td><span class="yiyi-st" id="yiyi-188">在每个元素上调用<code class="docutils literal"><span class="pre">re.match</span></code>，返回匹配的组作为列表</span></td>
+</tr>
+<tr class="row-even"><td><span class="yiyi-st" id="yiyi-189"><a class="reference internal" href="generated/pandas.Series.str.extract.html#pandas.Series.str.extract" title="pandas.Series.str.extract"><code class="xref py py-meth docutils literal"><span class="pre">extract()</span></code></a></span></td>
+<td><span class="yiyi-st" id="yiyi-190">在每个元素上调用<code class="docutils literal"><span class="pre">re.search</span></code>，返回DataFrame，每个元素使用一行，每个正则表达式捕获组使用一列</span></td>
+</tr>
+<tr class="row-odd"><td><span class="yiyi-st" id="yiyi-191"><a class="reference internal" href="generated/pandas.Series.str.extractall.html#pandas.Series.str.extractall" title="pandas.Series.str.extractall"><code class="xref py py-meth docutils literal"><span class="pre">extractall()</span></code></a></span></td>
+<td><span class="yiyi-st" id="yiyi-192">在每个元素上调用<code class="docutils literal"><span class="pre">re.findall</span></code>，返回DataFrame，每个匹配包含一行，每个正则表达式捕获组包含一个列</span></td>
+</tr>
+<tr class="row-even"><td><span class="yiyi-st" id="yiyi-193"><a class="reference internal" href="generated/pandas.Series.str.len.html#pandas.Series.str.len" title="pandas.Series.str.len"><code class="xref py py-meth docutils literal"><span class="pre">len()</span></code></a></span></td>
+<td><span class="yiyi-st" id="yiyi-194">计算字符串长度</span></td>
+</tr>
+<tr class="row-odd"><td><span class="yiyi-st" id="yiyi-195"><a class="reference internal" href="generated/pandas.Series.str.strip.html#pandas.Series.str.strip" title="pandas.Series.str.strip"><code class="xref py py-meth docutils literal"><span class="pre">strip()</span></code></a></span></td>
+<td><span class="yiyi-st" id="yiyi-196">等效于<code class="docutils literal"><span class="pre">str.strip</span></code></span></td>
+</tr>
+<tr class="row-even"><td><span class="yiyi-st" id="yiyi-197"><a class="reference internal" href="generated/pandas.Series.str.rstrip.html#pandas.Series.str.rstrip" title="pandas.Series.str.rstrip"><code class="xref py py-meth docutils literal"><span class="pre">rstrip()</span></code></a></span></td>
+<td><span class="yiyi-st" id="yiyi-198">等效于<code class="docutils literal"><span class="pre">str.rstrip</span></code></span></td>
+</tr>
+<tr class="row-odd"><td><span class="yiyi-st" id="yiyi-199"><a class="reference internal" href="generated/pandas.Series.str.lstrip.html#pandas.Series.str.lstrip" title="pandas.Series.str.lstrip"><code class="xref py py-meth docutils literal"><span class="pre">lstrip()</span></code></a></span></td>
+<td><span class="yiyi-st" id="yiyi-200">等同于<code class="docutils literal"><span class="pre">str.lstrip</span></code></span></td>
+</tr>
+<tr class="row-even"><td><span class="yiyi-st" id="yiyi-201"><a class="reference internal" href="generated/pandas.Series.str.partition.html#pandas.Series.str.partition" title="pandas.Series.str.partition"><code class="xref py py-meth docutils literal"><span class="pre">partition()</span></code></a></span></td>
+<td><span class="yiyi-st" id="yiyi-202">等效于<code class="docutils literal"><span class="pre">str.partition</span></code></span></td>
+</tr>
+<tr class="row-odd"><td><span class="yiyi-st" id="yiyi-203"><a class="reference internal" href="generated/pandas.Series.str.rpartition.html#pandas.Series.str.rpartition" title="pandas.Series.str.rpartition"><code class="xref py py-meth docutils literal"><span class="pre">rpartition()</span></code></a></span></td>
+<td><span class="yiyi-st" id="yiyi-204">等效于<code class="docutils literal"><span class="pre">str.rpartition</span></code></span></td>
+</tr>
+<tr class="row-even"><td><span class="yiyi-st" id="yiyi-205"><a class="reference internal" href="generated/pandas.Series.str.lower.html#pandas.Series.str.lower" title="pandas.Series.str.lower"><code class="xref py py-meth docutils literal"><span class="pre">lower()</span></code></a></span></td>
+<td><span class="yiyi-st" id="yiyi-206">等效于<code class="docutils literal"><span class="pre">str.lower</span></code></span></td>
+</tr>
+<tr class="row-odd"><td><span class="yiyi-st" id="yiyi-207"><a class="reference internal" href="generated/pandas.Series.str.upper.html#pandas.Series.str.upper" title="pandas.Series.str.upper"><code class="xref py py-meth docutils literal"><span class="pre">upper()</span></code></a></span></td>
+<td><span class="yiyi-st" id="yiyi-208">等效于<code class="docutils literal"><span class="pre">str.upper</span></code></span></td>
+</tr>
+<tr class="row-even"><td><span class="yiyi-st" id="yiyi-209"><a class="reference internal" href="generated/pandas.Series.str.find.html#pandas.Series.str.find" title="pandas.Series.str.find"><code class="xref py py-meth docutils literal"><span class="pre">find()</span></code></a></span></td>
+<td><span class="yiyi-st" id="yiyi-210">等同于<code class="docutils literal"><span class="pre">str.find</span></code></span></td>
+</tr>
+<tr class="row-odd"><td><span class="yiyi-st" id="yiyi-211"><a class="reference internal" href="generated/pandas.Series.str.rfind.html#pandas.Series.str.rfind" title="pandas.Series.str.rfind"><code class="xref py py-meth docutils literal"><span class="pre">rfind()</span></code></a></span></td>
+<td><span class="yiyi-st" id="yiyi-212">等效于<code class="docutils literal"><span class="pre">str.rfind</span></code></span></td>
+</tr>
+<tr class="row-even"><td><span class="yiyi-st" id="yiyi-213"><a class="reference internal" href="generated/pandas.Series.str.index.html#pandas.Series.str.index" title="pandas.Series.str.index"><code class="xref py py-meth docutils literal"><span class="pre">index()</span></code></a></span></td>
+<td><span class="yiyi-st" id="yiyi-214">等效于<code class="docutils literal"><span class="pre">str.index</span></code></span></td>
+</tr>
+<tr class="row-odd"><td><span class="yiyi-st" id="yiyi-215"><a class="reference internal" href="generated/pandas.Series.str.rindex.html#pandas.Series.str.rindex" title="pandas.Series.str.rindex"><code class="xref py py-meth docutils literal"><span class="pre">rindex()</span></code></a></span></td>
+<td><span class="yiyi-st" id="yiyi-216">等效于<code class="docutils literal"><span class="pre">str.rindex</span></code></span></td>
+</tr>
+<tr class="row-even"><td><span class="yiyi-st" id="yiyi-217"><a class="reference internal" href="generated/pandas.Series.str.capitalize.html#pandas.Series.str.capitalize" title="pandas.Series.str.capitalize"><code class="xref py py-meth docutils literal"><span class="pre">capitalize()</span></code></a></span></td>
+<td><span class="yiyi-st" id="yiyi-218">等效于<code class="docutils literal"><span class="pre">str.capitalize</span></code></span></td>
+</tr>
+<tr class="row-odd"><td><span class="yiyi-st" id="yiyi-219"><a class="reference internal" href="generated/pandas.Series.str.swapcase.html#pandas.Series.str.swapcase" title="pandas.Series.str.swapcase"><code class="xref py py-meth docutils literal"><span class="pre">swapcase()</span></code></a></span></td>
+<td><span class="yiyi-st" id="yiyi-220">等效于<code class="docutils literal"><span class="pre">str.swapcase</span></code></span></td>
+</tr>
+<tr class="row-even"><td><span class="yiyi-st" id="yiyi-221"><a class="reference internal" href="generated/pandas.Series.str.normalize.html#pandas.Series.str.normalize" title="pandas.Series.str.normalize"><code class="xref py py-meth docutils literal"><span class="pre">normalize()</span></code></a></span></td>
+<td><span class="yiyi-st" id="yiyi-222">返回Unicode正常表单。</span><span class="yiyi-st" id="yiyi-223">等同于<code class="docutils literal"><span class="pre">unicodedata.normalize</span></code></span></td>
+</tr>
+<tr class="row-odd"><td><span class="yiyi-st" id="yiyi-224"><a class="reference internal" href="generated/pandas.Series.str.translate.html#pandas.Series.str.translate" title="pandas.Series.str.translate"><code class="xref py py-meth docutils literal"><span class="pre">translate()</span></code></a></span></td>
+<td><span class="yiyi-st" id="yiyi-225">等效于<code class="docutils literal"><span class="pre">str.translate</span></code></span></td>
+</tr>
+<tr class="row-even"><td><span class="yiyi-st" id="yiyi-226"><a class="reference internal" href="generated/pandas.Series.str.isalnum.html#pandas.Series.str.isalnum" title="pandas.Series.str.isalnum"><code class="xref py py-meth docutils literal"><span class="pre">isalnum()</span></code></a></span></td>
+<td><span class="yiyi-st" id="yiyi-227">等效于<code class="docutils literal"><span class="pre">str.isalnum</span></code></span></td>
+</tr>
+<tr class="row-odd"><td><span class="yiyi-st" id="yiyi-228"><a class="reference internal" href="generated/pandas.Series.str.isalpha.html#pandas.Series.str.isalpha" title="pandas.Series.str.isalpha"><code class="xref py py-meth docutils literal"><span class="pre">isalpha()</span></code></a></span></td>
+<td><span class="yiyi-st" id="yiyi-229">等效于<code class="docutils literal"><span class="pre">str.isalpha</span></code></span></td>
+</tr>
+<tr class="row-even"><td><span class="yiyi-st" id="yiyi-230"><a class="reference internal" href="generated/pandas.Series.str.isdigit.html#pandas.Series.str.isdigit" title="pandas.Series.str.isdigit"><code class="xref py py-meth docutils literal"><span class="pre">isdigit()</span></code></a></span></td>
+<td><span class="yiyi-st" id="yiyi-231">等效于<code class="docutils literal"><span class="pre">str.isdigit</span></code></span></td>
+</tr>
+<tr class="row-odd"><td><span class="yiyi-st" id="yiyi-232"><a class="reference internal" href="generated/pandas.Series.str.isspace.html#pandas.Series.str.isspace" title="pandas.Series.str.isspace"><code class="xref py py-meth docutils literal"><span class="pre">isspace()</span></code></a></span></td>
+<td><span class="yiyi-st" id="yiyi-233">等效于<code class="docutils literal"><span class="pre">str.isspace</span></code></span></td>
+</tr>
+<tr class="row-even"><td><span class="yiyi-st" id="yiyi-234"><a class="reference internal" href="generated/pandas.Series.str.islower.html#pandas.Series.str.islower" title="pandas.Series.str.islower"><code class="xref py py-meth docutils literal"><span class="pre">islower()</span></code></a></span></td>
+<td><span class="yiyi-st" id="yiyi-235">等效于<code class="docutils literal"><span class="pre">str.islower</span></code></span></td>
+</tr>
+<tr class="row-odd"><td><span class="yiyi-st" id="yiyi-236"><a class="reference internal" href="generated/pandas.Series.str.isupper.html#pandas.Series.str.isupper" title="pandas.Series.str.isupper"><code class="xref py py-meth docutils literal"><span class="pre">isupper()</span></code></a></span></td>
+<td><span class="yiyi-st" id="yiyi-237">等效于<code class="docutils literal"><span class="pre">str.isupper</span></code></span></td>
+</tr>
+<tr class="row-even"><td><span class="yiyi-st" id="yiyi-238"><a class="reference internal" href="generated/pandas.Series.str.istitle.html#pandas.Series.str.istitle" title="pandas.Series.str.istitle"><code class="xref py py-meth docutils literal"><span class="pre">istitle()</span></code></a></span></td>
+<td><span class="yiyi-st" id="yiyi-239">等同于<code class="docutils literal"><span class="pre">str.istitle</span></code></span></td>
+</tr>
+<tr class="row-odd"><td><span class="yiyi-st" id="yiyi-240"><a class="reference internal" href="generated/pandas.Series.str.isnumeric.html#pandas.Series.str.isnumeric" title="pandas.Series.str.isnumeric"><code class="xref py py-meth docutils literal"><span class="pre">isnumeric()</span></code></a></span></td>
+<td><span class="yiyi-st" id="yiyi-241">等效于<code class="docutils literal"><span class="pre">str.isnumeric</span></code></span></td>
+</tr>
+<tr class="row-even"><td><span class="yiyi-st" id="yiyi-242"><a class="reference internal" href="generated/pandas.Series.str.isdecimal.html#pandas.Series.str.isdecimal" title="pandas.Series.str.isdecimal"><code class="xref py py-meth docutils literal"><span class="pre">isdecimal()</span></code></a></span></td>
+<td><span class="yiyi-st" id="yiyi-243">等效于<code class="docutils literal"><span class="pre">str.isdecimal</span></code></span></td>
+</tr>
+</tbody>
+</table>
+</div>

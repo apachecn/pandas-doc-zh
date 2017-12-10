@@ -1,0 +1,1360 @@
+
+<span id="dsintro"></span><h1><span class="yiyi-st" id="yiyi-78">数据结构简介</span></h1>
+        <blockquote>
+        <p>原文：<a href="http://pandas.pydata.org/pandas-docs/stable/dsintro.html">http://pandas.pydata.org/pandas-docs/stable/dsintro.html</a></p>
+        <p>译者：<a href="https://github.com/wizardforcel">飞龙</a> <a href="http://usyiyi.cn/">UsyiyiCN</a></p>
+        <p>校对：（虚位以待）</p>
+        </blockquote>
+    
+<p><span class="yiyi-st" id="yiyi-79">我们将首先快速，非全面地概述pandas中的基本数据结构，来让你起步。</span><span class="yiyi-st" id="yiyi-80">数据类型，索引和轴标记/对齐的基本行为适用于所有对象。</span><span class="yiyi-st" id="yiyi-81">为了起步，请导入numpy并将pandas加载到您的命名空间中：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [1]: </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+
+<span class="gp">In [2]: </span><span class="kn">import</span> <span class="nn">pandas</span> <span class="kn">as</span> <span class="nn">pd</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-82">以下是一个基本原则：<strong>数据对齐是内在的</strong>。</span><span class="yiyi-st" id="yiyi-83">标签和数据之间的链接不会被破坏，除非你明确这样做。</span></p>
+<p><span class="yiyi-st" id="yiyi-84">我们将简要介绍数据结构，然后在单独的章节中，考虑所有功能和方法的大类。</span></p>
+<div class="section" id="series">
+<span id="basics-series"></span><h2><span class="yiyi-st" id="yiyi-85">Series（序列）</span></h2>
+<p><span class="yiyi-st" id="yiyi-86"><a class="reference internal" href="generated/pandas.Series.html#pandas.Series" title="pandas.Series"><code class="xref py py-class docutils literal"><span class="pre">Series</span></code></a>是带有标签的一维数组，可以保存任何数据类型（整数，字符串，浮点数，Python对象等）。</span><span class="yiyi-st" id="yiyi-87">轴标签统称为<strong>索引</strong>。</span><span class="yiyi-st" id="yiyi-88">创建Series的基本方法是调用：</span></p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">index</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-89">这里，<code class="docutils literal"><span class="pre">data</span></code>可以是许多不同的东西：</span></p>
+<blockquote>
+<div><ul class="simple">
+<li><span class="yiyi-st" id="yiyi-90">Python dict（字典）</span></li>
+<li><span class="yiyi-st" id="yiyi-91">ndarray</span></li>
+<li><span class="yiyi-st" id="yiyi-92">标量值（如5）</span></li>
+</ul>
+</div></blockquote>
+<p><span class="yiyi-st" id="yiyi-93">传入的<strong>索引</strong>是轴标签的列表。</span><span class="yiyi-st" id="yiyi-94">因此，根据<strong>数据的类型</strong>，分为以下几种情况：</span></p>
+<p><span class="yiyi-st" id="yiyi-95"><strong>来自ndarray</strong></span></p>
+<p><span class="yiyi-st" id="yiyi-96">如果<code class="docutils literal"><span class="pre">data</span></code>是ndarray，则<strong>索引</strong>必须与<strong>数据</strong>长度相同。</span><span class="yiyi-st" id="yiyi-97">如果没有传递索引，将创建值为<code class="docutils literal"><span class="pre">[0，</span> <span class="pre">...，</span> <span class="pre">len(data)</span> <span class="pre">-</span> <span class="pre">1]</span></code>的索引。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [3]: </span><span class="n">s</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">5</span><span class="p">),</span> <span class="n">index</span><span class="o">=</span><span class="p">[</span><span class="s1">&apos;a&apos;</span><span class="p">,</span> <span class="s1">&apos;b&apos;</span><span class="p">,</span> <span class="s1">&apos;c&apos;</span><span class="p">,</span> <span class="s1">&apos;d&apos;</span><span class="p">,</span> <span class="s1">&apos;e&apos;</span><span class="p">])</span>
+
+<span class="gp">In [4]: </span><span class="n">s</span>
+<span class="gr">Out[4]: </span>
+<span class="go">a    0.2735</span>
+<span class="go">b    0.6052</span>
+<span class="go">c   -0.1692</span>
+<span class="go">d    1.8298</span>
+<span class="go">e    0.5432</span>
+<span class="go">dtype: float64</span>
+
+<span class="gp">In [5]: </span><span class="n">s</span><span class="o">.</span><span class="n">index</span>
+<span class="gr">Out[5]: </span><span class="n">Index</span><span class="p">([</span><span class="s1">u&apos;a&apos;</span><span class="p">,</span> <span class="s1">u&apos;b&apos;</span><span class="p">,</span> <span class="s1">u&apos;c&apos;</span><span class="p">,</span> <span class="s1">u&apos;d&apos;</span><span class="p">,</span> <span class="s1">u&apos;e&apos;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&apos;object&apos;</span><span class="p">)</span>
+
+<span class="gp">In [6]: </span><span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">5</span><span class="p">))</span>
+<span class="gr">Out[6]: </span>
+<span class="go">0    0.3674</span>
+<span class="go">1   -0.8230</span>
+<span class="go">2   -1.0295</span>
+<span class="go">3   -1.0523</span>
+<span class="go">4   -0.8502</span>
+<span class="go">dtype: float64</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title"><span class="yiyi-st" id="yiyi-98">注意</span></p>
+<p class="last"><span class="yiyi-st" id="yiyi-99">从v0.8.0开始，pandas支持非唯一索引值。</span><span class="yiyi-st" id="yiyi-100">如果尝试执行不支持重复索引值的操作，那么将会引发异常。</span><span class="yiyi-st" id="yiyi-101">延迟的原因几乎都基于性能（在计算中有很多实例，例如 GroupBy 的部分不使用索引）。</span></p>
+</div>
+<p><span class="yiyi-st" id="yiyi-102"><strong>来自字典</strong></span></p>
+<p><span class="yiyi-st" id="yiyi-103">如果<code class="docutils literal"><span class="pre">data</span></code>是字典，那么如果传入了<strong>index</strong>，则会取出数据中的值，对应于索引中的标签。</span><span class="yiyi-st" id="yiyi-104">否则，如果可能，将从字典的有序键构造索引。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [7]: </span><span class="n">d</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&apos;a&apos;</span> <span class="p">:</span> <span class="mf">0.</span><span class="p">,</span> <span class="s1">&apos;b&apos;</span> <span class="p">:</span> <span class="mf">1.</span><span class="p">,</span> <span class="s1">&apos;c&apos;</span> <span class="p">:</span> <span class="mf">2.</span><span class="p">}</span>
+
+<span class="gp">In [8]: </span><span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
+<span class="gr">Out[8]: </span>
+<span class="go">a    0.0</span>
+<span class="go">b    1.0</span>
+<span class="go">c    2.0</span>
+<span class="go">dtype: float64</span>
+
+<span class="gp">In [9]: </span><span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="p">[</span><span class="s1">&apos;b&apos;</span><span class="p">,</span> <span class="s1">&apos;c&apos;</span><span class="p">,</span> <span class="s1">&apos;d&apos;</span><span class="p">,</span> <span class="s1">&apos;a&apos;</span><span class="p">])</span>
+<span class="gr">Out[9]: </span>
+<span class="go">b    1.0</span>
+<span class="go">c    2.0</span>
+<span class="go">d    NaN</span>
+<span class="go">a    0.0</span>
+<span class="go">dtype: float64</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title"><span class="yiyi-st" id="yiyi-105">注意</span></p>
+<p class="last"><span class="yiyi-st" id="yiyi-106">NaN（不是数字）是用于pandas的标准缺失数据标记</span></p>
+</div>
+<p><span class="yiyi-st" id="yiyi-107"><strong>从标量值</strong>：如果<code class="docutils literal"><span class="pre">data</span></code>是标量值，则必须提供索引。</span><span class="yiyi-st" id="yiyi-108">该值会重复，来匹配<strong>索引</strong>的长度。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [10]: </span><span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="mf">5.</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="p">[</span><span class="s1">&apos;a&apos;</span><span class="p">,</span> <span class="s1">&apos;b&apos;</span><span class="p">,</span> <span class="s1">&apos;c&apos;</span><span class="p">,</span> <span class="s1">&apos;d&apos;</span><span class="p">,</span> <span class="s1">&apos;e&apos;</span><span class="p">])</span>
+<span class="gr">Out[10]: </span>
+<span class="go">a    5.0</span>
+<span class="go">b    5.0</span>
+<span class="go">c    5.0</span>
+<span class="go">d    5.0</span>
+<span class="go">e    5.0</span>
+<span class="go">dtype: float64</span>
+</pre></div>
+</div>
+<div class="section" id="series-is-ndarray-like">
+<h3><span class="yiyi-st" id="yiyi-109">Series 是类似于 ndarray 的</span></h3>
+<p><span class="yiyi-st" id="yiyi-110"><code class="docutils literal"><span class="pre">Series</span></code>的作用与<code class="docutils literal"><span class="pre">ndarray</span></code>非常相似，是大多数NumPy函数的有效参数。</span><span class="yiyi-st" id="yiyi-111">然而，像切片这样的东西也会对索引切片。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [11]: </span><span class="n">s</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="gr">Out[11]: </span><span class="mf">0.27348116325673794</span>
+
+<span class="gp">In [12]: </span><span class="n">s</span><span class="p">[:</span><span class="mi">3</span><span class="p">]</span>
+<span class="gr">Out[12]: </span>
+<span class="go">a    0.2735</span>
+<span class="go">b    0.6052</span>
+<span class="go">c   -0.1692</span>
+<span class="go">dtype: float64</span>
+
+<span class="gp">In [13]: </span><span class="n">s</span><span class="p">[</span><span class="n">s</span> <span class="o">&gt;</span> <span class="n">s</span><span class="o">.</span><span class="n">median</span><span class="p">()]</span>
+<span class="gr">Out[13]: </span>
+<span class="go">b    0.6052</span>
+<span class="go">d    1.8298</span>
+<span class="go">dtype: float64</span>
+
+<span class="gp">In [14]: </span><span class="n">s</span><span class="p">[[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">]]</span>
+<span class="gr">Out[14]: </span>
+<span class="go">e    0.5432</span>
+<span class="go">d    1.8298</span>
+<span class="go">b    0.6052</span>
+<span class="go">dtype: float64</span>
+
+<span class="gp">In [15]: </span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+<span class="gr">Out[15]: </span>
+<span class="go">a    1.3145</span>
+<span class="go">b    1.8317</span>
+<span class="go">c    0.8443</span>
+<span class="go">d    6.2327</span>
+<span class="go">e    1.7215</span>
+<span class="go">dtype: float64</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-112">我们将在单独的<a class="reference internal" href="indexing.html#indexing"><span class="std std-ref">章节</span></a>中强调基于数组的索引。</span></p>
+</div>
+<div class="section" id="series-is-dict-like">
+<h3><span class="yiyi-st" id="yiyi-113">Series 类似于字典</span></h3>
+<p><span class="yiyi-st" id="yiyi-114">Series就像一个固定大小的字典，您可以通过使用标签作为索引来获取和设置值：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [16]: </span><span class="n">s</span><span class="p">[</span><span class="s1">&apos;a&apos;</span><span class="p">]</span>
+<span class="gr">Out[16]: </span><span class="mf">0.27348116325673794</span>
+
+<span class="gp">In [17]: </span><span class="n">s</span><span class="p">[</span><span class="s1">&apos;e&apos;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">12.</span>
+
+<span class="gp">In [18]: </span><span class="n">s</span>
+<span class="gr">Out[18]: </span>
+<span class="go">a     0.2735</span>
+<span class="go">b     0.6052</span>
+<span class="go">c    -0.1692</span>
+<span class="go">d     1.8298</span>
+<span class="go">e    12.0000</span>
+<span class="go">dtype: float64</span>
+
+<span class="gp">In [19]: </span><span class="s1">&apos;e&apos;</span> <span class="ow">in</span> <span class="n">s</span>
+<span class="gr">Out[19]: </span><span class="bp">True</span>
+
+<span class="gp">In [20]: </span><span class="s1">&apos;f&apos;</span> <span class="ow">in</span> <span class="n">s</span>
+<span class="gr">Out[20]: </span><span class="bp">False</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-115">如果标签不存在，则会出现异常：</span></p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="p">[</span><span class="s1">&apos;f&apos;</span><span class="p">]</span>
+<span class="go">KeyError: &apos;f&apos;</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-116">使用<code class="docutils literal"><span class="pre">get</span></code>方法，缺失的标签将返回None或指定的默认值：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [21]: </span><span class="n">s</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&apos;f&apos;</span><span class="p">)</span>
+
+<span class="gp">In [22]: </span><span class="n">s</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&apos;f&apos;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span>
+<span class="gr">Out[22]: </span><span class="n">nan</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-117">另请参阅<a class="reference internal" href="indexing.html#indexing-attribute-access"><span class="std std-ref">属性访问</span></a>部分。</span></p>
+</div>
+<div class="section" id="vectorized-operations-and-label-alignment-with-series">
+<h3><span class="yiyi-st" id="yiyi-118">Series 的向量化操作和标签对齐</span></h3>
+<p><span class="yiyi-st" id="yiyi-119">进行数据分析时，像原始NumPy数组一样，一个值一个值地循环遍历序列通常不是必需的。</span><span class="yiyi-st" id="yiyi-120">Series 也可以传递给大多数期望 ndarray 的 NumPy 方法。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [23]: </span><span class="n">s</span> <span class="o">+</span> <span class="n">s</span>
+<span class="gr">Out[23]: </span>
+<span class="go">a     0.5470</span>
+<span class="go">b     1.2104</span>
+<span class="go">c    -0.3385</span>
+<span class="go">d     3.6596</span>
+<span class="go">e    24.0000</span>
+<span class="go">dtype: float64</span>
+
+<span class="gp">In [24]: </span><span class="n">s</span> <span class="o">*</span> <span class="mi">2</span>
+<span class="gr">Out[24]: </span>
+<span class="go">a     0.5470</span>
+<span class="go">b     1.2104</span>
+<span class="go">c    -0.3385</span>
+<span class="go">d     3.6596</span>
+<span class="go">e    24.0000</span>
+<span class="go">dtype: float64</span>
+
+<span class="gp">In [25]: </span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+<span class="gr">Out[25]: </span>
+<span class="go">a         1.3145</span>
+<span class="go">b         1.8317</span>
+<span class="go">c         0.8443</span>
+<span class="go">d         6.2327</span>
+<span class="go">e    162754.7914</span>
+<span class="go">dtype: float64</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-121">Series 和 ndarray 之间的主要区别是，Series 上的操作会根据标签自动对齐数据。</span><span class="yiyi-st" id="yiyi-122">因此，您可以编写计算，而不考虑所涉及的 Series 是否具有相同标签。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [26]: </span><span class="n">s</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">+</span> <span class="n">s</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+<span class="gr">Out[26]: </span>
+<span class="go">a       NaN</span>
+<span class="go">b    1.2104</span>
+<span class="go">c   -0.3385</span>
+<span class="go">d    3.6596</span>
+<span class="go">e       NaN</span>
+<span class="go">dtype: float64</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-123">未对齐的 Series 之间的运算结果，将具有所涉及的索引的<strong>并集</strong>。</span><span class="yiyi-st" id="yiyi-124">如果在一个 Series 或其他系列中找不到某个标签，则结果将标记为<code class="docutils literal"><span class="pre">NaN</span></code>（缺失）。</span><span class="yiyi-st" id="yiyi-125">编写代码而不进行任何显式的数据对齐的能力，在交互式数据分析和研究中提供了巨大的自由和灵活性。</span><span class="yiyi-st" id="yiyi-126">pandas数据结构所集成的数据对齐特性，将pandas与用于处理标记数据的大多数相关工具分开。</span></p>
+<div class="admonition note">
+<p class="first admonition-title"><span class="yiyi-st" id="yiyi-127">注意</span></p>
+<p class="last"><span class="yiyi-st" id="yiyi-128">一般来说，我们选择使索引不同的对象之间的操作的默认结果为<strong>union</strong>，来避免信息的丢失。</span><span class="yiyi-st" id="yiyi-129">尽管缺少数据，拥有索引标签通常是重要信息，作为计算的一部分。</span><span class="yiyi-st" id="yiyi-130">您当然可以通过<strong>dropna</strong>函数，选择丢弃带有缺失数据的标签。</span></p>
+</div>
+</div>
+<div class="section" id="name-attribute">
+<h3><span class="yiyi-st" id="yiyi-131">名称属性</span></h3>
+<p id="dsintro-name-attribute"><span class="yiyi-st" id="yiyi-132">Series还可以具有<code class="docutils literal"><span class="pre">name</span></code>属性：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [27]: </span><span class="n">s</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">5</span><span class="p">),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&apos;something&apos;</span><span class="p">)</span>
+
+<span class="gp">In [28]: </span><span class="n">s</span>
+<span class="gr">Out[28]: </span>
+<span class="go">0    1.5140</span>
+<span class="go">1   -1.2345</span>
+<span class="go">2    0.5666</span>
+<span class="go">3   -1.0184</span>
+<span class="go">4    0.1081</span>
+<span class="go">Name: something, dtype: float64</span>
+
+<span class="gp">In [29]: </span><span class="n">s</span><span class="o">.</span><span class="n">name</span>
+<span class="gr">Out[29]: </span><span class="s1">&apos;something&apos;</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-133">在多数情况下，Series 的<code class="docutils literal"><span class="pre">name</span></code>会自动赋值，特别是获取 DataFrame 的一维切片时，您将在下面看到它。</span></p>
+<div class="versionadded">
+<p><span class="yiyi-st" id="yiyi-134"><span class="versionmodified">版本0.18.0中的新功能。</span></span></p>
+</div>
+<p><span class="yiyi-st" id="yiyi-135">您可以使用<a class="reference internal" href="generated/pandas.Series.rename.html#pandas.Series.rename" title="pandas.Series.rename"><code class="xref py py-meth docutils literal"><span class="pre">pandas.Series.rename()</span></code></a>方法来重命名 Series。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [30]: </span><span class="n">s2</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="s2">&quot;different&quot;</span><span class="p">)</span>
+
+<span class="gp">In [31]: </span><span class="n">s2</span><span class="o">.</span><span class="n">name</span>
+<span class="gr">Out[31]: </span><span class="s1">&apos;different&apos;</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-136">注意，<code class="docutils literal"><span class="pre">s</span></code>和<code class="docutils literal"><span class="pre">s2</span></code>指向不同的对象。</span></p>
+</div>
+</div>
+<div class="section" id="dataframe">
+<span id="basics-dataframe"></span><h2><span class="yiyi-st" id="yiyi-137">DataFrame（数据帧）</span></h2>
+<p><span class="yiyi-st" id="yiyi-138"><strong>DataFrame</strong>是带有标签的二维数据结构，列的类型可能不同。</span><span class="yiyi-st" id="yiyi-139">你可以把它想象成一个电子表格或SQL表，或者 Series 对象的字典。</span><span class="yiyi-st" id="yiyi-140">它一般是最常用的pandas对象。</span><span class="yiyi-st" id="yiyi-141">像 Series 一样，DataFrame 接受许多不同类型的输入：</span></p>
+<blockquote>
+<div><ul class="simple">
+<li><span class="yiyi-st" id="yiyi-142">一维数组，列表，字典或 Series 的字典</span></li>
+<li><span class="yiyi-st" id="yiyi-143">二维 numpy.ndarray</span></li>
+<li><span class="yiyi-st" id="yiyi-144"><a class="reference external" href="http://docs.scipy.org/doc/numpy/user/basics.rec.html">结构化或记录</a> ndarray</span></li>
+<li><span class="yiyi-st" id="yiyi-145"><code class="docutils literal"><span class="pre">Series</span></code></span></li>
+<li><span class="yiyi-st" id="yiyi-146">另一个<code class="docutils literal"><span class="pre">DataFrame</span></code></span></li>
+</ul>
+</div></blockquote>
+<p><span class="yiyi-st" id="yiyi-147">和数据一起，您可以选择传递<strong>index</strong>（行标签）和<strong>columns</strong>（列标签）参数。</span><span class="yiyi-st" id="yiyi-148">如果传递索引或列，则会用于生成的DataFrame的索引或列。</span><span class="yiyi-st" id="yiyi-149">因此，Series 的字典加上特定索引将丢弃所有不匹配传入索引的数据。</span></p>
+<p><span class="yiyi-st" id="yiyi-150">如果轴标签未通过，则它们将基于常识规则从输入数据构造。</span></p>
+<div class="section" id="from-dict-of-series-or-dicts">
+<h3><span class="yiyi-st" id="yiyi-151">来自 Series 或字典的字典</span></h3>
+<p><span class="yiyi-st" id="yiyi-152">结果的<strong>index</strong>是各种系列索引的<strong>并集</strong>。</span><span class="yiyi-st" id="yiyi-153">如果有任何嵌套的词典，这些将首先转换为Series。</span><span class="yiyi-st" id="yiyi-154">如果列没有传递，这些列将是字典的键的有序列表。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [32]: </span><span class="n">d</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&apos;one&apos;</span> <span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">([</span><span class="mf">1.</span><span class="p">,</span> <span class="mf">2.</span><span class="p">,</span> <span class="mf">3.</span><span class="p">],</span> <span class="n">index</span><span class="o">=</span><span class="p">[</span><span class="s1">&apos;a&apos;</span><span class="p">,</span> <span class="s1">&apos;b&apos;</span><span class="p">,</span> <span class="s1">&apos;c&apos;</span><span class="p">]),</span>
+<span class="gp">   ....:</span>      <span class="s1">&apos;two&apos;</span> <span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">([</span><span class="mf">1.</span><span class="p">,</span> <span class="mf">2.</span><span class="p">,</span> <span class="mf">3.</span><span class="p">,</span> <span class="mf">4.</span><span class="p">],</span> <span class="n">index</span><span class="o">=</span><span class="p">[</span><span class="s1">&apos;a&apos;</span><span class="p">,</span> <span class="s1">&apos;b&apos;</span><span class="p">,</span> <span class="s1">&apos;c&apos;</span><span class="p">,</span> <span class="s1">&apos;d&apos;</span><span class="p">])}</span>
+<span class="gp">   ....:</span> 
+
+<span class="gp">In [33]: </span><span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
+
+<span class="gp">In [34]: </span><span class="n">df</span>
+<span class="gr">Out[34]: </span>
+<span class="go">   one  two</span>
+<span class="go">a  1.0  1.0</span>
+<span class="go">b  2.0  2.0</span>
+<span class="go">c  3.0  3.0</span>
+<span class="go">d  NaN  4.0</span>
+
+<span class="gp">In [35]: </span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="p">[</span><span class="s1">&apos;d&apos;</span><span class="p">,</span> <span class="s1">&apos;b&apos;</span><span class="p">,</span> <span class="s1">&apos;a&apos;</span><span class="p">])</span>
+<span class="gr">Out[35]: </span>
+<span class="go">   one  two</span>
+<span class="go">d  NaN  4.0</span>
+<span class="go">b  2.0  2.0</span>
+<span class="go">a  1.0  1.0</span>
+
+<span class="gp">In [36]: </span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="p">[</span><span class="s1">&apos;d&apos;</span><span class="p">,</span> <span class="s1">&apos;b&apos;</span><span class="p">,</span> <span class="s1">&apos;a&apos;</span><span class="p">],</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&apos;two&apos;</span><span class="p">,</span> <span class="s1">&apos;three&apos;</span><span class="p">])</span>
+<span class="gr">Out[36]: </span>
+<span class="go">   two three</span>
+<span class="go">d  4.0   NaN</span>
+<span class="go">b  2.0   NaN</span>
+<span class="go">a  1.0   NaN</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-155">通过访问<strong>index</strong>和<strong>column</strong>属性可以分别访问行和列标签：</span></p>
+<div class="admonition note">
+<p class="first admonition-title"><span class="yiyi-st" id="yiyi-156">注意</span></p>
+<p class="last"><span class="yiyi-st" id="yiyi-157">同时传入一组特定的列和数据的字典时，传入的列将覆盖字典中的键。</span></p>
+</div>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [37]: </span><span class="n">df</span><span class="o">.</span><span class="n">index</span>
+<span class="gr">Out[37]: </span><span class="n">Index</span><span class="p">([</span><span class="s1">u&apos;a&apos;</span><span class="p">,</span> <span class="s1">u&apos;b&apos;</span><span class="p">,</span> <span class="s1">u&apos;c&apos;</span><span class="p">,</span> <span class="s1">u&apos;d&apos;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&apos;object&apos;</span><span class="p">)</span>
+
+<span class="gp">In [38]: </span><span class="n">df</span><span class="o">.</span><span class="n">columns</span>
+<span class="gr">Out[38]: </span><span class="n">Index</span><span class="p">([</span><span class="s1">u&apos;one&apos;</span><span class="p">,</span> <span class="s1">u&apos;two&apos;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&apos;object&apos;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="from-dict-of-ndarrays-lists">
+<h3><span class="yiyi-st" id="yiyi-158">来自 ndarrays / lists 的字典</span></h3>
+<p><span class="yiyi-st" id="yiyi-159">ndarrays 必须长度相同。</span><span class="yiyi-st" id="yiyi-160">如果传入了索引，它必须也与数组长度相同。</span><span class="yiyi-st" id="yiyi-161">如果没有传入索引，结果将是<code class="docutils literal"><span class="pre">range(n)</span></code>，其中<code class="docutils literal"><span class="pre">n</span></code>是数组长度。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [39]: </span><span class="n">d</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&apos;one&apos;</span> <span class="p">:</span> <span class="p">[</span><span class="mf">1.</span><span class="p">,</span> <span class="mf">2.</span><span class="p">,</span> <span class="mf">3.</span><span class="p">,</span> <span class="mf">4.</span><span class="p">],</span>
+<span class="gp">   ....:</span>      <span class="s1">&apos;two&apos;</span> <span class="p">:</span> <span class="p">[</span><span class="mf">4.</span><span class="p">,</span> <span class="mf">3.</span><span class="p">,</span> <span class="mf">2.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">]}</span>
+<span class="gp">   ....:</span> 
+
+<span class="gp">In [40]: </span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
+<span class="gr">Out[40]: </span>
+<span class="go">   one  two</span>
+<span class="go">0  1.0  4.0</span>
+<span class="go">1  2.0  3.0</span>
+<span class="go">2  3.0  2.0</span>
+<span class="go">3  4.0  1.0</span>
+
+<span class="gp">In [41]: </span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="p">[</span><span class="s1">&apos;a&apos;</span><span class="p">,</span> <span class="s1">&apos;b&apos;</span><span class="p">,</span> <span class="s1">&apos;c&apos;</span><span class="p">,</span> <span class="s1">&apos;d&apos;</span><span class="p">])</span>
+<span class="gr">Out[41]: </span>
+<span class="go">   one  two</span>
+<span class="go">a  1.0  4.0</span>
+<span class="go">b  2.0  3.0</span>
+<span class="go">c  3.0  2.0</span>
+<span class="go">d  4.0  1.0</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="from-structured-or-record-array">
+<h3><span class="yiyi-st" id="yiyi-162">来自结构化或记录数组</span></h3>
+<p><span class="yiyi-st" id="yiyi-163">这种情况与数组的字典相同。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [42]: </span><span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">2</span><span class="p">,),</span> <span class="n">dtype</span><span class="o">=</span><span class="p">[(</span><span class="s1">&apos;A&apos;</span><span class="p">,</span> <span class="s1">&apos;i4&apos;</span><span class="p">),(</span><span class="s1">&apos;B&apos;</span><span class="p">,</span> <span class="s1">&apos;f4&apos;</span><span class="p">),(</span><span class="s1">&apos;C&apos;</span><span class="p">,</span> <span class="s1">&apos;a10&apos;</span><span class="p">)])</span>
+
+<span class="gp">In [43]: </span><span class="n">data</span><span class="p">[:]</span> <span class="o">=</span> <span class="p">[(</span><span class="mi">1</span><span class="p">,</span><span class="mf">2.</span><span class="p">,</span><span class="s1">&apos;Hello&apos;</span><span class="p">),</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mf">3.</span><span class="p">,</span><span class="s2">&quot;World&quot;</span><span class="p">)]</span>
+
+<span class="gp">In [44]: </span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+<span class="gr">Out[44]: </span>
+<span class="go">   A    B      C</span>
+<span class="go">0  1  2.0  Hello</span>
+<span class="go">1  2  3.0  World</span>
+
+<span class="gp">In [45]: </span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="p">[</span><span class="s1">&apos;first&apos;</span><span class="p">,</span> <span class="s1">&apos;second&apos;</span><span class="p">])</span>
+<span class="gr">Out[45]: </span>
+<span class="go">        A    B      C</span>
+<span class="go">first   1  2.0  Hello</span>
+<span class="go">second  2  3.0  World</span>
+
+<span class="gp">In [46]: </span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&apos;C&apos;</span><span class="p">,</span> <span class="s1">&apos;A&apos;</span><span class="p">,</span> <span class="s1">&apos;B&apos;</span><span class="p">])</span>
+<span class="gr">Out[46]: </span>
+<span class="go">       C  A    B</span>
+<span class="go">0  Hello  1  2.0</span>
+<span class="go">1  World  2  3.0</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title"><span class="yiyi-st" id="yiyi-164">注意</span></p>
+<p class="last"><span class="yiyi-st" id="yiyi-165">DataFrame并不打算完全类似二维NumPy ndarray一样。</span></p>
+</div>
+</div>
+<div class="section" id="from-a-list-of-dicts">
+<span id="basics-dataframe-from-list-of-dicts"></span><h3><span class="yiyi-st" id="yiyi-166">来自字典的数组</span></h3>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [47]: </span><span class="n">data2</span> <span class="o">=</span> <span class="p">[{</span><span class="s1">&apos;a&apos;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&apos;b&apos;</span><span class="p">:</span> <span class="mi">2</span><span class="p">},</span> <span class="p">{</span><span class="s1">&apos;a&apos;</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span> <span class="s1">&apos;b&apos;</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span> <span class="s1">&apos;c&apos;</span><span class="p">:</span> <span class="mi">20</span><span class="p">}]</span>
+
+<span class="gp">In [48]: </span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">data2</span><span class="p">)</span>
+<span class="gr">Out[48]: </span>
+<span class="go">   a   b     c</span>
+<span class="go">0  1   2   NaN</span>
+<span class="go">1  5  10  20.0</span>
+
+<span class="gp">In [49]: </span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">data2</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="p">[</span><span class="s1">&apos;first&apos;</span><span class="p">,</span> <span class="s1">&apos;second&apos;</span><span class="p">])</span>
+<span class="gr">Out[49]: </span>
+<span class="go">        a   b     c</span>
+<span class="go">first   1   2   NaN</span>
+<span class="go">second  5  10  20.0</span>
+
+<span class="gp">In [50]: </span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">data2</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&apos;a&apos;</span><span class="p">,</span> <span class="s1">&apos;b&apos;</span><span class="p">])</span>
+<span class="gr">Out[50]: </span>
+<span class="go">   a   b</span>
+<span class="go">0  1   2</span>
+<span class="go">1  5  10</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="from-a-dict-of-tuples">
+<span id="basics-dataframe-from-dict-of-tuples"></span><h3><span class="yiyi-st" id="yiyi-167">来自元组的字典</span></h3>
+<p><span class="yiyi-st" id="yiyi-168">您可以通过传递元组字典来自动创建多索引的 DataFrame</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [51]: </span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({(</span><span class="s1">&apos;a&apos;</span><span class="p">,</span> <span class="s1">&apos;b&apos;</span><span class="p">):</span> <span class="p">{(</span><span class="s1">&apos;A&apos;</span><span class="p">,</span> <span class="s1">&apos;B&apos;</span><span class="p">):</span> <span class="mi">1</span><span class="p">,</span> <span class="p">(</span><span class="s1">&apos;A&apos;</span><span class="p">,</span> <span class="s1">&apos;C&apos;</span><span class="p">):</span> <span class="mi">2</span><span class="p">},</span>
+<span class="gp">   ....:</span>               <span class="p">(</span><span class="s1">&apos;a&apos;</span><span class="p">,</span> <span class="s1">&apos;a&apos;</span><span class="p">):</span> <span class="p">{(</span><span class="s1">&apos;A&apos;</span><span class="p">,</span> <span class="s1">&apos;C&apos;</span><span class="p">):</span> <span class="mi">3</span><span class="p">,</span> <span class="p">(</span><span class="s1">&apos;A&apos;</span><span class="p">,</span> <span class="s1">&apos;B&apos;</span><span class="p">):</span> <span class="mi">4</span><span class="p">},</span>
+<span class="gp">   ....:</span>               <span class="p">(</span><span class="s1">&apos;a&apos;</span><span class="p">,</span> <span class="s1">&apos;c&apos;</span><span class="p">):</span> <span class="p">{(</span><span class="s1">&apos;A&apos;</span><span class="p">,</span> <span class="s1">&apos;B&apos;</span><span class="p">):</span> <span class="mi">5</span><span class="p">,</span> <span class="p">(</span><span class="s1">&apos;A&apos;</span><span class="p">,</span> <span class="s1">&apos;C&apos;</span><span class="p">):</span> <span class="mi">6</span><span class="p">},</span>
+<span class="gp">   ....:</span>               <span class="p">(</span><span class="s1">&apos;b&apos;</span><span class="p">,</span> <span class="s1">&apos;a&apos;</span><span class="p">):</span> <span class="p">{(</span><span class="s1">&apos;A&apos;</span><span class="p">,</span> <span class="s1">&apos;C&apos;</span><span class="p">):</span> <span class="mi">7</span><span class="p">,</span> <span class="p">(</span><span class="s1">&apos;A&apos;</span><span class="p">,</span> <span class="s1">&apos;B&apos;</span><span class="p">):</span> <span class="mi">8</span><span class="p">},</span>
+<span class="gp">   ....:</span>               <span class="p">(</span><span class="s1">&apos;b&apos;</span><span class="p">,</span> <span class="s1">&apos;b&apos;</span><span class="p">):</span> <span class="p">{(</span><span class="s1">&apos;A&apos;</span><span class="p">,</span> <span class="s1">&apos;D&apos;</span><span class="p">):</span> <span class="mi">9</span><span class="p">,</span> <span class="p">(</span><span class="s1">&apos;A&apos;</span><span class="p">,</span> <span class="s1">&apos;B&apos;</span><span class="p">):</span> <span class="mi">10</span><span class="p">}})</span>
+<span class="gp">   ....:</span> 
+<span class="gr">Out[51]: </span>
+<span class="go">       a              b      </span>
+<span class="go">       a    b    c    a     b</span>
+<span class="go">A B  4.0  1.0  5.0  8.0  10.0</span>
+<span class="go">  C  3.0  2.0  6.0  7.0   NaN</span>
+<span class="go">  D  NaN  NaN  NaN  NaN   9.0</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="from-a-series">
+<span id="basics-dataframe-from-series"></span><h3><span class="yiyi-st" id="yiyi-169">来自单个 Series</span></h3>
+<p><span class="yiyi-st" id="yiyi-170">结果是一个 DataFrame，索引与输入的 Series 相同，并且单个列的名称是 Series
+ 的原始名称（仅当没有提供其他列名时）。</span></p>
+<p><span class="yiyi-st" id="yiyi-171"><strong>缺失数据</strong></span></p>
+<p><span class="yiyi-st" id="yiyi-172">在<a class="reference internal" href="missing_data.html#missing-data"><span class="std std-ref">缺失数据</span></a>部分中，将对此主题进行更多说明。</span><span class="yiyi-st" id="yiyi-173">为了构造具有缺失数据的DataFrame，请将<code class="docutils literal"><span class="pre">np.nan</span></code>用于缺失值。</span><span class="yiyi-st" id="yiyi-174">或者，您可以将<code class="docutils literal"><span class="pre">numpy.MaskedArray</span></code>作为数据参数传递给DataFrame构造函数，它屏蔽的条目将视为缺失值。</span></p>
+</div>
+<div class="section" id="alternate-constructors">
+<h3><span class="yiyi-st" id="yiyi-175">备选构造函数</span></h3>
+<p id="basics-dataframe-from-dict"><span class="yiyi-st" id="yiyi-176"><strong>DataFrame.from_dict</strong></span></p>
+<p><span class="yiyi-st" id="yiyi-177"><code class="docutils literal"><span class="pre">DataFrame.from_dict</span></code>接受字典的字典或类似数组的序列的字典，并返回DataFrame。</span><span class="yiyi-st" id="yiyi-178">它的操作类似<code class="docutils literal"><span class="pre">DataFrame</span></code>的构造函数，除了默认情况下为<code class="docutils literal"><span class="pre">&apos;columns&apos;</span></code>的<code class="docutils literal"><span class="pre">orient</span></code>参数，但它可以设置为<code class="docutils literal"><span class="pre">&apos;index&apos;</span></code>，以便将字典的键用作行标签。</span></p>
+<p id="basics-dataframe-from-records"><span class="yiyi-st" id="yiyi-179"><strong>DataFrame.from_records</strong></span></p>
+<p><span class="yiyi-st" id="yiyi-180"><code class="docutils literal"><span class="pre">DataFrame.from_records</span></code>首届元组的列表或带有结构化dtype的ndarray。</span><span class="yiyi-st" id="yiyi-181">它的工作方式类似于正常<code class="docutils literal"><span class="pre">DataFrame</span></code>构造函数，除了索引可能是结构化dtype的特定字段。</span><span class="yiyi-st" id="yiyi-182">例如：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [52]: </span><span class="n">data</span>
+<span class="gr">Out[52]: </span>
+<span class="go">array([(1, 2.0, &apos;Hello&apos;), (2, 3.0, &apos;World&apos;)], </span>
+<span class="go">      dtype=[(&apos;A&apos;, &apos;&lt;i4&apos;), (&apos;B&apos;, &apos;&lt;f4&apos;), (&apos;C&apos;, &apos;S10&apos;)])</span>
+
+<span class="gp">In [53]: </span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">from_records</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="s1">&apos;C&apos;</span><span class="p">)</span>
+<span class="gr">Out[53]: </span>
+<span class="go">       A    B</span>
+<span class="go">C            </span>
+<span class="go">Hello  1  2.0</span>
+<span class="go">World  2  3.0</span>
+</pre></div>
+</div>
+<p id="basics-dataframe-from-items"><span class="yiyi-st" id="yiyi-183"><strong>DataFrame.from_items</strong></span></p>
+<p><span class="yiyi-st" id="yiyi-184"><code class="docutils literal"><span class="pre">DataFrame.from_items</span></code>类似于<code class="docutils literal"><span class="pre">字典</span></code>的构造函数，它接受<code class="docutils literal"><span class="pre">键</span> <span class="pre">值</span></code>对的序列，其中的键是列标签（或在<code class="docutils literal"><span class="pre">orient =&apos;index&apos;</span></code>的情况下是行标签），值是列的值（或行的值）。</span><span class="yiyi-st" id="yiyi-185">对于构建列为特定的顺序的DataFrame，而不必传递明确的列的列表，它非常有用：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [54]: </span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">from_items</span><span class="p">([(</span><span class="s1">&apos;A&apos;</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">]),</span> <span class="p">(</span><span class="s1">&apos;B&apos;</span><span class="p">,</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">])])</span>
+<span class="gr">Out[54]: </span>
+<span class="go">   A  B</span>
+<span class="go">0  1  4</span>
+<span class="go">1  2  5</span>
+<span class="go">2  3  6</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-186">如果您传入<code class="docutils literal"><span class="pre">orient=&apos;index&apos;</span></code>，键将是行标签。</span><span class="yiyi-st" id="yiyi-187">但在这种情况下，您还必须传递所需的列名称：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [55]: </span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">from_items</span><span class="p">([(</span><span class="s1">&apos;A&apos;</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">]),</span> <span class="p">(</span><span class="s1">&apos;B&apos;</span><span class="p">,</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">])],</span>
+<span class="gp">   ....:</span>                         <span class="n">orient</span><span class="o">=</span><span class="s1">&apos;index&apos;</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&apos;one&apos;</span><span class="p">,</span> <span class="s1">&apos;two&apos;</span><span class="p">,</span> <span class="s1">&apos;three&apos;</span><span class="p">])</span>
+<span class="gp">   ....:</span> 
+<span class="gr">Out[55]: </span>
+<span class="go">   one  two  three</span>
+<span class="go">A    1    2      3</span>
+<span class="go">B    4    5      6</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="column-selection-addition-deletion">
+<h3><span class="yiyi-st" id="yiyi-188">列的选取、添加、删除</span></h3>
+<p><span class="yiyi-st" id="yiyi-189">你可以在语义上，将 DataFrame 当做 Series 对象的字典来处理。</span><span class="yiyi-st" id="yiyi-190">列的获取，设置和删除的方式与字典操作的语法相同：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [56]: </span><span class="n">df</span><span class="p">[</span><span class="s1">&apos;one&apos;</span><span class="p">]</span>
+<span class="gr">Out[56]: </span>
+<span class="go">a    1.0</span>
+<span class="go">b    2.0</span>
+<span class="go">c    3.0</span>
+<span class="go">d    NaN</span>
+<span class="go">Name: one, dtype: float64</span>
+
+<span class="gp">In [57]: </span><span class="n">df</span><span class="p">[</span><span class="s1">&apos;three&apos;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s1">&apos;one&apos;</span><span class="p">]</span> <span class="o">*</span> <span class="n">df</span><span class="p">[</span><span class="s1">&apos;two&apos;</span><span class="p">]</span>
+
+<span class="gp">In [58]: </span><span class="n">df</span><span class="p">[</span><span class="s1">&apos;flag&apos;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s1">&apos;one&apos;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">2</span>
+
+<span class="gp">In [59]: </span><span class="n">df</span>
+<span class="gr">Out[59]: </span>
+<span class="go">   one  two  three   flag</span>
+<span class="go">a  1.0  1.0    1.0  False</span>
+<span class="go">b  2.0  2.0    4.0  False</span>
+<span class="go">c  3.0  3.0    9.0   True</span>
+<span class="go">d  NaN  4.0    NaN  False</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-191">列可以像字典一样删除或弹出：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [60]: </span><span class="k">del</span> <span class="n">df</span><span class="p">[</span><span class="s1">&apos;two&apos;</span><span class="p">]</span>
+
+<span class="gp">In [61]: </span><span class="n">three</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&apos;three&apos;</span><span class="p">)</span>
+
+<span class="gp">In [62]: </span><span class="n">df</span>
+<span class="gr">Out[62]: </span>
+<span class="go">   one   flag</span>
+<span class="go">a  1.0  False</span>
+<span class="go">b  2.0  False</span>
+<span class="go">c  3.0   True</span>
+<span class="go">d  NaN  False</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-192">当插入一个标量值时，它自然会广播来填充该列：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [63]: </span><span class="n">df</span><span class="p">[</span><span class="s1">&apos;foo&apos;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&apos;bar&apos;</span>
+
+<span class="gp">In [64]: </span><span class="n">df</span>
+<span class="gr">Out[64]: </span>
+<span class="go">   one   flag  foo</span>
+<span class="go">a  1.0  False  bar</span>
+<span class="go">b  2.0  False  bar</span>
+<span class="go">c  3.0   True  bar</span>
+<span class="go">d  NaN  False  bar</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-193">当插入的 Series 与 DataFrame 的索引不同时，它将适配 DataFrame 的索引：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [65]: </span><span class="n">df</span><span class="p">[</span><span class="s1">&apos;one_trunc&apos;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s1">&apos;one&apos;</span><span class="p">][:</span><span class="mi">2</span><span class="p">]</span>
+
+<span class="gp">In [66]: </span><span class="n">df</span>
+<span class="gr">Out[66]: </span>
+<span class="go">   one   flag  foo  one_trunc</span>
+<span class="go">a  1.0  False  bar        1.0</span>
+<span class="go">b  2.0  False  bar        2.0</span>
+<span class="go">c  3.0   True  bar        NaN</span>
+<span class="go">d  NaN  False  bar        NaN</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-194">您可以插入原始的ndarray，但它们的长度必须匹配DataFrame的索引的长度。</span></p>
+<p><span class="yiyi-st" id="yiyi-195">默认情况下，列在末尾插入。</span><span class="yiyi-st" id="yiyi-196"><code class="docutils literal"><span class="pre">insert</span></code>函数可用于在列中的特定位置插入：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [67]: </span><span class="n">df</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="s1">&apos;bar&apos;</span><span class="p">,</span> <span class="n">df</span><span class="p">[</span><span class="s1">&apos;one&apos;</span><span class="p">])</span>
+
+<span class="gp">In [68]: </span><span class="n">df</span>
+<span class="gr">Out[68]: </span>
+<span class="go">   one  bar   flag  foo  one_trunc</span>
+<span class="go">a  1.0  1.0  False  bar        1.0</span>
+<span class="go">b  2.0  2.0  False  bar        2.0</span>
+<span class="go">c  3.0  3.0   True  bar        NaN</span>
+<span class="go">d  NaN  NaN  False  bar        NaN</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="assigning-new-columns-in-method-chains">
+<span id="dsintro-chained-assignment"></span><h3><span class="yiyi-st" id="yiyi-197">使用方法链来创建新的列</span></h3>
+<div class="versionadded">
+<p><span class="yiyi-st" id="yiyi-198"><span class="versionmodified">版本0.16.0中的新功能。</span></span></p>
+</div>
+<p><span class="yiyi-st" id="yiyi-199">受<a class="reference external" href="http://cran.rstudio.com/web/packages/dplyr/vignettes/introduction.html#mutate">dplyr</a>的<code class="docutils literal"><span class="pre">mutate</span></code>动词的启发，DataFrame 拥有<a class="reference internal" href="generated/pandas.DataFrame.assign.html#pandas.DataFrame.assign" title="pandas.DataFrame.assign"><code class="xref py py-meth docutils literal"><span class="pre">assign()</span></code></a>方法，允许您轻易创建新的列，它可能从现有列派生。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [69]: </span><span class="n">iris</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s1">&apos;data/iris.data&apos;</span><span class="p">)</span>
+
+<span class="gp">In [70]: </span><span class="n">iris</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
+<span class="gr">Out[70]: </span>
+<span class="go">   SepalLength  SepalWidth  PetalLength  PetalWidth         Name</span>
+<span class="go">0          5.1         3.5          1.4         0.2  Iris-setosa</span>
+<span class="go">1          4.9         3.0          1.4         0.2  Iris-setosa</span>
+<span class="go">2          4.7         3.2          1.3         0.2  Iris-setosa</span>
+<span class="go">3          4.6         3.1          1.5         0.2  Iris-setosa</span>
+<span class="go">4          5.0         3.6          1.4         0.2  Iris-setosa</span>
+
+<span class="gp">In [71]: </span><span class="p">(</span><span class="n">iris</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="n">sepal_ratio</span> <span class="o">=</span> <span class="n">iris</span><span class="p">[</span><span class="s1">&apos;SepalWidth&apos;</span><span class="p">]</span> <span class="o">/</span> <span class="n">iris</span><span class="p">[</span><span class="s1">&apos;SepalLength&apos;</span><span class="p">])</span>
+<span class="gp">   ....:</span>      <span class="o">.</span><span class="n">head</span><span class="p">())</span>
+<span class="gp">   ....:</span> 
+<span class="gr">Out[71]: </span>
+<span class="go">   SepalLength  SepalWidth  PetalLength  PetalWidth         Name  sepal_ratio</span>
+<span class="go">0          5.1         3.5          1.4         0.2  Iris-setosa       0.6863</span>
+<span class="go">1          4.9         3.0          1.4         0.2  Iris-setosa       0.6122</span>
+<span class="go">2          4.7         3.2          1.3         0.2  Iris-setosa       0.6809</span>
+<span class="go">3          4.6         3.1          1.5         0.2  Iris-setosa       0.6739</span>
+<span class="go">4          5.0         3.6          1.4         0.2  Iris-setosa       0.7200</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-200">上面是插入预计算值的示例。</span><span class="yiyi-st" id="yiyi-201">我们还可以传递函数作为参数，这个函数会在 DataFrame 上调用，结果会添加给 DataFrame。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [72]: </span><span class="n">iris</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="n">sepal_ratio</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="s1">&apos;SepalWidth&apos;</span><span class="p">]</span> <span class="o">/</span>
+<span class="gp">   ....:</span>                                      <span class="n">x</span><span class="p">[</span><span class="s1">&apos;SepalLength&apos;</span><span class="p">]))</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
+<span class="gp">   ....:</span> 
+<span class="gr">Out[72]: </span>
+<span class="go">   SepalLength  SepalWidth  PetalLength  PetalWidth         Name  sepal_ratio</span>
+<span class="go">0          5.1         3.5          1.4         0.2  Iris-setosa       0.6863</span>
+<span class="go">1          4.9         3.0          1.4         0.2  Iris-setosa       0.6122</span>
+<span class="go">2          4.7         3.2          1.3         0.2  Iris-setosa       0.6809</span>
+<span class="go">3          4.6         3.1          1.5         0.2  Iris-setosa       0.6739</span>
+<span class="go">4          5.0         3.6          1.4         0.2  Iris-setosa       0.7200</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-202"><code class="docutils literal"><span class="pre">assign</span></code> <strong>始终</strong>返回数据的副本，而保留原始DataFrame不变。</span></p>
+<p><span class="yiyi-st" id="yiyi-203">传递可调用对象，而不是要插入的实际值，当您没有现有 DataFrame 的引用时，它很有用。</span><span class="yiyi-st" id="yiyi-204">在操作链中使用<code class="docutils literal"><span class="pre">assign</span></code>时，这很常见。</span><span class="yiyi-st" id="yiyi-205"></span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [73]: </span><span class="p">(</span><span class="n">iris</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s1">&apos;SepalLength &gt; 5&apos;</span><span class="p">)</span>
+<span class="gp">   ....:</span>      <span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="n">SepalRatio</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">SepalWidth</span> <span class="o">/</span> <span class="n">x</span><span class="o">.</span><span class="n">SepalLength</span><span class="p">,</span>
+<span class="gp">   ....:</span>              <span class="n">PetalRatio</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">PetalWidth</span> <span class="o">/</span> <span class="n">x</span><span class="o">.</span><span class="n">PetalLength</span><span class="p">)</span>
+<span class="gp">   ....:</span>      <span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">kind</span><span class="o">=</span><span class="s1">&apos;scatter&apos;</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="s1">&apos;SepalRatio&apos;</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="s1">&apos;PetalRatio&apos;</span><span class="p">))</span>
+<span class="gp">   ....:</span> 
+<span class="gr">Out[73]: </span><span class="o">&lt;</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">axes</span><span class="o">.</span><span class="n">_subplots</span><span class="o">.</span><span class="n">AxesSubplot</span> <span class="n">at</span> <span class="mh">0x7ff286891b50</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<img alt="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/basics_assign.png" src="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/basics_assign.png">
+<p><span class="yiyi-st" id="yiyi-206">由于传入了一个函数，因此该函数在 DataFrame 上求值。</span><span class="yiyi-st" id="yiyi-207">重要的是，这个 DataFrame 已经过滤为 sepal 长度大于 5 的那些行。</span><span class="yiyi-st" id="yiyi-208">首先进行过滤，然后计算比值。</span><span class="yiyi-st" id="yiyi-209">这是一个示例，其中我们没有<em>被过滤的</em> DataFrame的可用引用。</span></p>
+<p><span class="yiyi-st" id="yiyi-210"><code class="docutils literal"><span class="pre">assign</span></code>函数的参数是<code class="docutils literal"><span class="pre">**kwargs</span></code>。</span><span class="yiyi-st" id="yiyi-211">键是新字段的列名称，值是要插入的值（例如，<code class="docutils literal"><span class="pre">Series</span></code>或NumPy数组），或者是个函数，它在<code class="docutils literal"><span class="pre">DataFrame</span></code>上调用。</span><span class="yiyi-st" id="yiyi-212">返回原始DataFrame的<em>副本</em>，它插入了新值。</span></p>
+<div class="admonition warning">
+<p class="first admonition-title"><span class="yiyi-st" id="yiyi-213">警告</span></p>
+<p><span class="yiyi-st" id="yiyi-214">由于<code class="docutils literal"><span class="pre">assign</span></code>的函数签名为<code class="docutils literal"><span class="pre">**kwargs</span></code>，因此不能保证在产生的DataFrame中，新列的顺序与传递的顺序一致。</span><span class="yiyi-st" id="yiyi-215">为了使事情可预测，条目按字典序（按键）插入到 DataFrame 的末尾。</span></p>
+<p><span class="yiyi-st" id="yiyi-216">首先计算所有表达式，然后赋值。</span><span class="yiyi-st" id="yiyi-217">因此，在<code class="docutils literal"><span class="pre">assign</span></code>的同一调用中，您不能引用要赋值的另一列。</span><span class="yiyi-st" id="yiyi-218">例如：</span></p>
+<blockquote class="last">
+<div><div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [74]: </span><span class="c1"># Don&apos;t do this, bad reference to `C`</span>
+<span class="go">        df.assign(C = lambda x: x[&apos;A&apos;] + x[&apos;B&apos;],</span>
+<span class="go">                  D = lambda x: x[&apos;A&apos;] + x[&apos;C&apos;])</span>
+<span class="gp">In [2]: </span><span class="c1"># Instead, break it into two assigns</span>
+<span class="go">        (df.assign(C = lambda x: x[&apos;A&apos;] + x[&apos;B&apos;])</span>
+<span class="go">           .assign(D = lambda x: x[&apos;A&apos;] + x[&apos;C&apos;]))</span>
+</pre></div>
+</div>
+</div></blockquote>
+</div>
+</div>
+<div class="section" id="indexing-selection">
+<h3><span class="yiyi-st" id="yiyi-219">索引 / 选取</span></h3>
+<p><span class="yiyi-st" id="yiyi-220">索引的基本方式如下：</span></p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="50%">
+<col width="33%">
+<col width="17%">
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head"><span class="yiyi-st" id="yiyi-221">操作</span></th>
+<th class="head"><span class="yiyi-st" id="yiyi-222">语法</span></th>
+<th class="head"><span class="yiyi-st" id="yiyi-223">结果</span></th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><span class="yiyi-st" id="yiyi-224">选择列</span></td>
+<td><span class="yiyi-st" id="yiyi-225"><code class="docutils literal"><span class="pre">df[col]</span></code></span></td>
+<td><span class="yiyi-st" id="yiyi-226">Series</span></td>
+</tr>
+<tr class="row-odd"><td><span class="yiyi-st" id="yiyi-227">按标签选择行</span></td>
+<td><span class="yiyi-st" id="yiyi-228"><code class="docutils literal"><span class="pre">df.loc[label]</span></code></span></td>
+<td><span class="yiyi-st" id="yiyi-229">Series</span></td>
+</tr>
+<tr class="row-even"><td><span class="yiyi-st" id="yiyi-230">按整数位置选择行</span></td>
+<td><span class="yiyi-st" id="yiyi-231"><code class="docutils literal"><span class="pre">df.iloc[loc]</span></code></span></td>
+<td><span class="yiyi-st" id="yiyi-232">Series</span></td>
+</tr>
+<tr class="row-odd"><td><span class="yiyi-st" id="yiyi-233">对行切片</span></td>
+<td><span class="yiyi-st" id="yiyi-234"><code class="docutils literal"><span class="pre">df[5:10]</span></code></span></td>
+<td><span class="yiyi-st" id="yiyi-235">DataFrame</span></td>
+</tr>
+<tr class="row-even"><td><span class="yiyi-st" id="yiyi-236">通过布尔向量选择行</span></td>
+<td><span class="yiyi-st" id="yiyi-237"><code class="docutils literal"><span class="pre">df[bool_vec]</span></code></span></td>
+<td><span class="yiyi-st" id="yiyi-238">DataFrame</span></td>
+</tr>
+</tbody>
+</table>
+<p><span class="yiyi-st" id="yiyi-239">例如，行的选择返回 Series，其索引是 DataFrame 的列：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [75]: </span><span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="s1">&apos;b&apos;</span><span class="p">]</span>
+<span class="gr">Out[75]: </span>
+<span class="go">one              2</span>
+<span class="go">bar              2</span>
+<span class="go">flag         False</span>
+<span class="go">foo            bar</span>
+<span class="go">one_trunc        2</span>
+<span class="go">Name: b, dtype: object</span>
+
+<span class="gp">In [76]: </span><span class="n">df</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+<span class="gr">Out[76]: </span>
+<span class="go">one             3</span>
+<span class="go">bar             3</span>
+<span class="go">flag         True</span>
+<span class="go">foo           bar</span>
+<span class="go">one_trunc     NaN</span>
+<span class="go">Name: c, dtype: object</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-240">对于更复杂的基于标签的索引和切片的更详尽的处理，请参阅<a class="reference internal" href="indexing.html#indexing"><span class="std std-ref">索引章节</span></a>。</span><span class="yiyi-st" id="yiyi-241">我们将在<a class="reference internal" href="basics.html#basics-reindexing"><span class="std std-ref">重索引章节</span></a>中，强调重索引/适配新标签集的基本原理。</span></p>
+</div>
+<div class="section" id="data-alignment-and-arithmetic">
+<h3><span class="yiyi-st" id="yiyi-242">数据对齐和算术</span></h3>
+<p><span class="yiyi-st" id="yiyi-243">DataFrame对象之间的数据自动按照<strong>列和索引（行标签）</strong>对齐。</span><span class="yiyi-st" id="yiyi-244">同样，生成的对象具有列和行标签的并集。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [77]: </span><span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&apos;A&apos;</span><span class="p">,</span> <span class="s1">&apos;B&apos;</span><span class="p">,</span> <span class="s1">&apos;C&apos;</span><span class="p">,</span> <span class="s1">&apos;D&apos;</span><span class="p">])</span>
+
+<span class="gp">In [78]: </span><span class="n">df2</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">7</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&apos;A&apos;</span><span class="p">,</span> <span class="s1">&apos;B&apos;</span><span class="p">,</span> <span class="s1">&apos;C&apos;</span><span class="p">])</span>
+
+<span class="gp">In [79]: </span><span class="n">df</span> <span class="o">+</span> <span class="n">df2</span>
+<span class="gr">Out[79]: </span>
+<span class="go">        A       B       C   D</span>
+<span class="go">0  0.5222  0.3225 -0.7566 NaN</span>
+<span class="go">1 -0.8441  0.2334  0.8818 NaN</span>
+<span class="go">2 -2.2079 -0.1572 -0.3875 NaN</span>
+<span class="go">3  2.8080 -1.0927  1.0432 NaN</span>
+<span class="go">4 -1.7511 -2.0812  2.7477 NaN</span>
+<span class="go">5 -3.2473 -1.0850  0.7898 NaN</span>
+<span class="go">6 -1.7107  0.0661  0.1294 NaN</span>
+<span class="go">7     NaN     NaN     NaN NaN</span>
+<span class="go">8     NaN     NaN     NaN NaN</span>
+<span class="go">9     NaN     NaN     NaN NaN</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-245">执行 DataFrame和Series之间的操作时，默认行为是，将Dataframe 的<strong>列</strong><strong>索引</strong>与 Series 对齐，从而按行<a class="reference external" href="http://docs.scipy.org/doc/numpy/user/basics.broadcasting.html">广播</a>。</span><span class="yiyi-st" id="yiyi-246">例如：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [80]: </span><span class="n">df</span> <span class="o">-</span> <span class="n">df</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="gr">Out[80]: </span>
+<span class="go">        A       B       C       D</span>
+<span class="go">0  0.0000  0.0000  0.0000  0.0000</span>
+<span class="go">1 -2.6396 -1.0702  1.7214 -0.7896</span>
+<span class="go">2 -2.7662 -1.6918  2.2776 -2.5401</span>
+<span class="go">3  0.8679 -3.5247  1.9365 -0.1331</span>
+<span class="go">4 -1.9883 -3.2162  2.0464 -1.0700</span>
+<span class="go">5 -3.3932 -4.0976  1.6366 -2.1635</span>
+<span class="go">6 -1.3668 -1.9572  1.6523 -0.7191</span>
+<span class="go">7 -0.7949 -2.1663  0.9706 -2.6297</span>
+<span class="go">8 -0.8383 -1.3630  1.6702 -2.0865</span>
+<span class="go">9  0.8588  0.0814  3.7305 -1.3737</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-247">在处理时间序列数据的特殊情况下，DataFrame索引也包含日期，广播是按列的方式：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [81]: </span><span class="n">index</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">date_range</span><span class="p">(</span><span class="s1">&apos;1/1/2000&apos;</span><span class="p">,</span> <span class="n">periods</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
+
+<span class="gp">In [82]: </span><span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">index</span><span class="o">=</span><span class="n">index</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="s1">&apos;ABC&apos;</span><span class="p">))</span>
+
+<span class="gp">In [83]: </span><span class="n">df</span>
+<span class="gr">Out[83]: </span>
+<span class="go">                 A       B       C</span>
+<span class="go">2000-01-01  0.2731  0.3604 -1.1515</span>
+<span class="go">2000-01-02  1.1577  1.4787 -0.6528</span>
+<span class="go">2000-01-03 -0.7712  0.2203 -0.5739</span>
+<span class="go">2000-01-04 -0.6356 -1.1703 -0.0789</span>
+<span class="go">2000-01-05 -1.4687  0.1705 -1.8796</span>
+<span class="go">2000-01-06 -1.2037  0.9568 -1.1383</span>
+<span class="go">2000-01-07 -0.6540 -0.2169  0.3843</span>
+<span class="go">2000-01-08 -2.1639 -0.8145 -1.2475</span>
+
+<span class="gp">In [84]: </span><span class="nb">type</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s1">&apos;A&apos;</span><span class="p">])</span>
+<span class="gr">Out[84]: </span><span class="n">pandas</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">series</span><span class="o">.</span><span class="n">Series</span>
+
+<span class="gp">In [85]: </span><span class="n">df</span> <span class="o">-</span> <span class="n">df</span><span class="p">[</span><span class="s1">&apos;A&apos;</span><span class="p">]</span>
+<span class="gr">Out[85]: </span>
+<span class="go">            2000-01-01 00:00:00  2000-01-02 00:00:00  2000-01-03 00:00:00  \</span>
+<span class="go">2000-01-01                  NaN                  NaN                  NaN   </span>
+<span class="go">2000-01-02                  NaN                  NaN                  NaN   </span>
+<span class="go">2000-01-03                  NaN                  NaN                  NaN   </span>
+<span class="go">2000-01-04                  NaN                  NaN                  NaN   </span>
+<span class="go">2000-01-05                  NaN                  NaN                  NaN   </span>
+<span class="go">2000-01-06                  NaN                  NaN                  NaN   </span>
+<span class="go">2000-01-07                  NaN                  NaN                  NaN   </span>
+<span class="go">2000-01-08                  NaN                  NaN                  NaN   </span>
+
+<span class="go">            2000-01-04 00:00:00 ...  2000-01-08 00:00:00   A   B   C  </span>
+<span class="go">2000-01-01                  NaN ...                  NaN NaN NaN NaN  </span>
+<span class="go">2000-01-02                  NaN ...                  NaN NaN NaN NaN  </span>
+<span class="go">2000-01-03                  NaN ...                  NaN NaN NaN NaN  </span>
+<span class="go">2000-01-04                  NaN ...                  NaN NaN NaN NaN  </span>
+<span class="go">2000-01-05                  NaN ...                  NaN NaN NaN NaN  </span>
+<span class="go">2000-01-06                  NaN ...                  NaN NaN NaN NaN  </span>
+<span class="go">2000-01-07                  NaN ...                  NaN NaN NaN NaN  </span>
+<span class="go">2000-01-08                  NaN ...                  NaN NaN NaN NaN  </span>
+
+<span class="go">[8 rows x 11 columns]</span>
+</pre></div>
+</div>
+<div class="admonition warning">
+<p class="first admonition-title"><span class="yiyi-st" id="yiyi-248">警告</span></p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">df</span> <span class="o">-</span> <span class="n">df</span><span class="p">[</span><span class="s1">&apos;A&apos;</span><span class="p">]</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-249">现已弃用，将在以后的版本中删除。</span><span class="yiyi-st" id="yiyi-250">复现此行为的首选方法是</span></p>
+<div class="last highlight-python"><div class="highlight"><pre><span></span><span class="n">df</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s1">&apos;A&apos;</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<p><span class="yiyi-st" id="yiyi-251">对于显式控制匹配和广播行为，请参阅<a class="reference internal" href="basics.html#basics-binop"><span class="std std-ref">灵活的二元运算</span></a>一节。</span></p>
+<p><span class="yiyi-st" id="yiyi-252">标量的操作正如你的预期：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [86]: </span><span class="n">df</span> <span class="o">*</span> <span class="mi">5</span> <span class="o">+</span> <span class="mi">2</span>
+<span class="gr">Out[86]: </span>
+<span class="go">                 A       B       C</span>
+<span class="go">2000-01-01  3.3655  3.8018 -3.7575</span>
+<span class="go">2000-01-02  7.7885  9.3936 -1.2641</span>
+<span class="go">2000-01-03 -1.8558  3.1017 -0.8696</span>
+<span class="go">2000-01-04 -1.1781 -3.8513  1.6056</span>
+<span class="go">2000-01-05 -5.3437  2.8523 -7.3982</span>
+<span class="go">2000-01-06 -4.0186  6.7842 -3.6915</span>
+<span class="go">2000-01-07 -1.2699  0.9157  3.9217</span>
+<span class="go">2000-01-08 -8.8194 -2.0724 -4.2375</span>
+
+<span class="gp">In [87]: </span><span class="mi">1</span> <span class="o">/</span> <span class="n">df</span>
+<span class="gr">Out[87]: </span>
+<span class="go">                 A       B        C</span>
+<span class="go">2000-01-01  3.6616  2.7751  -0.8684</span>
+<span class="go">2000-01-02  0.8638  0.6763  -1.5318</span>
+<span class="go">2000-01-03 -1.2967  4.5383  -1.7424</span>
+<span class="go">2000-01-04 -1.5733 -0.8545 -12.6759</span>
+<span class="go">2000-01-05 -0.6809  5.8662  -0.5320</span>
+<span class="go">2000-01-06 -0.8308  1.0451  -0.8785</span>
+<span class="go">2000-01-07 -1.5291 -4.6113   2.6019</span>
+<span class="go">2000-01-08 -0.4621 -1.2278  -0.8016</span>
+
+<span class="gp">In [88]: </span><span class="n">df</span> <span class="o">**</span> <span class="mi">4</span>
+<span class="gr">Out[88]: </span>
+<span class="go">                  A       B           C</span>
+<span class="go">2000-01-01   0.0056  0.0169  1.7581e+00</span>
+<span class="go">2000-01-02   1.7964  4.7813  1.8162e-01</span>
+<span class="go">2000-01-03   0.3537  0.0024  1.0849e-01</span>
+<span class="go">2000-01-04   0.1632  1.8755  3.8733e-05</span>
+<span class="go">2000-01-05   4.6534  0.0008  1.2482e+01</span>
+<span class="go">2000-01-06   2.0995  0.8382  1.6789e+00</span>
+<span class="go">2000-01-07   0.1829  0.0022  2.1819e-02</span>
+<span class="go">2000-01-08  21.9244  0.4401  2.4219e+00</span>
+</pre></div>
+</div>
+<p id="dsintro-boolean"><span class="yiyi-st" id="yiyi-253">布尔运算符也同样有效：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [89]: </span><span class="n">df1</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s1">&apos;a&apos;</span> <span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="s1">&apos;b&apos;</span> <span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="p">},</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
+
+<span class="gp">In [90]: </span><span class="n">df2</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s1">&apos;a&apos;</span> <span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="s1">&apos;b&apos;</span> <span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="p">},</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
+
+<span class="gp">In [91]: </span><span class="n">df1</span> <span class="o">&amp;</span> <span class="n">df2</span>
+<span class="gr">Out[91]: </span>
+<span class="go">       a      b</span>
+<span class="go">0  False  False</span>
+<span class="go">1  False   True</span>
+<span class="go">2   True  False</span>
+
+<span class="gp">In [92]: </span><span class="n">df1</span> <span class="o">|</span> <span class="n">df2</span>
+<span class="gr">Out[92]: </span>
+<span class="go">      a     b</span>
+<span class="go">0  True  True</span>
+<span class="go">1  True  True</span>
+<span class="go">2  True  True</span>
+
+<span class="gp">In [93]: </span><span class="n">df1</span> <span class="o">^</span> <span class="n">df2</span>
+<span class="gr">Out[93]: </span>
+<span class="go">       a      b</span>
+<span class="go">0   True   True</span>
+<span class="go">1   True  False</span>
+<span class="go">2  False   True</span>
+
+<span class="gp">In [94]: </span><span class="o">-</span><span class="n">df1</span>
+<span class="gr">Out[94]: </span>
+<span class="go">       a      b</span>
+<span class="go">0  False   True</span>
+<span class="go">1   True  False</span>
+<span class="go">2  False  False</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="transposing">
+<h3><span class="yiyi-st" id="yiyi-254">转置</span></h3>
+<p><span class="yiyi-st" id="yiyi-255">对于转置，访问<code class="docutils literal"><span class="pre">T</span></code>属性（<code class="docutils literal"><span class="pre">transpose</span></code>函数也是），类似于ndarray：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="c"># only show the first 5 rows</span>
+<span class="gp">In [95]: </span><span class="n">df</span><span class="p">[:</span><span class="mi">5</span><span class="p">]</span><span class="o">.</span><span class="n">T</span>
+<span class="gr">Out[95]: </span>
+<span class="go">   2000-01-01  2000-01-02  2000-01-03  2000-01-04  2000-01-05</span>
+<span class="go">A      0.2731      1.1577     -0.7712     -0.6356     -1.4687</span>
+<span class="go">B      0.3604      1.4787      0.2203     -1.1703      0.1705</span>
+<span class="go">C     -1.1515     -0.6528     -0.5739     -0.0789     -1.8796</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="dataframe-interoperability-with-numpy-functions">
+<h3><span class="yiyi-st" id="yiyi-256">DataFrame 与 NumPy 函数的互操作</span></h3>
+<p id="dsintro-numpy-interop"><span class="yiyi-st" id="yiyi-257">逐元素的 NumPy ufunc（log，exp，sqrt，...）和各种其他NumPy函数可以无缝用于DataFrame，假设其中的数据是数字：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [96]: </span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+<span class="gr">Out[96]: </span>
+<span class="go">                 A       B       C</span>
+<span class="go">2000-01-01  1.3140  1.4338  0.3162</span>
+<span class="go">2000-01-02  3.1826  4.3873  0.5206</span>
+<span class="go">2000-01-03  0.4625  1.2465  0.5633</span>
+<span class="go">2000-01-04  0.5296  0.3103  0.9241</span>
+<span class="go">2000-01-05  0.2302  1.1859  0.1526</span>
+<span class="go">2000-01-06  0.3001  2.6034  0.3204</span>
+<span class="go">2000-01-07  0.5200  0.8050  1.4686</span>
+<span class="go">2000-01-08  0.1149  0.4429  0.2872</span>
+
+<span class="gp">In [97]: </span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+<span class="gr">Out[97]: </span>
+<span class="go">array([[ 0.2731,  0.3604, -1.1515],</span>
+<span class="go">       [ 1.1577,  1.4787, -0.6528],</span>
+<span class="go">       [-0.7712,  0.2203, -0.5739],</span>
+<span class="go">       [-0.6356, -1.1703, -0.0789],</span>
+<span class="go">       [-1.4687,  0.1705, -1.8796],</span>
+<span class="go">       [-1.2037,  0.9568, -1.1383],</span>
+<span class="go">       [-0.654 , -0.2169,  0.3843],</span>
+<span class="go">       [-2.1639, -0.8145, -1.2475]])</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-258">DataFrame上的dot方法实现了矩阵乘法：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [98]: </span><span class="n">df</span><span class="o">.</span><span class="n">T</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+<span class="gr">Out[98]: </span>
+<span class="go">         A       B       C</span>
+<span class="go">A  11.1298  2.8864  6.0015</span>
+<span class="go">B   2.8864  5.3895 -1.8913</span>
+<span class="go">C   6.0015 -1.8913  8.6204</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-259">类似地，Series上的dot方法实现了点积：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [99]: </span><span class="n">s1</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
+
+<span class="gp">In [100]: </span><span class="n">s1</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">s1</span><span class="p">)</span>
+<span class="gr">Out[100]: </span><span class="mi">255</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-260">DataFrame不打算作为ndarray的替代品，因为它的索引语义和矩阵是非常不同的。</span></p>
+</div>
+<div class="section" id="console-display">
+<h3><span class="yiyi-st" id="yiyi-261">控制台展示</span></h3>
+<p><span class="yiyi-st" id="yiyi-262">非常大的DataFrames将被截断，来在控制台中展示。</span><span class="yiyi-st" id="yiyi-263">您也可以使用<a class="reference internal" href="generated/pandas.DataFrame.info.html#pandas.DataFrame.info" title="pandas.DataFrame.info"><code class="xref py py-meth docutils literal"><span class="pre">info()</span></code></a>取得摘要。</span><span class="yiyi-st" id="yiyi-264">（这里我从<strong>plyr</strong> R软件包中，读取CSV版本的<strong>棒球</strong>数据集）：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [101]: </span><span class="n">baseball</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s1">&apos;data/baseball.csv&apos;</span><span class="p">)</span>
+
+<span class="gp">In [102]: </span><span class="k">print</span><span class="p">(</span><span class="n">baseball</span><span class="p">)</span>
+<span class="go">       id     player  year  stint  ...   hbp   sh   sf  gidp</span>
+<span class="go">0   88641  womacto01  2006      2  ...   0.0  3.0  0.0   0.0</span>
+<span class="go">1   88643  schilcu01  2006      1  ...   0.0  0.0  0.0   0.0</span>
+<span class="go">..    ...        ...   ...    ...  ...   ...  ...  ...   ...</span>
+<span class="go">98  89533   aloumo01  2007      1  ...   2.0  0.0  3.0  13.0</span>
+<span class="go">99  89534  alomasa02  2007      1  ...   0.0  0.0  0.0   0.0</span>
+
+<span class="go">[100 rows x 23 columns]</span>
+
+<span class="gp">In [103]: </span><span class="n">baseball</span><span class="o">.</span><span class="n">info</span><span class="p">()</span>
+<span class="go">&lt;class &apos;pandas.core.frame.DataFrame&apos;&gt;</span>
+<span class="go">RangeIndex: 100 entries, 0 to 99</span>
+<span class="go">Data columns (total 23 columns):</span>
+<span class="go">id        100 non-null int64</span>
+<span class="go">player    100 non-null object</span>
+<span class="go">year      100 non-null int64</span>
+<span class="go">stint     100 non-null int64</span>
+<span class="go">team      100 non-null object</span>
+<span class="go">lg        100 non-null object</span>
+<span class="go">g         100 non-null int64</span>
+<span class="go">ab        100 non-null int64</span>
+<span class="go">r         100 non-null int64</span>
+<span class="go">h         100 non-null int64</span>
+<span class="go">X2b       100 non-null int64</span>
+<span class="go">X3b       100 non-null int64</span>
+<span class="go">hr        100 non-null int64</span>
+<span class="go">rbi       100 non-null float64</span>
+<span class="go">sb        100 non-null float64</span>
+<span class="go">cs        100 non-null float64</span>
+<span class="go">bb        100 non-null int64</span>
+<span class="go">so        100 non-null float64</span>
+<span class="go">ibb       100 non-null float64</span>
+<span class="go">hbp       100 non-null float64</span>
+<span class="go">sh        100 non-null float64</span>
+<span class="go">sf        100 non-null float64</span>
+<span class="go">gidp      100 non-null float64</span>
+<span class="go">dtypes: float64(9), int64(11), object(3)</span>
+<span class="go">memory usage: 18.0+ KB</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-265">但是，使用<code class="docutils literal"><span class="pre">to_string</span></code>将返回表格形式的DataFrame的字符串表示，但并不总是适合控制台宽度：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [104]: </span><span class="k">print</span><span class="p">(</span><span class="n">baseball</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="o">-</span><span class="mi">20</span><span class="p">:,</span> <span class="p">:</span><span class="mi">12</span><span class="p">]</span><span class="o">.</span><span class="n">to_string</span><span class="p">())</span>
+<span class="go">       id     player  year  stint team  lg    g   ab   r    h  X2b  X3b</span>
+<span class="go">80  89474  finlest01  2007      1  COL  NL   43   94   9   17    3    0</span>
+<span class="go">81  89480  embreal01  2007      1  OAK  AL    4    0   0    0    0    0</span>
+<span class="go">82  89481  edmonji01  2007      1  SLN  NL  117  365  39   92   15    2</span>
+<span class="go">83  89482  easleda01  2007      1  NYN  NL   76  193  24   54    6    0</span>
+<span class="go">84  89489  delgaca01  2007      1  NYN  NL  139  538  71  139   30    0</span>
+<span class="go">85  89493  cormirh01  2007      1  CIN  NL    6    0   0    0    0    0</span>
+<span class="go">86  89494  coninje01  2007      2  NYN  NL   21   41   2    8    2    0</span>
+<span class="go">87  89495  coninje01  2007      1  CIN  NL   80  215  23   57   11    1</span>
+<span class="go">88  89497  clemero02  2007      1  NYA  AL    2    2   0    1    0    0</span>
+<span class="go">89  89498  claytro01  2007      2  BOS  AL    8    6   1    0    0    0</span>
+<span class="go">90  89499  claytro01  2007      1  TOR  AL   69  189  23   48   14    0</span>
+<span class="go">91  89501  cirilje01  2007      2  ARI  NL   28   40   6    8    4    0</span>
+<span class="go">92  89502  cirilje01  2007      1  MIN  AL   50  153  18   40    9    2</span>
+<span class="go">93  89521  bondsba01  2007      1  SFN  NL  126  340  75   94   14    0</span>
+<span class="go">94  89523  biggicr01  2007      1  HOU  NL  141  517  68  130   31    3</span>
+<span class="go">95  89525  benitar01  2007      2  FLO  NL   34    0   0    0    0    0</span>
+<span class="go">96  89526  benitar01  2007      1  SFN  NL   19    0   0    0    0    0</span>
+<span class="go">97  89530  ausmubr01  2007      1  HOU  NL  117  349  38   82   16    3</span>
+<span class="go">98  89533   aloumo01  2007      1  NYN  NL   87  328  51  112   19    1</span>
+<span class="go">99  89534  alomasa02  2007      1  NYN  NL    8   22   1    3    1    0</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-266">从0.10.0版本开始，默认情况下，宽的 DataFrames 以多行打印：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [105]: </span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">12</span><span class="p">))</span>
+<span class="gr">Out[105]: </span>
+<span class="go">         0         1         2         3         4         5         6   \</span>
+<span class="go">0  2.173014  1.273573  0.888325  0.631774  0.206584 -1.745845 -0.505310   </span>
+<span class="go">1 -1.240418  2.177280 -0.082206  0.827373 -0.700792  0.524540 -1.101396   </span>
+<span class="go">2  0.269598 -0.453050 -1.821539 -0.126332 -0.153257  0.405483 -0.504557   </span>
+
+<span class="go">         7         8         9         10        11  </span>
+<span class="go">0  1.376623  0.741168 -0.509153 -2.012112 -1.204418  </span>
+<span class="go">1  1.115750  0.294139  0.286939  1.709761 -0.212596  </span>
+<span class="go">2  1.405148  0.778061 -0.799024 -0.670727  0.086877  </span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-267">您可以通过设置<code class="docutils literal"><span class="pre">display.width</span></code>选项，更改单行上的打印量：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [106]: </span><span class="n">pd</span><span class="o">.</span><span class="n">set_option</span><span class="p">(</span><span class="s1">&apos;display.width&apos;</span><span class="p">,</span> <span class="mi">40</span><span class="p">)</span> <span class="c1"># default is 80</span>
+
+<span class="gp">In [107]: </span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">12</span><span class="p">))</span>
+<span class="gr">Out[107]: </span>
+<span class="go">         0         1         2   \</span>
+<span class="go">0  1.179465  0.777427 -1.923460   </span>
+<span class="go">1  0.054928  0.776156  0.372060   </span>
+<span class="go">2 -0.243404 -1.506557 -1.977226   </span>
+
+<span class="go">         3         4         5   \</span>
+<span class="go">0  0.782432  0.203446  0.250652   </span>
+<span class="go">1  0.710963 -0.784859  0.168405   </span>
+<span class="go">2 -0.226582 -0.777971  0.231309   </span>
+
+<span class="go">         6         7         8   \</span>
+<span class="go">0 -2.349580 -0.540814 -0.748939   </span>
+<span class="go">1  0.159230  0.866492  1.266025   </span>
+<span class="go">2  1.394479  0.723474 -0.097256   </span>
+
+<span class="go">         9         10        11  </span>
+<span class="go">0 -0.994345  1.478624 -0.341991  </span>
+<span class="go">1  0.555240  0.731803  0.219383  </span>
+<span class="go">2  0.375274 -0.314401 -2.363136  </span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-268">您可以通过设置<code class="docutils literal"><span class="pre">display.max_colwidth</span></code>来调整各列的最大宽度</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [108]: </span><span class="n">datafile</span><span class="o">=</span><span class="p">{</span><span class="s1">&apos;filename&apos;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&apos;filename_01&apos;</span><span class="p">,</span><span class="s1">&apos;filename_02&apos;</span><span class="p">],</span>
+<span class="gp">   .....:</span>           <span class="s1">&apos;path&apos;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;media/user_name/storage/folder_01/filename_01&quot;</span><span class="p">,</span>
+<span class="gp">   .....:</span>                    <span class="s2">&quot;media/user_name/storage/folder_02/filename_02&quot;</span><span class="p">]}</span>
+<span class="gp">   .....:</span> 
+
+<span class="gp">In [109]: </span><span class="n">pd</span><span class="o">.</span><span class="n">set_option</span><span class="p">(</span><span class="s1">&apos;display.max_colwidth&apos;</span><span class="p">,</span><span class="mi">30</span><span class="p">)</span>
+
+<span class="gp">In [110]: </span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">datafile</span><span class="p">)</span>
+<span class="gr">Out[110]: </span>
+<span class="go">      filename  \</span>
+<span class="go">0  filename_01   </span>
+<span class="go">1  filename_02   </span>
+
+<span class="go">                            path  </span>
+<span class="go">0  media/user_name/storage/fo...  </span>
+<span class="go">1  media/user_name/storage/fo...  </span>
+
+<span class="gp">In [111]: </span><span class="n">pd</span><span class="o">.</span><span class="n">set_option</span><span class="p">(</span><span class="s1">&apos;display.max_colwidth&apos;</span><span class="p">,</span><span class="mi">100</span><span class="p">)</span>
+
+<span class="gp">In [112]: </span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">datafile</span><span class="p">)</span>
+<span class="gr">Out[112]: </span>
+<span class="go">      filename  \</span>
+<span class="go">0  filename_01   </span>
+<span class="go">1  filename_02   </span>
+
+<span class="go">                                            path  </span>
+<span class="go">0  media/user_name/storage/folder_01/filename_01  </span>
+<span class="go">1  media/user_name/storage/folder_02/filename_02  </span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-269">您也可以通过<code class="docutils literal"><span class="pre">expand_frame_repr</span></code>选项停用此功能。</span><span class="yiyi-st" id="yiyi-270">这将表打印在一个块中。</span></p>
+</div>
+<div class="section" id="dataframe-column-attribute-access-and-ipython-completion">
+<h3><span class="yiyi-st" id="yiyi-271">DataFrame 列属性访问和 IPython 补全</span></h3>
+<p><span class="yiyi-st" id="yiyi-272">如果DataFrame列标签是有效的Python变量名，则可以像属性一样访问该列：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [113]: </span><span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s1">&apos;foo1&apos;</span> <span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">5</span><span class="p">),</span>
+<span class="gp">   .....:</span>                    <span class="s1">&apos;foo2&apos;</span> <span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">5</span><span class="p">)})</span>
+<span class="gp">   .....:</span> 
+
+<span class="gp">In [114]: </span><span class="n">df</span>
+<span class="gr">Out[114]: </span>
+<span class="go">       foo1      foo2</span>
+<span class="go">0 -0.412237  0.213232</span>
+<span class="go">1 -0.237644  1.740139</span>
+<span class="go">2  1.272869 -0.241491</span>
+<span class="go">3  1.220450 -0.868514</span>
+<span class="go">4  1.315172  0.407544</span>
+
+<span class="gp">In [115]: </span><span class="n">df</span><span class="o">.</span><span class="n">foo1</span>
+<span class="gr">Out[115]: </span>
+<span class="go">0   -0.412237</span>
+<span class="go">1   -0.237644</span>
+<span class="go">2    1.272869</span>
+<span class="go">3    1.220450</span>
+<span class="go">4    1.315172</span>
+<span class="go">Name: foo1, dtype: float64</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-273">这些列还连接了<a class="reference external" href="http://ipython.org">IPython</a>补全机制，因此可以通过制表符补全：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [5]: </span><span class="n">df</span><span class="o">.</span><span class="n">fo</span><span class="o">&lt;</span><span class="n">TAB</span><span class="o">&gt;</span>
+<span class="go">df.foo1  df.foo2</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="panel">
+<span id="basics-panel"></span><h2><span class="yiyi-st" id="yiyi-274">Panel（面板）</span></h2>
+<p><span class="yiyi-st" id="yiyi-275">Panel是一个稍微不常用的容器，但是对于三维数据仍然重要。</span><span class="yiyi-st" id="yiyi-276">术语<a class="reference external" href="http://en.wikipedia.org/wiki/Panel_data">面板数据</a>源自计量经济学，是pandas名称的部分来源：pan(el)-da(ta)-s。 三个轴旨在提供一些语义上的含义，来描述涉及面板数据的操作，特别是面板数据的计量分析。</span><span class="yiyi-st" id="yiyi-277">但是，出于切割DataFrame对象的集合的严格目的，您可能会发现轴名称稍有任意：</span></p>
+<blockquote>
+<div><ul class="simple">
+<li><span class="yiyi-st" id="yiyi-278"><strong>items</strong>（条目）：轴0，每个条目对应于其中包含的DataFrame</span></li>
+<li><span class="yiyi-st" id="yiyi-279"><strong>major_axis</strong>（主轴）：轴1，它是每个DataFrame的<strong>index</strong>（行）</span></li>
+<li><span class="yiyi-st" id="yiyi-280"><strong>minor_axis</strong>（副轴）：轴2，它是每个DataFrames的<strong>columns</strong>（列）</span></li>
+</ul>
+</div></blockquote>
+<p><span class="yiyi-st" id="yiyi-281">Panel 的构造正如你的期望：</span></p>
+<div class="section" id="from-3d-ndarray-with-optional-axis-labels">
+<h3><span class="yiyi-st" id="yiyi-282">来自三维 ndarray 和可选的轴标签</span></h3>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [116]: </span><span class="n">wp</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Panel</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="n">items</span><span class="o">=</span><span class="p">[</span><span class="s1">&apos;Item1&apos;</span><span class="p">,</span> <span class="s1">&apos;Item2&apos;</span><span class="p">],</span>
+<span class="gp">   .....:</span>               <span class="n">major_axis</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">date_range</span><span class="p">(</span><span class="s1">&apos;1/1/2000&apos;</span><span class="p">,</span> <span class="n">periods</span><span class="o">=</span><span class="mi">5</span><span class="p">),</span>
+<span class="gp">   .....:</span>               <span class="n">minor_axis</span><span class="o">=</span><span class="p">[</span><span class="s1">&apos;A&apos;</span><span class="p">,</span> <span class="s1">&apos;B&apos;</span><span class="p">,</span> <span class="s1">&apos;C&apos;</span><span class="p">,</span> <span class="s1">&apos;D&apos;</span><span class="p">])</span>
+<span class="gp">   .....:</span> 
+
+<span class="gp">In [117]: </span><span class="n">wp</span>
+<span class="gr">Out[117]: </span>
+<span class="go">&lt;class &apos;pandas.core.panel.Panel&apos;&gt;</span>
+<span class="go">Dimensions: 2 (items) x 5 (major_axis) x 4 (minor_axis)</span>
+<span class="go">Items axis: Item1 to Item2</span>
+<span class="go">Major_axis axis: 2000-01-01 00:00:00 to 2000-01-05 00:00:00</span>
+<span class="go">Minor_axis axis: A to D</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="from-dict-of-dataframe-objects">
+<h3><span class="yiyi-st" id="yiyi-283">来自 DataFrame 对象的字典</span></h3>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [118]: </span><span class="n">data</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&apos;Item1&apos;</span> <span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">3</span><span class="p">)),</span>
+<span class="gp">   .....:</span>         <span class="s1">&apos;Item2&apos;</span> <span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">2</span><span class="p">))}</span>
+<span class="gp">   .....:</span> 
+
+<span class="gp">In [119]: </span><span class="n">pd</span><span class="o">.</span><span class="n">Panel</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+<span class="gr">Out[119]: </span>
+<span class="go">&lt;class &apos;pandas.core.panel.Panel&apos;&gt;</span>
+<span class="go">Dimensions: 2 (items) x 4 (major_axis) x 3 (minor_axis)</span>
+<span class="go">Items axis: Item1 to Item2</span>
+<span class="go">Major_axis axis: 0 to 3</span>
+<span class="go">Minor_axis axis: 0 to 2</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-284">注意，字典中的值只需要<strong>可转换为DataFrame</strong>。</span><span class="yiyi-st" id="yiyi-285">因此，它们可以是DataFrame的任何其他有效输入，像上面一样。</span></p>
+<p><span class="yiyi-st" id="yiyi-286">一个有用的工厂方法是<code class="docutils literal"><span class="pre">Panel.from_dict</span></code>，它接受上面的DataFrames的字典，以及以下命名参数：</span></p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="17%">
+<col width="17%">
+<col width="67%">
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head"><span class="yiyi-st" id="yiyi-287">参数</span></th>
+<th class="head"><span class="yiyi-st" id="yiyi-288">默认</span></th>
+<th class="head"><span class="yiyi-st" id="yiyi-289">描述</span></th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><span class="yiyi-st" id="yiyi-290">intersect（交集）</span></td>
+<td><span class="yiyi-st" id="yiyi-291"><code class="docutils literal"><span class="pre">False</span></code></span></td>
+<td><span class="yiyi-st" id="yiyi-292">丢弃索引没有对齐的元素</span></td>
+</tr>
+<tr class="row-odd"><td><span class="yiyi-st" id="yiyi-293">orient（方向）</span></td>
+<td><span class="yiyi-st" id="yiyi-294"><code class="docutils literal"><span class="pre">items</span></code></span></td>
+<td><span class="yiyi-st" id="yiyi-295">使用<code class="docutils literal"><span class="pre">minor</span></code>将DataFrames的列用作 Panel 的条目</span></td>
+</tr>
+</tbody>
+</table>
+<p><span class="yiyi-st" id="yiyi-296">例如，与上面的构造相比：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [120]: </span><span class="n">pd</span><span class="o">.</span><span class="n">Panel</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">orient</span><span class="o">=</span><span class="s1">&apos;minor&apos;</span><span class="p">)</span>
+<span class="gr">Out[120]: </span>
+<span class="go">&lt;class &apos;pandas.core.panel.Panel&apos;&gt;</span>
+<span class="go">Dimensions: 3 (items) x 4 (major_axis) x 2 (minor_axis)</span>
+<span class="go">Items axis: 0 to 2</span>
+<span class="go">Major_axis axis: 0 to 3</span>
+<span class="go">Minor_axis axis: Item1 to Item2</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-297">Orient对于混合类型的DataFrames特别有用。</span><span class="yiyi-st" id="yiyi-298">如果你传递一个DataFrame对象的字典，它的列是混合类型，所有的数据将转换为<code class="docutils literal"><span class="pre">dtype=object</span></code>，除非你传递<code class="docutils literal"><span class="pre">orient=&apos;minor&apos;</span></code>：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [121]: </span><span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s1">&apos;a&apos;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&apos;foo&apos;</span><span class="p">,</span> <span class="s1">&apos;bar&apos;</span><span class="p">,</span> <span class="s1">&apos;baz&apos;</span><span class="p">],</span>
+<span class="gp">   .....:</span>                    <span class="s1">&apos;b&apos;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">3</span><span class="p">)})</span>
+<span class="gp">   .....:</span> 
+
+<span class="gp">In [122]: </span><span class="n">df</span>
+<span class="gr">Out[122]: </span>
+<span class="go">     a         b</span>
+<span class="go">0  foo -1.142863</span>
+<span class="go">1  bar -1.015321</span>
+<span class="go">2  baz  0.683625</span>
+
+<span class="gp">In [123]: </span><span class="n">data</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&apos;item1&apos;</span><span class="p">:</span> <span class="n">df</span><span class="p">,</span> <span class="s1">&apos;item2&apos;</span><span class="p">:</span> <span class="n">df</span><span class="p">}</span>
+
+<span class="gp">In [124]: </span><span class="n">panel</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Panel</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">orient</span><span class="o">=</span><span class="s1">&apos;minor&apos;</span><span class="p">)</span>
+
+<span class="gp">In [125]: </span><span class="n">panel</span><span class="p">[</span><span class="s1">&apos;a&apos;</span><span class="p">]</span>
+<span class="gr">Out[125]: </span>
+<span class="go">  item1 item2</span>
+<span class="go">0   foo   foo</span>
+<span class="go">1   bar   bar</span>
+<span class="go">2   baz   baz</span>
+
+<span class="gp">In [126]: </span><span class="n">panel</span><span class="p">[</span><span class="s1">&apos;b&apos;</span><span class="p">]</span>
+<span class="gr">Out[126]: </span>
+<span class="go">      item1     item2</span>
+<span class="go">0 -1.142863 -1.142863</span>
+<span class="go">1 -1.015321 -1.015321</span>
+<span class="go">2  0.683625  0.683625</span>
+
+<span class="gp">In [127]: </span><span class="n">panel</span><span class="p">[</span><span class="s1">&apos;b&apos;</span><span class="p">]</span><span class="o">.</span><span class="n">dtypes</span>
+<span class="gr">Out[127]: </span>
+<span class="go">item1    float64</span>
+<span class="go">item2    float64</span>
+<span class="go">dtype: object</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title"><span class="yiyi-st" id="yiyi-299">注意</span></p>
+<p class="last"><span class="yiyi-st" id="yiyi-300">不幸的是，面板比Series和DataFrame更不常用，在特性方面略有忽略。</span><span class="yiyi-st" id="yiyi-301">DataFrame中提供的许多方法和选项在Panel中不可用。</span><span class="yiyi-st" id="yiyi-302">这将会得到处理，当然，是未来的版本中。</span><span class="yiyi-st" id="yiyi-303">如果你加入我的代码库，会更快。</span></p>
+</div>
+</div>
+<div class="section" id="from-dataframe-using-to-panel-method">
+<span id="dsintro-to-panel"></span><h3><span class="yiyi-st" id="yiyi-304">来自 DataFrame，使用<code class="docutils literal"><span class="pre">to_panel</span></code> 方法</span></h3>
+<p><span class="yiyi-st" id="yiyi-305">此方法在v0.7中引入，来替换<code class="docutils literal"><span class="pre">LongPanel.to_long</span></code>，并将具有二级索引的DataFrame转换为Panel。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [128]: </span><span class="n">midx</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">MultiIndex</span><span class="p">(</span><span class="n">levels</span><span class="o">=</span><span class="p">[[</span><span class="s1">&apos;one&apos;</span><span class="p">,</span> <span class="s1">&apos;two&apos;</span><span class="p">],</span> <span class="p">[</span><span class="s1">&apos;x&apos;</span><span class="p">,</span><span class="s1">&apos;y&apos;</span><span class="p">]],</span> <span class="n">labels</span><span class="o">=</span><span class="p">[[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">],[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">]])</span>
+
+<span class="gp">In [129]: </span><span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s1">&apos;A&apos;</span> <span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">],</span> <span class="s1">&apos;B&apos;</span><span class="p">:</span> <span class="p">[</span><span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">8</span><span class="p">]},</span> <span class="n">index</span><span class="o">=</span><span class="n">midx</span><span class="p">)</span>
+
+<span class="gp">In [130]: </span><span class="n">df</span><span class="o">.</span><span class="n">to_panel</span><span class="p">()</span>
+<span class="gr">Out[130]: </span>
+<span class="go">&lt;class &apos;pandas.core.panel.Panel&apos;&gt;</span>
+<span class="go">Dimensions: 2 (items) x 2 (major_axis) x 2 (minor_axis)</span>
+<span class="go">Items axis: A to B</span>
+<span class="go">Major_axis axis: one to two</span>
+<span class="go">Minor_axis axis: x to y</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="item-selection-addition-deletion">
+<span id="dsintro-panel-item-selection"></span><h3><span class="yiyi-st" id="yiyi-306">条目选取 / 添加 / 删除</span></h3>
+<p><span class="yiyi-st" id="yiyi-307">类似于DataFrame作为 Series 的字典，Panel就像是DataFrames的字典：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [131]: </span><span class="n">wp</span><span class="p">[</span><span class="s1">&apos;Item1&apos;</span><span class="p">]</span>
+<span class="gr">Out[131]: </span>
+<span class="go">                   A         B         C         D</span>
+<span class="go">2000-01-01 -0.729430  0.427693 -0.121325 -0.736418</span>
+<span class="go">2000-01-02  0.739037 -0.648805 -0.383057  0.385027</span>
+<span class="go">2000-01-03  2.321064 -1.290881  0.105458 -1.097035</span>
+<span class="go">2000-01-04  0.158759 -1.261191 -0.081710  1.390506</span>
+<span class="go">2000-01-05 -1.962031 -0.505580  0.021253 -0.317071</span>
+
+<span class="gp">In [132]: </span><span class="n">wp</span><span class="p">[</span><span class="s1">&apos;Item3&apos;</span><span class="p">]</span> <span class="o">=</span> <span class="n">wp</span><span class="p">[</span><span class="s1">&apos;Item1&apos;</span><span class="p">]</span> <span class="o">/</span> <span class="n">wp</span><span class="p">[</span><span class="s1">&apos;Item2&apos;</span><span class="p">]</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-308">用于插入和删除的API与DataFrame相同。</span><span class="yiyi-st" id="yiyi-309">和DataFrame一样，如果条目是一个有效的Python标识符，您可以作为一个属性访问它，并在IPython中补全它。</span></p>
+</div>
+<div class="section" id="id1">
+<h3><span class="yiyi-st" id="yiyi-310">转置</span></h3>
+<p><span class="yiyi-st" id="yiyi-311">可以使用 Panel 的<code class="docutils literal"><span class="pre">transpose</span></code>方法（除非数据是异构的，否则它不会默认制作副本）来重新排列它：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [133]: </span><span class="n">wp</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="gr">Out[133]: </span>
+<span class="go">&lt;class &apos;pandas.core.panel.Panel&apos;&gt;</span>
+<span class="go">Dimensions: 4 (items) x 3 (major_axis) x 5 (minor_axis)</span>
+<span class="go">Items axis: A to D</span>
+<span class="go">Major_axis axis: Item1 to Item3</span>
+<span class="go">Minor_axis axis: 2000-01-01 00:00:00 to 2000-01-05 00:00:00</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="id2">
+<h3><span class="yiyi-st" id="yiyi-312">索引 / 选取</span></h3>
+<table border="1" class="docutils">
+<colgroup>
+<col width="50%">
+<col width="33%">
+<col width="17%">
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head"><span class="yiyi-st" id="yiyi-313">操作</span></th>
+<th class="head"><span class="yiyi-st" id="yiyi-314">语法</span></th>
+<th class="head"><span class="yiyi-st" id="yiyi-315">结果</span></th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><span class="yiyi-st" id="yiyi-316">选取条目</span></td>
+<td><span class="yiyi-st" id="yiyi-317"><code class="docutils literal"><span class="pre">wp[item]</span></code></span></td>
+<td><span class="yiyi-st" id="yiyi-318">DataFrame</span></td>
+</tr>
+<tr class="row-odd"><td><span class="yiyi-st" id="yiyi-319">选取主轴标签</span></td>
+<td><span class="yiyi-st" id="yiyi-320"><code class="docutils literal"><span class="pre">wp.major_xs(val)</span></code></span></td>
+<td><span class="yiyi-st" id="yiyi-321">DataFrame</span></td>
+</tr>
+<tr class="row-even"><td><span class="yiyi-st" id="yiyi-322">选取副轴标签</span></td>
+<td><span class="yiyi-st" id="yiyi-323"><code class="docutils literal"><span class="pre">wp.minor_xs(val)</span></code></span></td>
+<td><span class="yiyi-st" id="yiyi-324">DataFrame</span></td>
+</tr>
+</tbody>
+</table>
+<p><span class="yiyi-st" id="yiyi-325">例如，使用之前的示例数据，我们可以执行：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [134]: </span><span class="n">wp</span><span class="p">[</span><span class="s1">&apos;Item1&apos;</span><span class="p">]</span>
+<span class="gr">Out[134]: </span>
+<span class="go">                   A         B         C         D</span>
+<span class="go">2000-01-01 -0.729430  0.427693 -0.121325 -0.736418</span>
+<span class="go">2000-01-02  0.739037 -0.648805 -0.383057  0.385027</span>
+<span class="go">2000-01-03  2.321064 -1.290881  0.105458 -1.097035</span>
+<span class="go">2000-01-04  0.158759 -1.261191 -0.081710  1.390506</span>
+<span class="go">2000-01-05 -1.962031 -0.505580  0.021253 -0.317071</span>
+
+<span class="gp">In [135]: </span><span class="n">wp</span><span class="o">.</span><span class="n">major_xs</span><span class="p">(</span><span class="n">wp</span><span class="o">.</span><span class="n">major_axis</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+<span class="gr">Out[135]: </span>
+<span class="go">      Item1     Item2     Item3</span>
+<span class="go">A  2.321064 -0.538606 -4.309389</span>
+<span class="go">B -1.290881  0.791512 -1.630905</span>
+<span class="go">C  0.105458 -0.020302 -5.194337</span>
+<span class="go">D -1.097035  0.184430 -5.948253</span>
+
+<span class="gp">In [136]: </span><span class="n">wp</span><span class="o">.</span><span class="n">minor_axis</span>
+<span class="gr">Out[136]: </span><span class="n">Index</span><span class="p">([</span><span class="s1">u&apos;A&apos;</span><span class="p">,</span> <span class="s1">u&apos;B&apos;</span><span class="p">,</span> <span class="s1">u&apos;C&apos;</span><span class="p">,</span> <span class="s1">u&apos;D&apos;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&apos;object&apos;</span><span class="p">)</span>
+
+<span class="gp">In [137]: </span><span class="n">wp</span><span class="o">.</span><span class="n">minor_xs</span><span class="p">(</span><span class="s1">&apos;C&apos;</span><span class="p">)</span>
+<span class="gr">Out[137]: </span>
+<span class="go">               Item1     Item2     Item3</span>
+<span class="go">2000-01-01 -0.121325  1.413524 -0.085832</span>
+<span class="go">2000-01-02 -0.383057  1.243178 -0.308127</span>
+<span class="go">2000-01-03  0.105458 -0.020302 -5.194337</span>
+<span class="go">2000-01-04 -0.081710 -1.811565  0.045105</span>
+<span class="go">2000-01-05  0.021253 -1.040542 -0.020425</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="squeezing">
+<h3><span class="yiyi-st" id="yiyi-326">挤压</span></h3>
+<p><span class="yiyi-st" id="yiyi-327">改变对象的维度的另一种方式是<code class="docutils literal"><span class="pre">squeeze</span></code>（挤压）长度为 1 的对象，类似于<code class="docutils literal"><span class="pre">wp[&apos;Item1&apos;]</span></code></span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [138]: </span><span class="n">wp</span><span class="o">.</span><span class="n">reindex</span><span class="p">(</span><span class="n">items</span><span class="o">=</span><span class="p">[</span><span class="s1">&apos;Item1&apos;</span><span class="p">])</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span>
+<span class="gr">Out[138]: </span>
+<span class="go">                   A         B         C         D</span>
+<span class="go">2000-01-01 -0.729430  0.427693 -0.121325 -0.736418</span>
+<span class="go">2000-01-02  0.739037 -0.648805 -0.383057  0.385027</span>
+<span class="go">2000-01-03  2.321064 -1.290881  0.105458 -1.097035</span>
+<span class="go">2000-01-04  0.158759 -1.261191 -0.081710  1.390506</span>
+<span class="go">2000-01-05 -1.962031 -0.505580  0.021253 -0.317071</span>
+
+<span class="gp">In [139]: </span><span class="n">wp</span><span class="o">.</span><span class="n">reindex</span><span class="p">(</span><span class="n">items</span><span class="o">=</span><span class="p">[</span><span class="s1">&apos;Item1&apos;</span><span class="p">],</span> <span class="n">minor</span><span class="o">=</span><span class="p">[</span><span class="s1">&apos;B&apos;</span><span class="p">])</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span>
+<span class="gr">Out[139]: </span>
+<span class="go">2000-01-01    0.427693</span>
+<span class="go">2000-01-02   -0.648805</span>
+<span class="go">2000-01-03   -1.290881</span>
+<span class="go">2000-01-04   -1.261191</span>
+<span class="go">2000-01-05   -0.505580</span>
+<span class="go">Freq: D, Name: B, dtype: float64</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="conversion-to-dataframe">
+<h3><span class="yiyi-st" id="yiyi-328">转换为 DataFrame</span></h3>
+<p><span class="yiyi-st" id="yiyi-329">Panel 可以以二维形式表示为层次索引的 DataFrame。</span><span class="yiyi-st" id="yiyi-330">详细信息，请参阅<a class="reference internal" href="advanced.html#advanced-hierarchical"><span class="std std-ref">层次索引</span></a>一节。</span><span class="yiyi-st" id="yiyi-331">为了将Panel转换为DataFrame，请使用<code class="docutils literal"><span class="pre">to_frame</span></code>方法：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [140]: </span><span class="n">panel</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Panel</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="n">items</span><span class="o">=</span><span class="p">[</span><span class="s1">&apos;one&apos;</span><span class="p">,</span> <span class="s1">&apos;two&apos;</span><span class="p">,</span> <span class="s1">&apos;three&apos;</span><span class="p">],</span>
+<span class="gp">   .....:</span>                  <span class="n">major_axis</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">date_range</span><span class="p">(</span><span class="s1">&apos;1/1/2000&apos;</span><span class="p">,</span> <span class="n">periods</span><span class="o">=</span><span class="mi">5</span><span class="p">),</span>
+<span class="gp">   .....:</span>                  <span class="n">minor_axis</span><span class="o">=</span><span class="p">[</span><span class="s1">&apos;a&apos;</span><span class="p">,</span> <span class="s1">&apos;b&apos;</span><span class="p">,</span> <span class="s1">&apos;c&apos;</span><span class="p">,</span> <span class="s1">&apos;d&apos;</span><span class="p">])</span>
+<span class="gp">   .....:</span> 
+
+<span class="gp">In [141]: </span><span class="n">panel</span><span class="o">.</span><span class="n">to_frame</span><span class="p">()</span>
+<span class="gr">Out[141]: </span>
+<span class="go">                       one       two     three</span>
+<span class="go">major      minor                              </span>
+<span class="go">2000-01-01 a     -1.876826 -0.383171 -0.117339</span>
+<span class="go">           b     -1.873827 -0.172217  0.780048</span>
+<span class="go">           c     -0.251457 -1.674685  2.162047</span>
+<span class="go">           d      0.027599  0.762474  0.874233</span>
+<span class="go">2000-01-02 a      1.235291  0.481666 -0.764147</span>
+<span class="go">           b      0.850574  1.217546 -0.484495</span>
+<span class="go">           c     -1.140302  0.577103  0.298570</span>
+<span class="go">           d      2.149143 -0.076021  0.825136</span>
+<span class="go">2000-01-03 a      0.504452  0.720235 -0.388020</span>
+<span class="go">           b      0.678026  0.202660 -0.339279</span>
+<span class="go">           c     -0.628443 -0.314950  0.141164</span>
+<span class="go">           d      1.191156 -0.410852  0.565930</span>
+<span class="go">2000-01-04 a     -1.145363  0.542758 -1.749969</span>
+<span class="go">           b     -0.523153  1.955407 -1.402941</span>
+<span class="go">           c     -1.299878 -0.940645  0.623222</span>
+<span class="go">           d     -0.110240  0.076257  0.020129</span>
+<span class="go">2000-01-05 a     -0.333712 -0.897159 -2.858463</span>
+<span class="go">           b      0.416876 -1.265679  0.885765</span>
+<span class="go">           c     -0.436400 -0.528311  0.158014</span>
+<span class="go">           d      0.999768 -0.660014 -1.981797</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="panel4d-and-panelnd-deprecated">
+<span id="dsintro-panel4d"></span><span id="dsintro-panelnd"></span><h2><span class="yiyi-st" id="yiyi-332">Panel4D 和 PanelND (废弃)</span></h2>
+<div class="admonition warning">
+<p class="first admonition-title"><span class="yiyi-st" id="yiyi-333">警告</span></p>
+<p class="last"><span class="yiyi-st" id="yiyi-334">在0.19.0 中，<code class="docutils literal"><span class="pre">Panel4D</span></code>和<code class="docutils literal"><span class="pre">PanelND</span></code>已弃用，并且将在以后的版本中删除。</span><span class="yiyi-st" id="yiyi-335">表示这些类型的n维数据的推荐方法是使用<a class="reference external" href="http://xarray.pydata.org/en/stable/">xarray软件包</a>。</span><span class="yiyi-st" id="yiyi-336">Pandas提供了一个<a class="reference internal" href="generated/pandas.Panel4D.to_xarray.html#pandas.Panel4D.to_xarray" title="pandas.Panel4D.to_xarray"><code class="xref py py-meth docutils literal"><span class="pre">to_xarray()</span></code></a>方法来自动执行此转换。</span></p>
+</div>
+<p><span class="yiyi-st" id="yiyi-337">这些对象的文档，请参见以前版本的<a class="reference external" href="http://pandas.pydata.org/pandas-docs/version/0.18.1/dsintro.html#panel4d-experimental">文档</a>。</span></p>
+</div>

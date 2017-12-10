@@ -1,0 +1,436 @@
+
+<span id="sparse"></span><h1><span class="yiyi-st" id="yiyi-53">Sparse data structures</span></h1>
+        <blockquote>
+        <p>原文：<a href="http://pandas.pydata.org/pandas-docs/stable/sparse.html">http://pandas.pydata.org/pandas-docs/stable/sparse.html</a></p>
+        <p>译者：<a href="https://github.com/wizardforcel">飞龙</a> <a href="http://usyiyi.cn/">UsyiyiCN</a></p>
+        <p>校对：（虚位以待）</p>
+        </blockquote>
+    
+<div class="admonition note">
+<p class="first admonition-title"><span class="yiyi-st" id="yiyi-54">注意</span></p>
+<p class="last"><span class="yiyi-st" id="yiyi-55">在0.19.0中已删除<code class="docutils literal"><span class="pre">SparsePanel</span></code>类</span></p>
+</div>
+<p><span class="yiyi-st" id="yiyi-56">我们实现了“稀疏”版本的Series和DataFrame。</span><span class="yiyi-st" id="yiyi-57">这些在典型的“大多为0”中不稀疏。</span><span class="yiyi-st" id="yiyi-58">相反，您可以将这些对象视为“压缩”，其中省略任何匹配特定值（<code class="docutils literal"><span class="pre">NaN</span></code> /缺失值，尽管可以选择任何值）的数据。</span><span class="yiyi-st" id="yiyi-59">特殊的<code class="docutils literal"><span class="pre">SparseIndex</span></code>对象跟踪数据已被“稀疏化”的位置。</span><span class="yiyi-st" id="yiyi-60">在一个例子中，这将更有意义。</span><span class="yiyi-st" id="yiyi-61">所有标准的熊猫数据结构都有一个<code class="docutils literal"><span class="pre">to_sparse</span></code>方法：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [1]: </span><span class="n">ts</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">randn</span><span class="p">(</span><span class="mi">10</span><span class="p">))</span>
+
+<span class="gp">In [2]: </span><span class="n">ts</span><span class="p">[</span><span class="mi">2</span><span class="p">:</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+
+<span class="gp">In [3]: </span><span class="n">sts</span> <span class="o">=</span> <span class="n">ts</span><span class="o">.</span><span class="n">to_sparse</span><span class="p">()</span>
+
+<span class="gp">In [4]: </span><span class="n">sts</span>
+<span class="gr">Out[4]: </span>
+<span class="go">0    0.469112</span>
+<span class="go">1   -0.282863</span>
+<span class="go">2         NaN</span>
+<span class="go">3         NaN</span>
+<span class="go">4         NaN</span>
+<span class="go">5         NaN</span>
+<span class="go">6         NaN</span>
+<span class="go">7         NaN</span>
+<span class="go">8   -0.861849</span>
+<span class="go">9   -2.104569</span>
+<span class="go">dtype: float64</span>
+<span class="go">BlockIndex</span>
+<span class="go">Block locations: array([0, 8], dtype=int32)</span>
+<span class="go">Block lengths: array([2, 2], dtype=int32)</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-62"><code class="docutils literal"><span class="pre">to_sparse</span></code>方法采用<code class="docutils literal"><span class="pre">kind</span></code>参数（对于稀疏索引，请参见下文）和<code class="docutils literal"><span class="pre">fill_value</span></code>。</span><span class="yiyi-st" id="yiyi-63">所以如果我们有一个大多数为零的系列，我们可以将它转换为稀疏与<code class="docutils literal"><span class="pre">fill_value=0</span></code>：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [5]: </span><span class="n">ts</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">to_sparse</span><span class="p">(</span><span class="n">fill_value</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="gr">Out[5]: </span>
+<span class="go">0    0.469112</span>
+<span class="go">1   -0.282863</span>
+<span class="go">2    0.000000</span>
+<span class="go">3    0.000000</span>
+<span class="go">4    0.000000</span>
+<span class="go">5    0.000000</span>
+<span class="go">6    0.000000</span>
+<span class="go">7    0.000000</span>
+<span class="go">8   -0.861849</span>
+<span class="go">9   -2.104569</span>
+<span class="go">dtype: float64</span>
+<span class="go">BlockIndex</span>
+<span class="go">Block locations: array([0, 8], dtype=int32)</span>
+<span class="go">Block lengths: array([2, 2], dtype=int32)</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-64">稀疏对象存在是为了内存效率的原因。</span><span class="yiyi-st" id="yiyi-65">假设你有一个大的，主要是NA DataFrame：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [6]: </span><span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">randn</span><span class="p">(</span><span class="mi">10000</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
+
+<span class="gp">In [7]: </span><span class="n">df</span><span class="o">.</span><span class="n">ix</span><span class="p">[:</span><span class="mi">9998</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+
+<span class="gp">In [8]: </span><span class="n">sdf</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">to_sparse</span><span class="p">()</span>
+
+<span class="gp">In [9]: </span><span class="n">sdf</span>
+<span class="gr">Out[9]: </span>
+<span class="go">             0         1         2         3</span>
+<span class="go">0          NaN       NaN       NaN       NaN</span>
+<span class="go">1          NaN       NaN       NaN       NaN</span>
+<span class="go">2          NaN       NaN       NaN       NaN</span>
+<span class="go">3          NaN       NaN       NaN       NaN</span>
+<span class="go">4          NaN       NaN       NaN       NaN</span>
+<span class="go">5          NaN       NaN       NaN       NaN</span>
+<span class="go">6          NaN       NaN       NaN       NaN</span>
+<span class="go">...        ...       ...       ...       ...</span>
+<span class="go">9993       NaN       NaN       NaN       NaN</span>
+<span class="go">9994       NaN       NaN       NaN       NaN</span>
+<span class="go">9995       NaN       NaN       NaN       NaN</span>
+<span class="go">9996       NaN       NaN       NaN       NaN</span>
+<span class="go">9997       NaN       NaN       NaN       NaN</span>
+<span class="go">9998       NaN       NaN       NaN       NaN</span>
+<span class="go">9999  0.280249 -1.648493  1.490865 -0.890819</span>
+
+<span class="go">[10000 rows x 4 columns]</span>
+
+<span class="gp">In [10]: </span><span class="n">sdf</span><span class="o">.</span><span class="n">density</span>
+<span class="gr">Out[10]: </span><span class="mf">0.0001</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-66">如你所见，密度（未被“压缩”的值的百分比）非常低。</span><span class="yiyi-st" id="yiyi-67">这个稀疏对象在磁盘（pickled）和Python解释器中占用更少的内存。</span><span class="yiyi-st" id="yiyi-68">在功能上，它们的行为应该与它们的稠密对应物几乎相同。</span></p>
+<p><span class="yiyi-st" id="yiyi-69">任何稀疏对象都可以通过调用<code class="docutils literal"><span class="pre">to_dense</span></code>转换回标准密集形式：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [11]: </span><span class="n">sts</span><span class="o">.</span><span class="n">to_dense</span><span class="p">()</span>
+<span class="gr">Out[11]: </span>
+<span class="go">0    0.469112</span>
+<span class="go">1   -0.282863</span>
+<span class="go">2         NaN</span>
+<span class="go">3         NaN</span>
+<span class="go">4         NaN</span>
+<span class="go">5         NaN</span>
+<span class="go">6         NaN</span>
+<span class="go">7         NaN</span>
+<span class="go">8   -0.861849</span>
+<span class="go">9   -2.104569</span>
+<span class="go">dtype: float64</span>
+</pre></div>
+</div>
+<div class="section" id="sparsearray">
+<span id="sparse-array"></span><h2><span class="yiyi-st" id="yiyi-70">SparseArray</span></h2>
+<p><span class="yiyi-st" id="yiyi-71"><code class="docutils literal"><span class="pre">SparseArray</span></code>是所有稀疏索引数据结构的基本层。</span><span class="yiyi-st" id="yiyi-72">它是一个1维的ndarray样对象，只存储不同于<code class="docutils literal"><span class="pre">fill_value</span></code>的值：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [12]: </span><span class="n">arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+
+<span class="gp">In [13]: </span><span class="n">arr</span><span class="p">[</span><span class="mi">2</span><span class="p">:</span><span class="mi">5</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">;</span> <span class="n">arr</span><span class="p">[</span><span class="mi">7</span><span class="p">:</span><span class="mi">8</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+
+<span class="gp">In [14]: </span><span class="n">sparr</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">SparseArray</span><span class="p">(</span><span class="n">arr</span><span class="p">)</span>
+
+<span class="gp">In [15]: </span><span class="n">sparr</span>
+<span class="gr">Out[15]: </span>
+<span class="go">[-1.95566352972, -1.6588664276, nan, nan, nan, 1.15893288864, 0.145297113733, nan, 0.606027190513, 1.33421134013]</span>
+<span class="go">Fill: nan</span>
+<span class="go">IntIndex</span>
+<span class="go">Indices: array([0, 1, 5, 6, 8, 9], dtype=int32)</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-73">像索引对象（SparseSeries，SparseDataFrame）一样，通过调用<code class="docutils literal"><span class="pre">to_dense</span></code>可以将<code class="docutils literal"><span class="pre">SparseArray</span></code>转换回常规的ndarray：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [16]: </span><span class="n">sparr</span><span class="o">.</span><span class="n">to_dense</span><span class="p">()</span>
+<span class="gr">Out[16]: </span>
+<span class="go">array([-1.9557, -1.6589,     nan,     nan,     nan,  1.1589,  0.1453,</span>
+<span class="go">           nan,  0.606 ,  1.3342])</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="sparselist">
+<span id="sparse-list"></span><h2><span class="yiyi-st" id="yiyi-74">SparseList</span></h2>
+<p><span class="yiyi-st" id="yiyi-75"><code class="docutils literal"><span class="pre">SparseList</span></code>类已弃用，将在以后的版本中删除。</span><span class="yiyi-st" id="yiyi-76">有关<code class="docutils literal"><span class="pre">SparseList</span></code>的文档，请参见以前版本的<a class="reference external" href="http://pandas.pydata.org/pandas-docs/version/0.18.1/sparse.html#sparselist">文档</a>。</span></p>
+</div>
+<div class="section" id="sparseindex-objects">
+<h2><span class="yiyi-st" id="yiyi-77">SparseIndex objects</span></h2>
+<p><span class="yiyi-st" id="yiyi-78">实现了两种<code class="docutils literal"><span class="pre">SparseIndex</span></code>，<code class="docutils literal"><span class="pre">block</span></code>和<code class="docutils literal"><span class="pre">integer</span></code>。</span><span class="yiyi-st" id="yiyi-79">我们建议使用<code class="docutils literal"><span class="pre">block</span></code>，因为它更节省内存。</span><span class="yiyi-st" id="yiyi-80"><code class="docutils literal"><span class="pre">integer</span></code>格式保留数据不等于填充值的所有位置的数组。</span><span class="yiyi-st" id="yiyi-81"><code class="docutils literal"><span class="pre">block</span></code>格式只跟踪数据块的位置和大小。</span></p>
+</div>
+<div class="section" id="sparse-dtypes">
+<span id="sparse-dtype"></span><h2><span class="yiyi-st" id="yiyi-82">Sparse Dtypes</span></h2>
+<p><span class="yiyi-st" id="yiyi-83">稀疏数据应具有与其密集表示相同的dtype。</span><span class="yiyi-st" id="yiyi-84">目前，支持<code class="docutils literal"><span class="pre">float64</span></code>，<code class="docutils literal"><span class="pre">int64</span></code>和<code class="docutils literal"><span class="pre">bool</span></code> dtypes。</span><span class="yiyi-st" id="yiyi-85">根据原始dtype，<code class="docutils literal"><span class="pre">fill_value</span></code>默认更改：</span></p>
+<ul class="simple">
+<li><span class="yiyi-st" id="yiyi-86"><code class="docutils literal"><span class="pre">float64</span></code>：<code class="docutils literal"><span class="pre">np.nan</span></code></span></li>
+<li><span class="yiyi-st" id="yiyi-87"><code class="docutils literal"><span class="pre">int64</span></code>：<code class="docutils literal"><span class="pre">0</span></code></span></li>
+<li><span class="yiyi-st" id="yiyi-88"><code class="docutils literal"><span class="pre">bool</span></code>：<code class="docutils literal"><span class="pre">False</span></code></span></li>
+</ul>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [17]: </span><span class="n">s</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">])</span>
+
+<span class="gp">In [18]: </span><span class="n">s</span>
+<span class="gr">Out[18]: </span>
+<span class="go">0    1.0</span>
+<span class="go">1    NaN</span>
+<span class="go">2    NaN</span>
+<span class="go">dtype: float64</span>
+
+<span class="gp">In [19]: </span><span class="n">s</span><span class="o">.</span><span class="n">to_sparse</span><span class="p">()</span>
+<span class="gr">Out[19]: </span>
+<span class="go">0    1.0</span>
+<span class="go">1    NaN</span>
+<span class="go">2    NaN</span>
+<span class="go">dtype: float64</span>
+<span class="go">BlockIndex</span>
+<span class="go">Block locations: array([0], dtype=int32)</span>
+<span class="go">Block lengths: array([1], dtype=int32)</span>
+
+<span class="gp">In [20]: </span><span class="n">s</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
+
+<span class="gp">In [21]: </span><span class="n">s</span>
+<span class="gr">Out[21]: </span>
+<span class="go">0    1</span>
+<span class="go">1    0</span>
+<span class="go">2    0</span>
+<span class="go">dtype: int64</span>
+
+<span class="gp">In [22]: </span><span class="n">s</span><span class="o">.</span><span class="n">to_sparse</span><span class="p">()</span>
+<span class="gr">Out[22]: </span>
+<span class="go">0    1</span>
+<span class="go">1    0</span>
+<span class="go">2    0</span>
+<span class="go">dtype: int64</span>
+<span class="go">BlockIndex</span>
+<span class="go">Block locations: array([0], dtype=int32)</span>
+<span class="go">Block lengths: array([1], dtype=int32)</span>
+
+<span class="gp">In [23]: </span><span class="n">s</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">([</span><span class="bp">True</span><span class="p">,</span> <span class="bp">False</span><span class="p">,</span> <span class="bp">True</span><span class="p">])</span>
+
+<span class="gp">In [24]: </span><span class="n">s</span>
+<span class="gr">Out[24]: </span>
+<span class="go">0     True</span>
+<span class="go">1    False</span>
+<span class="go">2     True</span>
+<span class="go">dtype: bool</span>
+
+<span class="gp">In [25]: </span><span class="n">s</span><span class="o">.</span><span class="n">to_sparse</span><span class="p">()</span>
+<span class="gr">Out[25]: </span>
+<span class="go">0     True</span>
+<span class="go">1    False</span>
+<span class="go">2     True</span>
+<span class="go">dtype: bool</span>
+<span class="go">BlockIndex</span>
+<span class="go">Block locations: array([0, 2], dtype=int32)</span>
+<span class="go">Block lengths: array([1, 1], dtype=int32)</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-89">您可以使用<code class="docutils literal"><span class="pre">.astype()</span></code>更改dtype，结果也是稀疏的。</span><span class="yiyi-st" id="yiyi-90">请注意，<code class="docutils literal"><span class="pre">.astype()</span></code>也会影响<code class="docutils literal"><span class="pre">fill_value</span></code>以保持其密集表示。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [26]: </span><span class="n">s</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
+
+<span class="gp">In [27]: </span><span class="n">s</span>
+<span class="gr">Out[27]: </span>
+<span class="go">0    1</span>
+<span class="go">1    0</span>
+<span class="go">2    0</span>
+<span class="go">3    0</span>
+<span class="go">4    0</span>
+<span class="go">dtype: int64</span>
+
+<span class="gp">In [28]: </span><span class="n">ss</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">to_sparse</span><span class="p">()</span>
+
+<span class="gp">In [29]: </span><span class="n">ss</span>
+<span class="gr">Out[29]: </span>
+<span class="go">0    1</span>
+<span class="go">1    0</span>
+<span class="go">2    0</span>
+<span class="go">3    0</span>
+<span class="go">4    0</span>
+<span class="go">dtype: int64</span>
+<span class="go">BlockIndex</span>
+<span class="go">Block locations: array([0], dtype=int32)</span>
+<span class="go">Block lengths: array([1], dtype=int32)</span>
+
+<span class="gp">In [30]: </span><span class="n">ss</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+<span class="gr">Out[30]: </span>
+<span class="go">0    1.0</span>
+<span class="go">1    0.0</span>
+<span class="go">2    0.0</span>
+<span class="go">3    0.0</span>
+<span class="go">4    0.0</span>
+<span class="go">dtype: float64</span>
+<span class="go">BlockIndex</span>
+<span class="go">Block locations: array([0], dtype=int32)</span>
+<span class="go">Block lengths: array([1], dtype=int32)</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-91">如果任何值不能强制到指定的dtype，它会引发。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [1]: </span><span class="n">ss</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">])</span><span class="o">.</span><span class="n">to_sparse</span><span class="p">()</span>
+<span class="go">0    1.0</span>
+<span class="go">1    NaN</span>
+<span class="go">2    NaN</span>
+<span class="go">dtype: float64</span>
+<span class="go">BlockIndex</span>
+<span class="go">Block locations: array([0], dtype=int32)</span>
+<span class="go">Block lengths: array([1], dtype=int32)</span>
+
+<span class="gp">In [2]: </span><span class="n">ss</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span>
+<span class="go">ValueError: unable to coerce current fill_value nan to int64 dtype</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="sparse-calculation">
+<span id="id1"></span><h2><span class="yiyi-st" id="yiyi-92">Sparse Calculation</span></h2>
+<p><span class="yiyi-st" id="yiyi-93">您可以将NumPy <em>ufuncs</em>应用于<code class="docutils literal"><span class="pre">SparseArray</span></code>，并获得<code class="docutils literal"><span class="pre">SparseArray</span></code>作为结果。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [31]: </span><span class="n">arr</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">SparseArray</span><span class="p">([</span><span class="mf">1.</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="o">-</span><span class="mf">2.</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">])</span>
+
+<span class="gp">In [32]: </span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">arr</span><span class="p">)</span>
+<span class="gr">Out[32]: </span>
+<span class="go">[1.0, nan, nan, 2.0, nan]</span>
+<span class="go">Fill: nan</span>
+<span class="go">IntIndex</span>
+<span class="go">Indices: array([0, 3], dtype=int32)</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-94"><em>ufunc</em>也适用于<code class="docutils literal"><span class="pre">fill_value</span></code>。</span><span class="yiyi-st" id="yiyi-95">这是需要得到正确的密集结果。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [33]: </span><span class="n">arr</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">SparseArray</span><span class="p">([</span><span class="mf">1.</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mf">2.</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">fill_value</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+
+<span class="gp">In [34]: </span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">arr</span><span class="p">)</span>
+<span class="gr">Out[34]: </span>
+<span class="go">[1.0, 1, 1, 2.0, 1]</span>
+<span class="go">Fill: 1</span>
+<span class="go">IntIndex</span>
+<span class="go">Indices: array([0, 3], dtype=int32)</span>
+
+<span class="gp">In [35]: </span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">arr</span><span class="p">)</span><span class="o">.</span><span class="n">to_dense</span><span class="p">()</span>
+<span class="gr">Out[35]: </span><span class="n">array</span><span class="p">([</span> <span class="mf">1.</span><span class="p">,</span>  <span class="mf">1.</span><span class="p">,</span>  <span class="mf">1.</span><span class="p">,</span>  <span class="mf">2.</span><span class="p">,</span>  <span class="mf">1.</span><span class="p">])</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="interaction-with-scipy-sparse">
+<span id="sparse-scipysparse"></span><h2><span class="yiyi-st" id="yiyi-96">Interaction with scipy.sparse</span></h2>
+<p><span class="yiyi-st" id="yiyi-97">实验api在稀疏熊猫和scipy.sparse结构之间进行转换。</span></p>
+<p><span class="yiyi-st" id="yiyi-98">A <a class="reference internal" href="generated/pandas.SparseSeries.to_coo.html#pandas.SparseSeries.to_coo" title="pandas.SparseSeries.to_coo"><code class="xref py py-meth docutils literal"><span class="pre">SparseSeries.to_coo()</span></code></a> method is implemented for transforming a <code class="docutils literal"><span class="pre">SparseSeries</span></code> indexed by a <code class="docutils literal"><span class="pre">MultiIndex</span></code> to a <code class="docutils literal"><span class="pre">scipy.sparse.coo_matrix</span></code>.</span></p>
+<p><span class="yiyi-st" id="yiyi-99">该方法需要具有两个或更多个级别的<code class="docutils literal"><span class="pre">MultiIndex</span></code>。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [36]: </span><span class="n">s</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">([</span><span class="mf">3.0</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">])</span>
+
+<span class="gp">In [37]: </span><span class="n">s</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">MultiIndex</span><span class="o">.</span><span class="n">from_tuples</span><span class="p">([(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="s1">&apos;a&apos;</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
+<span class="gp">   ....:</span>                                      <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="s1">&apos;a&apos;</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+<span class="gp">   ....:</span>                                      <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&apos;b&apos;</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
+<span class="gp">   ....:</span>                                      <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&apos;b&apos;</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+<span class="gp">   ....:</span>                                      <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&apos;b&apos;</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
+<span class="gp">   ....:</span>                                      <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&apos;b&apos;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)],</span>
+<span class="gp">   ....:</span>                                      <span class="n">names</span><span class="o">=</span><span class="p">[</span><span class="s1">&apos;A&apos;</span><span class="p">,</span> <span class="s1">&apos;B&apos;</span><span class="p">,</span> <span class="s1">&apos;C&apos;</span><span class="p">,</span> <span class="s1">&apos;D&apos;</span><span class="p">])</span>
+<span class="gp">   ....:</span> 
+
+<span class="gp">In [38]: </span><span class="n">s</span>
+<span class="gr">Out[38]: </span>
+<span class="go">A  B  C  D</span>
+<span class="go">1  2  a  0    3.0</span>
+<span class="go">         1    NaN</span>
+<span class="go">   1  b  0    1.0</span>
+<span class="go">         1    3.0</span>
+<span class="go">2  1  b  0    NaN</span>
+<span class="go">         1    NaN</span>
+<span class="go">dtype: float64</span>
+
+<span class="c"># SparseSeries</span>
+<span class="gp">In [39]: </span><span class="n">ss</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">to_sparse</span><span class="p">()</span>
+
+<span class="gp">In [40]: </span><span class="n">ss</span>
+<span class="gr">Out[40]: </span>
+<span class="go">A  B  C  D</span>
+<span class="go">1  2  a  0    3.0</span>
+<span class="go">         1    NaN</span>
+<span class="go">   1  b  0    1.0</span>
+<span class="go">         1    3.0</span>
+<span class="go">2  1  b  0    NaN</span>
+<span class="go">         1    NaN</span>
+<span class="go">dtype: float64</span>
+<span class="go">BlockIndex</span>
+<span class="go">Block locations: array([0, 2], dtype=int32)</span>
+<span class="go">Block lengths: array([1, 2], dtype=int32)</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-100">在下面的示例中，通过指定第一个和第二个<code class="docutils literal"><span class="pre">MultiIndex</span></code>级别定义行的标签，将<code class="docutils literal"><span class="pre">SparseSeries</span></code>变换为2-d数组的稀疏表示，和第四级定义列的标签。</span><span class="yiyi-st" id="yiyi-101">我们还指定列和行标签应按最终稀疏表示法排序。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [41]: </span><span class="n">A</span><span class="p">,</span> <span class="n">rows</span><span class="p">,</span> <span class="n">columns</span> <span class="o">=</span> <span class="n">ss</span><span class="o">.</span><span class="n">to_coo</span><span class="p">(</span><span class="n">row_levels</span><span class="o">=</span><span class="p">[</span><span class="s1">&apos;A&apos;</span><span class="p">,</span> <span class="s1">&apos;B&apos;</span><span class="p">],</span>
+<span class="gp">   ....:</span>                              <span class="n">column_levels</span><span class="o">=</span><span class="p">[</span><span class="s1">&apos;C&apos;</span><span class="p">,</span> <span class="s1">&apos;D&apos;</span><span class="p">],</span>
+<span class="gp">   ....:</span>                              <span class="n">sort_labels</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="gp">   ....:</span> 
+
+<span class="gp">In [42]: </span><span class="n">A</span>
+<span class="gr">Out[42]: </span>
+<span class="go">&lt;3x4 sparse matrix of type &apos;&lt;type &apos;numpy.float64&apos;&gt;&apos;</span>
+<span class="go">	with 3 stored elements in COOrdinate format&gt;</span>
+
+<span class="gp">In [43]: </span><span class="n">A</span><span class="o">.</span><span class="n">todense</span><span class="p">()</span>
+<span class="gr">Out[43]: </span>
+<span class="go">matrix([[ 0.,  0.,  1.,  3.],</span>
+<span class="go">        [ 3.,  0.,  0.,  0.],</span>
+<span class="go">        [ 0.,  0.,  0.,  0.]])</span>
+
+<span class="gp">In [44]: </span><span class="n">rows</span>
+<span class="gr">Out[44]: </span><span class="p">[(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">)]</span>
+
+<span class="gp">In [45]: </span><span class="n">columns</span>
+<span class="gr">Out[45]: </span><span class="p">[(</span><span class="s1">&apos;a&apos;</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="s1">&apos;a&apos;</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="s1">&apos;b&apos;</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="s1">&apos;b&apos;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)]</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-102">指定不同的行和列标签（而不是排序）会产生不同的稀疏矩阵：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [46]: </span><span class="n">A</span><span class="p">,</span> <span class="n">rows</span><span class="p">,</span> <span class="n">columns</span> <span class="o">=</span> <span class="n">ss</span><span class="o">.</span><span class="n">to_coo</span><span class="p">(</span><span class="n">row_levels</span><span class="o">=</span><span class="p">[</span><span class="s1">&apos;A&apos;</span><span class="p">,</span> <span class="s1">&apos;B&apos;</span><span class="p">,</span> <span class="s1">&apos;C&apos;</span><span class="p">],</span>
+<span class="gp">   ....:</span>                              <span class="n">column_levels</span><span class="o">=</span><span class="p">[</span><span class="s1">&apos;D&apos;</span><span class="p">],</span>
+<span class="gp">   ....:</span>                              <span class="n">sort_labels</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="gp">   ....:</span> 
+
+<span class="gp">In [47]: </span><span class="n">A</span>
+<span class="gr">Out[47]: </span>
+<span class="go">&lt;3x2 sparse matrix of type &apos;&lt;type &apos;numpy.float64&apos;&gt;&apos;</span>
+<span class="go">	with 3 stored elements in COOrdinate format&gt;</span>
+
+<span class="gp">In [48]: </span><span class="n">A</span><span class="o">.</span><span class="n">todense</span><span class="p">()</span>
+<span class="gr">Out[48]: </span>
+<span class="go">matrix([[ 3.,  0.],</span>
+<span class="go">        [ 1.,  3.],</span>
+<span class="go">        [ 0.,  0.]])</span>
+
+<span class="gp">In [49]: </span><span class="n">rows</span>
+<span class="gr">Out[49]: </span><span class="p">[(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="s1">&apos;a&apos;</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&apos;b&apos;</span><span class="p">),</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&apos;b&apos;</span><span class="p">)]</span>
+
+<span class="gp">In [50]: </span><span class="n">columns</span>
+<span class="gr">Out[50]: </span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-103">实现方便方法<a class="reference internal" href="generated/pandas.SparseSeries.from_coo.html#pandas.SparseSeries.from_coo" title="pandas.SparseSeries.from_coo"><code class="xref py py-meth docutils literal"><span class="pre">SparseSeries.from_coo()</span></code></a>用于从<code class="docutils literal"><span class="pre">scipy.sparse.coo_matrix</span></code>创建<code class="docutils literal"><span class="pre">SparseSeries</span></code>。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [51]: </span><span class="kn">from</span> <span class="nn">scipy</span> <span class="kn">import</span> <span class="n">sparse</span>
+
+<span class="gp">In [52]: </span><span class="n">A</span> <span class="o">=</span> <span class="n">sparse</span><span class="o">.</span><span class="n">coo_matrix</span><span class="p">(([</span><span class="mf">3.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">],</span> <span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">])),</span>
+<span class="gp">   ....:</span>                       <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
+<span class="gp">   ....:</span> 
+
+<span class="gp">In [53]: </span><span class="n">A</span>
+<span class="gr">Out[53]: </span>
+<span class="go">&lt;3x4 sparse matrix of type &apos;&lt;type &apos;numpy.float64&apos;&gt;&apos;</span>
+<span class="go">	with 3 stored elements in COOrdinate format&gt;</span>
+
+<span class="gp">In [54]: </span><span class="n">A</span><span class="o">.</span><span class="n">todense</span><span class="p">()</span>
+<span class="gr">Out[54]: </span>
+<span class="go">matrix([[ 0.,  0.,  1.,  2.],</span>
+<span class="go">        [ 3.,  0.,  0.,  0.],</span>
+<span class="go">        [ 0.,  0.,  0.,  0.]])</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-104">默认行为（<code class="docutils literal"><span class="pre">dense_index=False</span></code>）只返回一个只包含非空条目的<code class="docutils literal"><span class="pre">SparseSeries</span></code>。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [55]: </span><span class="n">ss</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">SparseSeries</span><span class="o">.</span><span class="n">from_coo</span><span class="p">(</span><span class="n">A</span><span class="p">)</span>
+
+<span class="gp">In [56]: </span><span class="n">ss</span>
+<span class="gr">Out[56]: </span>
+<span class="go">0  2    1.0</span>
+<span class="go">   3    2.0</span>
+<span class="go">1  0    3.0</span>
+<span class="go">dtype: float64</span>
+<span class="go">BlockIndex</span>
+<span class="go">Block locations: array([0], dtype=int32)</span>
+<span class="go">Block lengths: array([3], dtype=int32)</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-105">指定<code class="docutils literal"><span class="pre">dense_index=True</span></code>将产生一个索引，该索引是矩阵的行和列坐标的笛卡尔乘积。</span><span class="yiyi-st" id="yiyi-106">注意，如果稀疏矩阵足够大（和稀疏），这将消耗大量的存储器（相对于<code class="docutils literal"><span class="pre">dense_index=False</span></code>）。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [57]: </span><span class="n">ss_dense</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">SparseSeries</span><span class="o">.</span><span class="n">from_coo</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">dense_index</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+<span class="gp">In [58]: </span><span class="n">ss_dense</span>
+<span class="gr">Out[58]: </span>
+<span class="go">0  0    NaN</span>
+<span class="go">   1    NaN</span>
+<span class="go">   2    1.0</span>
+<span class="go">   3    2.0</span>
+<span class="go">1  0    3.0</span>
+<span class="go">   1    NaN</span>
+<span class="go">   2    NaN</span>
+<span class="go">   3    NaN</span>
+<span class="go">2  0    NaN</span>
+<span class="go">   1    NaN</span>
+<span class="go">   2    NaN</span>
+<span class="go">   3    NaN</span>
+<span class="go">dtype: float64</span>
+<span class="go">BlockIndex</span>
+<span class="go">Block locations: array([2], dtype=int32)</span>
+<span class="go">Block lengths: array([3], dtype=int32)</span>
+</pre></div>
+</div>
+</div>

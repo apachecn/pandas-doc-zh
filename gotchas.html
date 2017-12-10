@@ -1,0 +1,529 @@
+
+<span id="gotchas"></span><h1><span class="yiyi-st" id="yiyi-67">Caveats and Gotchas</span></h1>
+        <blockquote>
+        <p>原文：<a href="http://pandas.pydata.org/pandas-docs/stable/gotchas.html">http://pandas.pydata.org/pandas-docs/stable/gotchas.html</a></p>
+        <p>译者：<a href="https://github.com/wizardforcel">飞龙</a> <a href="http://usyiyi.cn/">UsyiyiCN</a></p>
+        <p>校对：（虚位以待）</p>
+        </blockquote>
+    
+<div class="section" id="using-if-truth-statements-with-pandas">
+<span id="gotchas-truth"></span><h2><span class="yiyi-st" id="yiyi-68">Using If/Truth Statements with pandas</span></h2>
+<p><span class="yiyi-st" id="yiyi-69">pandas遵循numpy约定，当你尝试将某个东西转换为<code class="docutils literal"><span class="pre">bool</span></code>时产生错误。</span><span class="yiyi-st" id="yiyi-70">这发生在<code class="docutils literal"><span class="pre">if</span></code>中或使用布尔运算<code class="docutils literal"><span class="pre">and</span></code>，<code class="docutils literal"><span class="pre">or</span></code>或<code class="docutils literal"><span class="pre">not</span></code>时。</span><span class="yiyi-st" id="yiyi-71">不清楚的结果是什么</span></p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">if</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">([</span><span class="bp">False</span><span class="p">,</span> <span class="bp">True</span><span class="p">,</span> <span class="bp">False</span><span class="p">]):</span>
+<span class="go">     ...</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-72">应该。</span><span class="yiyi-st" id="yiyi-73">应该是<code class="docutils literal"><span class="pre">True</span></code>，因为它不是零长度吗？</span><span class="yiyi-st" id="yiyi-74"><code class="docutils literal"><span class="pre">False</span></code>因为有<code class="docutils literal"><span class="pre">False</span></code>值？</span><span class="yiyi-st" id="yiyi-75">目前还不清楚，所以相反，熊猫会引发一个<code class="docutils literal"><span class="pre">ValueError</span></code>：</span></p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">if</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">([</span><span class="bp">False</span><span class="p">,</span> <span class="bp">True</span><span class="p">,</span> <span class="bp">False</span><span class="p">]):</span>
+<span class="go">    print(&quot;I was true&quot;)</span>
+<span class="go">Traceback</span>
+<span class="go">    ...</span>
+<span class="go">ValueError: The truth value of an array is ambiguous. Use a.empty, a.any() or a.all().</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-76">如果你看到，你需要明确选择你想做什么（例如，使用<cite>any()</cite>，<cite>all()</cite>或<cite>&gt;）。</cite></span><span class="yiyi-st" id="yiyi-77">或者，您可能想要比较如果pandas对象是<code class="docutils literal"><span class="pre">None</span></code></span></p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">if</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">([</span><span class="bp">False</span><span class="p">,</span> <span class="bp">True</span><span class="p">,</span> <span class="bp">False</span><span class="p">])</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+<span class="go">       print(&quot;I was not None&quot;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">I</span> <span class="n">was</span> <span class="ow">not</span> <span class="bp">None</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-78">或如果<code class="docutils literal"><span class="pre">any</span></code>值为<code class="docutils literal"><span class="pre">True</span></code>则返回。</span></p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">if</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">([</span><span class="bp">False</span><span class="p">,</span> <span class="bp">True</span><span class="p">,</span> <span class="bp">False</span><span class="p">])</span><span class="o">.</span><span class="n">any</span><span class="p">():</span>
+<span class="go">       print(&quot;I am any&quot;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">I</span> <span class="n">am</span> <span class="nb">any</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-79">要在布尔上下文中评估单元素熊猫对象，请使用方法<code class="docutils literal"><span class="pre">.bool()</span></code>：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [1]: </span><span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">([</span><span class="bp">True</span><span class="p">])</span><span class="o">.</span><span class="n">bool</span><span class="p">()</span>
+<span class="gr">Out[1]: </span><span class="bp">True</span>
+
+<span class="gp">In [2]: </span><span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">([</span><span class="bp">False</span><span class="p">])</span><span class="o">.</span><span class="n">bool</span><span class="p">()</span>
+<span class="gr">Out[2]: </span><span class="bp">False</span>
+
+<span class="gp">In [3]: </span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">([[</span><span class="bp">True</span><span class="p">]])</span><span class="o">.</span><span class="n">bool</span><span class="p">()</span>
+<span class="gr">Out[3]: </span><span class="bp">True</span>
+
+<span class="gp">In [4]: </span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">([[</span><span class="bp">False</span><span class="p">]])</span><span class="o">.</span><span class="n">bool</span><span class="p">()</span>
+<span class="gr">Out[4]: </span><span class="bp">False</span>
+</pre></div>
+</div>
+<div class="section" id="bitwise-boolean">
+<h3><span class="yiyi-st" id="yiyi-80">Bitwise boolean</span></h3>
+<p><span class="yiyi-st" id="yiyi-81">像<code class="docutils literal"><span class="pre">==</span></code>和<code class="docutils literal"><span class="pre">!=</span></code>的位布尔运算符将返回布尔<code class="docutils literal"><span class="pre">Series</span></code>，这几乎总是你想要的。</span></p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">5</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">==</span> <span class="mi">4</span>
+<span class="go">0    False</span>
+<span class="go">1    False</span>
+<span class="go">2    False</span>
+<span class="go">3    False</span>
+<span class="go">4     True</span>
+<span class="go">dtype: bool</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-82">有关更多示例，请参见<a class="reference internal" href="basics.html#basics-compare"><span class="std std-ref">boolean comparisons</span></a>。</span></p>
+</div>
+<div class="section" id="using-the-in-operator">
+<h3><span class="yiyi-st" id="yiyi-83">Using the <code class="docutils literal"><span class="pre">in</span></code> operator</span></h3>
+<p><span class="yiyi-st" id="yiyi-84">在系列中使用中的Python <code class="docutils literal"><span class="pre">in</span></code></span></p>
+<p><span class="yiyi-st" id="yiyi-85">如果这种行为是令人惊讶的，请记住，在Python字典中使用<code class="docutils literal"><span class="pre">in</span></code>中测试键，而不是值，并且Series是dict类似的。</span><span class="yiyi-st" id="yiyi-86">要测试值的成员资格，请使用方法<a class="reference internal" href="generated/pandas.Series.isin.html#pandas.Series.isin" title="pandas.Series.isin"><code class="xref py py-func docutils literal"><span class="pre">isin()</span></code></a>：</span></p>
+<p><span class="yiyi-st" id="yiyi-87">对于DataFrames，同样，<code class="docutils literal"><span class="pre">in</span></code>中适用于列轴，测试列名列表中的成员资格。</span></p>
+</div>
+</div>
+<div class="section" id="nan-integer-na-values-and-na-type-promotions">
+<h2><span class="yiyi-st" id="yiyi-88"><code class="docutils literal"><span class="pre">NaN</span></code>, Integer <code class="docutils literal"><span class="pre">NA</span></code> values and <code class="docutils literal"><span class="pre">NA</span></code> type promotions</span></h2>
+<div class="section" id="choice-of-na-representation">
+<h3><span class="yiyi-st" id="yiyi-89">Choice of <code class="docutils literal"><span class="pre">NA</span></code> representation</span></h3>
+<p><span class="yiyi-st" id="yiyi-90">由于在NumPy和Python中缺少<code class="docutils literal"><span class="pre">NA</span></code>（缺失）支持，我们在两者之间的困难选择</span></p>
+<ul class="simple">
+<li><span class="yiyi-st" id="yiyi-91"><em>屏蔽数组</em>解决方案：数据数组和布尔值数组，表示数值</span></li>
+<li><span class="yiyi-st" id="yiyi-92">使用特殊的标记值，位模式或一组标记值来表示跨越dty的<code class="docutils literal"><span class="pre">NA</span></code></span></li>
+</ul>
+<p><span class="yiyi-st" id="yiyi-93">由于很多原因，我们选择后者。</span><span class="yiyi-st" id="yiyi-94">经过多年的生产使用，它已经证明，至少在我看来，是给出了NumPy和Python中的一般状态的最佳决定。</span><span class="yiyi-st" id="yiyi-95">特殊值<code class="docutils literal"><span class="pre">NaN</span></code>（Not-A-Number）随处可用作<code class="docutils literal"><span class="pre">NA</span></code>值，并且有API函数<code class="docutils literal"><span class="pre">isnull</span></code>和<code class="docutils literal"><span class="pre">notnull</span></code>，可以跨越dtypes使用以检测NA值。</span></p>
+<p><span class="yiyi-st" id="yiyi-96">然而，它有一些权衡，我绝对不能忽视它。</span></p>
+</div>
+<div class="section" id="support-for-integer-na">
+<span id="gotchas-intna"></span><h3><span class="yiyi-st" id="yiyi-97">Support for integer <code class="docutils literal"><span class="pre">NA</span></code></span></h3>
+<p><span class="yiyi-st" id="yiyi-98">在没有高性能<code class="docutils literal"><span class="pre">NA</span></code>支持从头开始构建到NumPy中的情况下，主要的伤亡是在整数数组中表示NA的能力。</span><span class="yiyi-st" id="yiyi-99">例如：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [5]: </span><span class="n">s</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">],</span> <span class="n">index</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="s1">&apos;abcde&apos;</span><span class="p">))</span>
+
+<span class="gp">In [6]: </span><span class="n">s</span>
+<span class="gr">Out[6]: </span>
+<span class="go">a    1</span>
+<span class="go">b    2</span>
+<span class="go">c    3</span>
+<span class="go">d    4</span>
+<span class="go">e    5</span>
+<span class="go">dtype: int64</span>
+
+<span class="gp">In [7]: </span><span class="n">s</span><span class="o">.</span><span class="n">dtype</span>
+<span class="gr">Out[7]: </span><span class="n">dtype</span><span class="p">(</span><span class="s1">&apos;int64&apos;</span><span class="p">)</span>
+
+<span class="gp">In [8]: </span><span class="n">s2</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">reindex</span><span class="p">([</span><span class="s1">&apos;a&apos;</span><span class="p">,</span> <span class="s1">&apos;b&apos;</span><span class="p">,</span> <span class="s1">&apos;c&apos;</span><span class="p">,</span> <span class="s1">&apos;f&apos;</span><span class="p">,</span> <span class="s1">&apos;u&apos;</span><span class="p">])</span>
+
+<span class="gp">In [9]: </span><span class="n">s2</span>
+<span class="gr">Out[9]: </span>
+<span class="go">a    1.0</span>
+<span class="go">b    2.0</span>
+<span class="go">c    3.0</span>
+<span class="go">f    NaN</span>
+<span class="go">u    NaN</span>
+<span class="go">dtype: float64</span>
+
+<span class="gp">In [10]: </span><span class="n">s2</span><span class="o">.</span><span class="n">dtype</span>
+<span class="gr">Out[10]: </span><span class="n">dtype</span><span class="p">(</span><span class="s1">&apos;float64&apos;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-100">这种折衷主要是因为存储器和性能的原因，并且还使得所得到的系列继续是“数字”。</span><span class="yiyi-st" id="yiyi-101">一种可能性是使用<code class="docutils literal"><span class="pre">dtype=object</span></code>数组。</span></p>
+</div>
+<div class="section" id="na-type-promotions">
+<h3><span class="yiyi-st" id="yiyi-102"><code class="docutils literal"><span class="pre">NA</span></code> type promotions</span></h3>
+<p><span class="yiyi-st" id="yiyi-103">当通过<code class="docutils literal"><span class="pre">reindex</span></code>或其他方法将NA引入现有的Series或DataFrame时，布尔型和整型将被提升为不同的dtype，以便存储NA。</span><span class="yiyi-st" id="yiyi-104">这些表总结如下：</span></p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="40%">
+<col width="60%">
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head"><span class="yiyi-st" id="yiyi-105">类型类</span></th>
+<th class="head"><span class="yiyi-st" id="yiyi-106">用于存储NAs的升级类型</span></th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><span class="yiyi-st" id="yiyi-107"><code class="docutils literal"><span class="pre">floating</span></code></span></td>
+<td><span class="yiyi-st" id="yiyi-108">不用找了</span></td>
+</tr>
+<tr class="row-odd"><td><span class="yiyi-st" id="yiyi-109"><code class="docutils literal"><span class="pre">object</span></code></span></td>
+<td><span class="yiyi-st" id="yiyi-110">不用找了</span></td>
+</tr>
+<tr class="row-even"><td><span class="yiyi-st" id="yiyi-111"><code class="docutils literal"><span class="pre">integer</span></code></span></td>
+<td><span class="yiyi-st" id="yiyi-112">转换为<code class="docutils literal"><span class="pre">float64</span></code></span></td>
+</tr>
+<tr class="row-odd"><td><span class="yiyi-st" id="yiyi-113"><code class="docutils literal"><span class="pre">boolean</span></code></span></td>
+<td><span class="yiyi-st" id="yiyi-114">转换为<code class="docutils literal"><span class="pre">object</span></code></span></td>
+</tr>
+</tbody>
+</table>
+<p><span class="yiyi-st" id="yiyi-115">虽然这似乎是一个沉重的权衡，我发现很少的案例，这是一个问题在实践中。</span><span class="yiyi-st" id="yiyi-116">这里的动机的一些解释在下一节。</span></p>
+</div>
+<div class="section" id="why-not-make-numpy-like-r">
+<h3><span class="yiyi-st" id="yiyi-117">Why not make NumPy like R?</span></h3>
+<p><span class="yiyi-st" id="yiyi-118">许多人建议NumPy应该简单地模拟更特定领域的统计编程语言<a class="reference external" href="http://r-project.org">R</a>中存在的<code class="docutils literal"><span class="pre">NA</span></code>支持。部分原因是NumPy类型层次结构：</span></p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="30%">
+<col width="70%">
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head"><span class="yiyi-st" id="yiyi-119">类型类</span></th>
+<th class="head"><span class="yiyi-st" id="yiyi-120">Dtypes</span></th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><span class="yiyi-st" id="yiyi-121"><code class="docutils literal"><span class="pre">numpy.floating</span></code></span></td>
+<td><span class="yiyi-st" id="yiyi-122"><code class="docutils literal"><span class="pre">float16，</span> <span class="pre">float32，</span> <span class="pre">float64，</span> <span class="pre">float128</span> </code></span></td>
+</tr>
+<tr class="row-odd"><td><span class="yiyi-st" id="yiyi-123"><code class="docutils literal"><span class="pre">numpy.integer</span></code></span></td>
+<td><span class="yiyi-st" id="yiyi-124"><code class="docutils literal"><span class="pre">int8，</span> <span class="pre">int16，</span> <span class="pre">int32，</span> <span class="pre">int64</span></code></span></td>
+</tr>
+<tr class="row-even"><td><span class="yiyi-st" id="yiyi-125"><code class="docutils literal"><span class="pre">numpy.unsignedinteger</span></code></span></td>
+<td><span class="yiyi-st" id="yiyi-126"><code class="docutils literal"><span class="pre">uint8，</span> <span class="pre">uint16，</span> <span class="pre">uint32，</span> <span class="pre">uint64</span> </code></span></td>
+</tr>
+<tr class="row-odd"><td><span class="yiyi-st" id="yiyi-127"><code class="docutils literal"><span class="pre">numpy.object_</span></code></span></td>
+<td><span class="yiyi-st" id="yiyi-128"><code class="docutils literal"><span class="pre">object_</span></code></span></td>
+</tr>
+<tr class="row-even"><td><span class="yiyi-st" id="yiyi-129"><code class="docutils literal"><span class="pre">numpy.bool_</span></code></span></td>
+<td><span class="yiyi-st" id="yiyi-130"><code class="docutils literal"><span class="pre">bool_</span></code></span></td>
+</tr>
+<tr class="row-odd"><td><span class="yiyi-st" id="yiyi-131"><code class="docutils literal"><span class="pre">numpy.character</span></code></span></td>
+<td><span class="yiyi-st" id="yiyi-132"><code class="docutils literal"><span class="pre">string _，</span> <span class="pre">unicode _</span></code></span></td>
+</tr>
+</tbody>
+</table>
+<p><span class="yiyi-st" id="yiyi-133">相反，R语言只有一些内置数据类型：<code class="docutils literal"><span class="pre">integer</span></code>，<code class="docutils literal"><span class="pre">numeric</span></code>（浮点），<code class="docutils literal"><span class="pre">character</span></code>和<code class="docutils literal"><span class="pre">boolean</span></code>。</span><span class="yiyi-st" id="yiyi-134"><code class="docutils literal"><span class="pre">NA</span></code>类型是通过为每个类型保留特殊位模式以用作缺失值来实现的。</span><span class="yiyi-st" id="yiyi-135">虽然使用完整的NumPy类型层次结构是可能的，但它将是一个更实质的权衡（尤其是对于8位和16位数据类型）和实现承诺。</span></p>
+<p><span class="yiyi-st" id="yiyi-136">另一种方法是使用掩码数组。</span><span class="yiyi-st" id="yiyi-137">掩码数组是具有相关布尔<em>掩码</em>的数据数组，表示每个值是否应被视为<code class="docutils literal"><span class="pre">NA</span></code>。</span><span class="yiyi-st" id="yiyi-138">我个人不喜欢这种方法，因为我觉得整体它给用户和库实现者带来相当沉重的负担。</span><span class="yiyi-st" id="yiyi-139">此外，与使用<code class="docutils literal"><span class="pre">NaN</span></code>的简单方法相比，使用数值数据时，它会产生相当高的性能成本。</span><span class="yiyi-st" id="yiyi-140">因此，我选择了Pythonic的“实用性节拍纯度”方法和交易整数<code class="docutils literal"><span class="pre">NA</span></code>能力，使用一个更简单的方法在浮点和对象数组中使用一个特殊值来表示<code class="docutils literal"><span class="pre">NA</span></code> ，并且当必须引入NAs时，将整数数组提升为浮点。</span></p>
+</div>
+</div>
+<div class="section" id="integer-indexing">
+<h2><span class="yiyi-st" id="yiyi-141">Integer indexing</span></h2>
+<p><span class="yiyi-st" id="yiyi-142">使用整数轴标签的基于标签的索引是一个棘手的主题。</span><span class="yiyi-st" id="yiyi-143">它已经在邮件列表和科学Python社区的各种成员中进行了大量讨论。</span><span class="yiyi-st" id="yiyi-144">在大熊猫，我们的一般观点是，标签不止于整数位置。</span><span class="yiyi-st" id="yiyi-145">因此，对于整数轴索引<em>，只有</em>可以使用标准工具（如<code class="docutils literal"><span class="pre">.ix</span></code>）进行基于标签的索引。</span><span class="yiyi-st" id="yiyi-146">以下代码将生成异常：</span></p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">s</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">5</span><span class="p">))</span>
+<span class="n">s</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+<span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
+<span class="n">df</span>
+<span class="n">df</span><span class="o">.</span><span class="n">ix</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">:]</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-147">这个故意的决定是为了防止歧义和微妙的错误（许多用户报告发现错误，当API更改停止“退回”基于位置的索引）。</span></p>
+</div>
+<div class="section" id="label-based-slicing-conventions">
+<h2><span class="yiyi-st" id="yiyi-148">Label-based slicing conventions</span></h2>
+<div class="section" id="non-monotonic-indexes-require-exact-matches">
+<h3><span class="yiyi-st" id="yiyi-149">Non-monotonic indexes require exact matches</span></h3>
+<p><span class="yiyi-st" id="yiyi-150">如果<code class="docutils literal"><span class="pre">Series</span></code>或<code class="docutils literal"><span class="pre">DataFrame</span></code>的索引是单调递增或递减，则基于标签的切片的边界可能在索引的范围之外，一个普通的Python <code class="docutils literal"><span class="pre">list</span></code>。</span><span class="yiyi-st" id="yiyi-151">可以使用<code class="docutils literal"><span class="pre">is_monotonic_increasing</span></code>和<code class="docutils literal"><span class="pre">is_monotonic_decreasing</span></code>属性来测试索引的单调性。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [11]: </span><span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">],</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&apos;data&apos;</span><span class="p">],</span> <span class="n">data</span><span class="o">=</span><span class="nb">range</span><span class="p">(</span><span class="mi">5</span><span class="p">))</span>
+
+<span class="gp">In [12]: </span><span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">is_monotonic_increasing</span>
+<span class="gr">Out[12]: </span><span class="bp">True</span>
+
+<span class="c"># no rows 0 or 1, but still returns rows 2, 3 (both of them), and 4:</span>
+<span class="gp">In [13]: </span><span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">4</span><span class="p">,</span> <span class="p">:]</span>
+<span class="gr">Out[13]: </span>
+<span class="go">   data</span>
+<span class="go">2     0</span>
+<span class="go">3     1</span>
+<span class="go">3     2</span>
+<span class="go">4     3</span>
+
+<span class="c"># slice is are outside the index, so empty DataFrame is returned</span>
+<span class="gp">In [14]: </span><span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="mi">13</span><span class="p">:</span><span class="mi">15</span><span class="p">,</span> <span class="p">:]</span>
+<span class="gr">Out[14]: </span>
+<span class="go">Empty DataFrame</span>
+<span class="go">Columns: [data]</span>
+<span class="go">Index: []</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-152">另一方面，如果索引不是单调的，则两个片边界必须是索引的<em>唯一</em>成员。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [15]: </span><span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">5</span><span class="p">],</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&apos;data&apos;</span><span class="p">],</span> <span class="n">data</span><span class="o">=</span><span class="nb">range</span><span class="p">(</span><span class="mi">6</span><span class="p">))</span>
+
+<span class="gp">In [16]: </span><span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">is_monotonic_increasing</span>
+<span class="gr">Out[16]: </span><span class="bp">False</span>
+
+<span class="c"># OK because 2 and 4 are in the index</span>
+<span class="gp">In [17]: </span><span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="mi">2</span><span class="p">:</span><span class="mi">4</span><span class="p">,</span> <span class="p">:]</span>
+<span class="gr">Out[17]: </span>
+<span class="go">   data</span>
+<span class="go">2     0</span>
+<span class="go">3     1</span>
+<span class="go">1     2</span>
+<span class="go">4     3</span>
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="c1"># 0 is not in the index</span>
+<span class="n">In</span> <span class="p">[</span><span class="mi">9</span><span class="p">]:</span> <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">4</span><span class="p">,</span> <span class="p">:]</span>
+<span class="ne">KeyError</span><span class="p">:</span> <span class="mi">0</span>
+
+<span class="c1"># 3 is not a unique label</span>
+<span class="n">In</span> <span class="p">[</span><span class="mi">11</span><span class="p">]:</span> <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="mi">2</span><span class="p">:</span><span class="mi">3</span><span class="p">,</span> <span class="p">:]</span>
+<span class="ne">KeyError</span><span class="p">:</span> <span class="s1">&apos;Cannot get right slice bound for non-unique label: 3&apos;</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="endpoints-are-inclusive">
+<h3><span class="yiyi-st" id="yiyi-153">Endpoints are inclusive</span></h3>
+<p><span class="yiyi-st" id="yiyi-154">与标准Python序列切片（其中切片端点不包括）相比，pandas <strong>中的基于标签的切片是包含</strong>的。</span><span class="yiyi-st" id="yiyi-155">这样做的主要原因是，通常不可能容易地确定索引中特定标签之后的“后继者”或下一个元素。</span><span class="yiyi-st" id="yiyi-156">例如，考虑以下系列：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [18]: </span><span class="n">s</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">6</span><span class="p">),</span> <span class="n">index</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="s1">&apos;abcdef&apos;</span><span class="p">))</span>
+
+<span class="gp">In [19]: </span><span class="n">s</span>
+<span class="gr">Out[19]: </span>
+<span class="go">a    1.544821</span>
+<span class="go">b   -1.708552</span>
+<span class="go">c    1.545458</span>
+<span class="go">d   -0.735738</span>
+<span class="go">e   -0.649091</span>
+<span class="go">f   -0.403878</span>
+<span class="go">dtype: float64</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-157">假设我们希望从<code class="docutils literal"><span class="pre">c</span></code>切割到<code class="docutils literal"><span class="pre">e</span></code>，使用整数，这将是</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [20]: </span><span class="n">s</span><span class="p">[</span><span class="mi">2</span><span class="p">:</span><span class="mi">5</span><span class="p">]</span>
+<span class="gr">Out[20]: </span>
+<span class="go">c    1.545458</span>
+<span class="go">d   -0.735738</span>
+<span class="go">e   -0.649091</span>
+<span class="go">dtype: float64</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-158">但是，如果只有<code class="docutils literal"><span class="pre">c</span></code>和<code class="docutils literal"><span class="pre">e</span></code>，则确定索引中的下一个元素可能会有些复杂。</span><span class="yiyi-st" id="yiyi-159">例如，以下不工作：</span></p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">s</span><span class="o">.</span><span class="n">ix</span><span class="p">[</span><span class="s1">&apos;c&apos;</span><span class="p">:</span><span class="s1">&apos;e&apos;</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-160">一个非常常见的用例是限制时间序列在两个特定日期开始和结束。</span><span class="yiyi-st" id="yiyi-161">为了实现这一点，我们进行了设计设计，使基于标签的切片包括两个端点：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [21]: </span><span class="n">s</span><span class="o">.</span><span class="n">ix</span><span class="p">[</span><span class="s1">&apos;c&apos;</span><span class="p">:</span><span class="s1">&apos;e&apos;</span><span class="p">]</span>
+<span class="gr">Out[21]: </span>
+<span class="go">c    1.545458</span>
+<span class="go">d   -0.735738</span>
+<span class="go">e   -0.649091</span>
+<span class="go">dtype: float64</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-162">这绝对是一个“实用性节拍纯度”的事情，但它是值得注意的是，如果你期望基于标签的切片行为完全符合标准的Python整数切片的工作方式。</span></p>
+</div>
+</div>
+<div class="section" id="miscellaneous-indexing-gotchas">
+<h2><span class="yiyi-st" id="yiyi-163">Miscellaneous indexing gotchas</span></h2>
+<div class="section" id="reindex-versus-ix-gotchas">
+<h3><span class="yiyi-st" id="yiyi-164">Reindex versus ix gotchas</span></h3>
+<p><span class="yiyi-st" id="yiyi-165">许多用户会发现自己使用<code class="docutils literal"><span class="pre">ix</span></code>索引功能作为从pandas对象中选择数据的简单方法：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [22]: </span><span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&apos;one&apos;</span><span class="p">,</span> <span class="s1">&apos;two&apos;</span><span class="p">,</span> <span class="s1">&apos;three&apos;</span><span class="p">,</span> <span class="s1">&apos;four&apos;</span><span class="p">],</span>
+<span class="gp">   ....:</span>                   <span class="n">index</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="s1">&apos;abcdef&apos;</span><span class="p">))</span>
+<span class="gp">   ....:</span> 
+
+<span class="gp">In [23]: </span><span class="n">df</span>
+<span class="gr">Out[23]: </span>
+<span class="go">        one       two     three      four</span>
+<span class="go">a -2.474932  0.975891 -0.204206  0.452707</span>
+<span class="go">b  3.478418 -0.591538 -0.508560  0.047946</span>
+<span class="go">c -0.170009 -1.615606 -0.894382  1.334681</span>
+<span class="go">d -0.418002 -0.690649  0.128522  0.429260</span>
+<span class="go">e  1.207515 -1.308877 -0.548792 -1.520879</span>
+<span class="go">f  1.153696  0.609378 -0.825763  0.218223</span>
+
+<span class="gp">In [24]: </span><span class="n">df</span><span class="o">.</span><span class="n">ix</span><span class="p">[[</span><span class="s1">&apos;b&apos;</span><span class="p">,</span> <span class="s1">&apos;c&apos;</span><span class="p">,</span> <span class="s1">&apos;e&apos;</span><span class="p">]]</span>
+<span class="gr">Out[24]: </span>
+<span class="go">        one       two     three      four</span>
+<span class="go">b  3.478418 -0.591538 -0.508560  0.047946</span>
+<span class="go">c -0.170009 -1.615606 -0.894382  1.334681</span>
+<span class="go">e  1.207515 -1.308877 -0.548792 -1.520879</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-166">这当然是使用<code class="docutils literal"><span class="pre">reindex</span></code>方法完全等同于<em>在这种情况下</em>：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [25]: </span><span class="n">df</span><span class="o">.</span><span class="n">reindex</span><span class="p">([</span><span class="s1">&apos;b&apos;</span><span class="p">,</span> <span class="s1">&apos;c&apos;</span><span class="p">,</span> <span class="s1">&apos;e&apos;</span><span class="p">])</span>
+<span class="gr">Out[25]: </span>
+<span class="go">        one       two     three      four</span>
+<span class="go">b  3.478418 -0.591538 -0.508560  0.047946</span>
+<span class="go">c -0.170009 -1.615606 -0.894382  1.334681</span>
+<span class="go">e  1.207515 -1.308877 -0.548792 -1.520879</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-167">有些人可能会得出结论，基于此，<code class="docutils literal"><span class="pre">ix</span></code>和<code class="docutils literal"><span class="pre">reindex</span></code>是100％等效。</span><span class="yiyi-st" id="yiyi-168">除非在整数索引的情况下，这的确是真的<strong>。</strong></span><span class="yiyi-st" id="yiyi-169">例如，上述操作可以替代地被表示为：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [26]: </span><span class="n">df</span><span class="o">.</span><span class="n">ix</span><span class="p">[[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">]]</span>
+<span class="gr">Out[26]: </span>
+<span class="go">        one       two     three      four</span>
+<span class="go">b  3.478418 -0.591538 -0.508560  0.047946</span>
+<span class="go">c -0.170009 -1.615606 -0.894382  1.334681</span>
+<span class="go">e  1.207515 -1.308877 -0.548792 -1.520879</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-170">如果您通过<code class="docutils literal"><span class="pre">[1，</span> <span class="pre">2，</span> <span class="pre">4]</span></code>到<code class="docutils literal"><span class="pre">reindex</span></code>另一件事完全是：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [27]: </span><span class="n">df</span><span class="o">.</span><span class="n">reindex</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">])</span>
+<span class="gr">Out[27]: </span>
+<span class="go">   one  two  three  four</span>
+<span class="go">1  NaN  NaN    NaN   NaN</span>
+<span class="go">2  NaN  NaN    NaN   NaN</span>
+<span class="go">4  NaN  NaN    NaN   NaN</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-171">因此，请务必记住<code class="docutils literal"><span class="pre">reindex</span></code>是<strong>仅限严格标签索引</strong>。</span><span class="yiyi-st" id="yiyi-172">这可能导致在索引包含整数和字符串的病理情况下的一些潜在的令人惊讶的结果：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [28]: </span><span class="n">s</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="n">index</span><span class="o">=</span><span class="p">[</span><span class="s1">&apos;a&apos;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+
+<span class="gp">In [29]: </span><span class="n">s</span>
+<span class="gr">Out[29]: </span>
+<span class="go">a    1</span>
+<span class="go">0    2</span>
+<span class="go">1    3</span>
+<span class="go">dtype: int64</span>
+
+<span class="gp">In [30]: </span><span class="n">s</span><span class="o">.</span><span class="n">ix</span><span class="p">[[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]]</span>
+<span class="gr">Out[30]: </span>
+<span class="go">0    2</span>
+<span class="go">1    3</span>
+<span class="go">dtype: int64</span>
+
+<span class="gp">In [31]: </span><span class="n">s</span><span class="o">.</span><span class="n">reindex</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+<span class="gr">Out[31]: </span>
+<span class="go">0    2</span>
+<span class="go">1    3</span>
+<span class="go">dtype: int64</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-173">因为在这种情况下的索引不仅包含整数，所以<code class="docutils literal"><span class="pre">ix</span></code>返回整数索引。</span><span class="yiyi-st" id="yiyi-174">相比之下，<code class="docutils literal"><span class="pre">reindex</span></code>仅查找在索引中传递的值，因此找到整数<code class="docutils literal"><span class="pre">0</span></code>和<code class="docutils literal"><span class="pre">1</span></code>。</span><span class="yiyi-st" id="yiyi-175">虽然可以插入一些逻辑来检查传递的序列是否全部包含在索引中，但是该逻辑在大数据集中将会产生非常高的成本。</span></p>
+</div>
+<div class="section" id="reindex-potentially-changes-underlying-series-dtype">
+<h3><span class="yiyi-st" id="yiyi-176">Reindex potentially changes underlying Series dtype</span></h3>
+<p><span class="yiyi-st" id="yiyi-177">使用<code class="docutils literal"><span class="pre">reindex_like</span></code>可以更改<code class="docutils literal"><span class="pre">Series</span></code>的dtype。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [32]: </span><span class="n">series</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">])</span>
+
+<span class="gp">In [33]: </span><span class="n">x</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">([</span><span class="bp">True</span><span class="p">])</span>
+
+<span class="gp">In [34]: </span><span class="n">x</span><span class="o">.</span><span class="n">dtype</span>
+<span class="gr">Out[34]: </span><span class="n">dtype</span><span class="p">(</span><span class="s1">&apos;bool&apos;</span><span class="p">)</span>
+
+<span class="gp">In [35]: </span><span class="n">x</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">([</span><span class="bp">True</span><span class="p">])</span><span class="o">.</span><span class="n">reindex_like</span><span class="p">(</span><span class="n">series</span><span class="p">)</span>
+
+<span class="gp">In [36]: </span><span class="n">x</span><span class="o">.</span><span class="n">dtype</span>
+<span class="gr">Out[36]: </span><span class="n">dtype</span><span class="p">(</span><span class="s1">&apos;O&apos;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-178">这是因为<code class="docutils literal"><span class="pre">reindex_like</span></code>会静默插入<code class="docutils literal"><span class="pre">NaNs</span></code>和<code class="docutils literal"><span class="pre">dtype</span></code>。</span><span class="yiyi-st" id="yiyi-179">当使用<code class="docutils literal"><span class="pre">numpy</span></code> <code class="docutils literal"><span class="pre">ufuncs</span></code>（例如<code class="docutils literal"><span class="pre">numpy.logical_and</span></code>）时，可能会导致一些问题。</span></p>
+<p><span class="yiyi-st" id="yiyi-180">有关详细讨论，请参阅<a class="reference external" href="https://github.com/pandas-dev/pandas/issues/2388">此旧问题</a>。</span></p>
+</div>
+</div>
+<div class="section" id="parsing-dates-from-text-files">
+<h2><span class="yiyi-st" id="yiyi-181">Parsing Dates from Text Files</span></h2>
+<p><span class="yiyi-st" id="yiyi-182">当将多个文本文件列解析为单个日期列时，新的日期列将预置在数据前，然后<cite>index_col</cite>规范将从新的列集合中索引，而不是原始列的索引；</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [37]: </span><span class="k">print</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="s1">&apos;tmp.csv&apos;</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
+<span class="go">KORD,19990127, 19:00:00, 18:56:00, 0.8100</span>
+<span class="go">KORD,19990127, 20:00:00, 19:56:00, 0.0100</span>
+<span class="go">KORD,19990127, 21:00:00, 20:56:00, -0.5900</span>
+<span class="go">KORD,19990127, 21:00:00, 21:18:00, -0.9900</span>
+<span class="go">KORD,19990127, 22:00:00, 21:56:00, -0.5900</span>
+<span class="go">KORD,19990127, 23:00:00, 22:56:00, -0.5900</span>
+
+<span class="gp">In [38]: </span><span class="n">date_spec</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&apos;nominal&apos;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="s1">&apos;actual&apos;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">]}</span>
+
+<span class="gp">In [39]: </span><span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s1">&apos;tmp.csv&apos;</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+<span class="gp">   ....:</span>                  <span class="n">parse_dates</span><span class="o">=</span><span class="n">date_spec</span><span class="p">,</span>
+<span class="gp">   ....:</span>                  <span class="n">keep_date_col</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+<span class="gp">   ....:</span>                  <span class="n">index_col</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="gp">   ....:</span> 
+
+<span class="c"># index_col=0 refers to the combined column &quot;nominal&quot; and not the original</span>
+<span class="c"># first column of &apos;KORD&apos; strings</span>
+<span class="gp">In [40]: </span><span class="n">df</span>
+<span class="gr">Out[40]: </span>
+<span class="go">                                 actual     0         1          2          3  \</span>
+<span class="go">nominal                                                                         </span>
+<span class="go">1999-01-27 19:00:00 1999-01-27 18:56:00  KORD  19990127   19:00:00   18:56:00   </span>
+<span class="go">1999-01-27 20:00:00 1999-01-27 19:56:00  KORD  19990127   20:00:00   19:56:00   </span>
+<span class="go">1999-01-27 21:00:00 1999-01-27 20:56:00  KORD  19990127   21:00:00   20:56:00   </span>
+<span class="go">1999-01-27 21:00:00 1999-01-27 21:18:00  KORD  19990127   21:00:00   21:18:00   </span>
+<span class="go">1999-01-27 22:00:00 1999-01-27 21:56:00  KORD  19990127   22:00:00   21:56:00   </span>
+<span class="go">1999-01-27 23:00:00 1999-01-27 22:56:00  KORD  19990127   23:00:00   22:56:00   </span>
+
+<span class="go">                        4  </span>
+<span class="go">nominal                    </span>
+<span class="go">1999-01-27 19:00:00  0.81  </span>
+<span class="go">1999-01-27 20:00:00  0.01  </span>
+<span class="go">1999-01-27 21:00:00 -0.59  </span>
+<span class="go">1999-01-27 21:00:00 -0.99  </span>
+<span class="go">1999-01-27 22:00:00 -0.59  </span>
+<span class="go">1999-01-27 23:00:00 -0.59  </span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="differences-with-numpy">
+<h2><span class="yiyi-st" id="yiyi-183">Differences with NumPy</span></h2>
+<p><span class="yiyi-st" id="yiyi-184">对于Series和DataFrame对象，<code class="docutils literal"><span class="pre">var</span></code>通过<code class="docutils literal"><span class="pre">N-1</span></code>归一化以产生样本方差的无偏估计，而NumPy的<code class="docutils literal"><span class="pre">var</span></code>测量样本的方差。</span><span class="yiyi-st" id="yiyi-185">注意，在pandas和NumPy中，<code class="docutils literal"><span class="pre">cov</span></code>通过<code class="docutils literal"><span class="pre">N-1</span></code>进行归一化。</span></p>
+</div>
+<div class="section" id="thread-safety">
+<h2><span class="yiyi-st" id="yiyi-186">Thread-safety</span></h2>
+<p><span class="yiyi-st" id="yiyi-187">从熊猫0.11，熊猫不是100％线程安全。</span><span class="yiyi-st" id="yiyi-188">已知问题与<code class="docutils literal"><span class="pre">DataFrame.copy</span></code>方法有关。</span><span class="yiyi-st" id="yiyi-189">如果你正在做很多线程之间共享的DataFrame对象的复制，我们建议在发生数据复制的线程中保持锁。</span></p>
+<p><span class="yiyi-st" id="yiyi-190">有关详细信息，请参阅<a class="reference external" href="http://stackoverflow.com/questions/13592618/python-pandas-dataframe-thread-safe">此链接</a>。</span></p>
+</div>
+<div class="section" id="html-table-parsing">
+<span id="html-gotchas"></span><h2><span class="yiyi-st" id="yiyi-191">HTML Table Parsing</span></h2>
+<p><span class="yiyi-st" id="yiyi-192">围绕库的一些版本化问题用于解析顶级pandas io函数<code class="docutils literal"><span class="pre">read_html</span></code>中的HTML表。</span></p>
+<p><span class="yiyi-st" id="yiyi-193"><strong>与</strong> <a class="reference external" href="http://lxml.de"><strong>lxml</strong></a>有关的问题</span></p>
+<blockquote>
+<div><ul class="simple">
+<li><span class="yiyi-st" id="yiyi-196">好处</span><ul>
+<li><span class="yiyi-st" id="yiyi-194"><a class="reference external" href="http://lxml.de"><strong>lxml</strong></a>非常快</span></li>
+<li><span class="yiyi-st" id="yiyi-195"><a class="reference external" href="http://lxml.de"><strong>lxml</strong></a>需要Cython才能正确安装。</span></li>
+</ul>
+</li>
+<li><span class="yiyi-st" id="yiyi-200">缺点</span><ul>
+<li><span class="yiyi-st" id="yiyi-197"><a class="reference external" href="http://lxml.de"><strong>lxml</strong></a>不会<em>不</em>对其解析<em>的结果做任何保证，除非 t&gt;给出<a class="reference external" href="http://validator.w3.org/docs/help.html#validation_basics"><strong>strictly valid markup</strong></a>。</em></span></li>
+<li><span class="yiyi-st" id="yiyi-198">鉴于上述，我们选择允许您，用户使用<a class="reference external" href="http://lxml.de"><strong>lxml</strong></a>后端，但<strong>此后端将使用</strong> <a class="reference external" href="https://github.com/html5lib/html5lib-python"><strong>html5lib</strong></a> if <a class="reference external" href="http://lxml.de"><strong>lxml</strong></a>无法解析</span></li>
+<li><span class="yiyi-st" id="yiyi-199">因此，强烈建议<em></em>您安装<a class="reference external" href="http://www.crummy.com/software/BeautifulSoup"><strong>BeautifulSoup4</strong></a>和<a class="reference external" href="https://github.com/html5lib/html5lib-python"><strong>html5lib</strong></a>，以便您仍然可以获得有效的结果（如果一切都有效）即使<a class="reference external" href="http://lxml.de"><strong>lxml</strong></a>失败。</span></li>
+</ul>
+</li>
+</ul>
+</div></blockquote>
+<p><span class="yiyi-st" id="yiyi-201"><strong>与</strong> <a class="reference external" href="http://www.crummy.com/software/BeautifulSoup"><strong>BeautifulSoup4</strong></a> <strong>使用</strong> <a class="reference external" href="http://lxml.de"><strong>lxml</strong></a> <strong>作为后端</strong></span></p>
+<blockquote>
+<div><ul class="simple">
+<li><span class="yiyi-st" id="yiyi-202">上面的问题也在这里，因为<a class="reference external" href="http://www.crummy.com/software/BeautifulSoup"><strong>BeautifulSoup4</strong></a>本质上只是一个解析器后端的包装。</span></li>
+</ul>
+</div></blockquote>
+<p><span class="yiyi-st" id="yiyi-203"><strong>Issues with</strong> <a class="reference external" href="http://www.crummy.com/software/BeautifulSoup"><strong>BeautifulSoup4</strong></a> <strong>using</strong> <a class="reference external" href="https://github.com/html5lib/html5lib-python"><strong>html5lib</strong></a> <strong>as a backend</strong></span></p>
+<blockquote>
+<div><ul class="simple">
+<li><span class="yiyi-st" id="yiyi-209">好处</span><ul>
+<li><span class="yiyi-st" id="yiyi-204"><a class="reference external" href="https://github.com/html5lib/html5lib-python"><strong>html5lib</strong></a>比<a class="reference external" href="http://lxml.de"><strong>lxml</strong></a>宽松得多，因此以更清楚的方式处理<em>现实生活标记</em>，而不仅仅是放弃元素而不通知您。</span></li>
+<li><span class="yiyi-st" id="yiyi-205"><a class="reference external" href="https://github.com/html5lib/html5lib-python"><strong>html5lib</strong></a> <em>自动从无效标记生成有效的HTML5标记</em>。</span><span class="yiyi-st" id="yiyi-206">这对于解析HTML表非常重要，因为它保证了有效的文档。</span><span class="yiyi-st" id="yiyi-207">然而，这并不意味着它是“正确的”，因为固定标记的过程没有单一的定义。</span></li>
+<li><span class="yiyi-st" id="yiyi-208"><a class="reference external" href="https://github.com/html5lib/html5lib-python"><strong>html5lib</strong></a>是纯Python，除了自己的安装外，不需要额外的构建步骤。</span></li>
+</ul>
+</li>
+<li><span class="yiyi-st" id="yiyi-214">缺点</span><ul>
+<li><span class="yiyi-st" id="yiyi-210">使用<a class="reference external" href="https://github.com/html5lib/html5lib-python"><strong>html5lib</strong></a>的最大缺点是它作为糖蜜慢。</span><span class="yiyi-st" id="yiyi-211">然而，考虑到网络上的许多表对于解析算法运行时来说不够大的事实。</span><span class="yiyi-st" id="yiyi-212">更有可能的是，瓶颈将在从web上的URL读取原始文本的过程中，即IO（输入 - 输出）。</span><span class="yiyi-st" id="yiyi-213">对于非常大的表，这可能不是真的。</span></li>
+</ul>
+</li>
+</ul>
+</div></blockquote>
+<p><span class="yiyi-st" id="yiyi-215"><strong>使用</strong> <a class="reference external" href="https://store.continuum.io/cshop/anaconda"><strong>Anaconda</strong></a>的问题</span></p>
+<blockquote>
+<div><ul class="simple">
+<li><span class="yiyi-st" id="yiyi-216"><a class="reference external" href="https://store.continuum.io/cshop/anaconda">Anaconda</a>附带<a class="reference external" href="http://lxml.de">lxml</a>版本3.2.0；以下针对<a class="reference external" href="https://store.continuum.io/cshop/anaconda">Anaconda</a>的解决方法已成功用于处理围绕<a class="reference external" href="http://lxml.de">lxml</a>和<a class="reference external" href="http://www.crummy.com/software/BeautifulSoup">BeautifulSoup4</a>的版本问题。</span></li>
+</ul>
+<div class="admonition note">
+<p class="first admonition-title"><span class="yiyi-st" id="yiyi-217">注意</span></p>
+<p><span class="yiyi-st" id="yiyi-218">除非您同时拥有<em></em>：</span></p>
+<blockquote>
+<div><ul class="simple">
+<li><span class="yiyi-st" id="yiyi-219">对包含<code class="xref py py-func docutils literal"><span class="pre">read_html()</span></code>的一些代码的运行时上限的强限制</span></li>
+<li><span class="yiyi-st" id="yiyi-220">完全知道您将要解析的HTML将始终有效100％</span></li>
+</ul>
+</div></blockquote>
+<p><span class="yiyi-st" id="yiyi-221">那么你应该安装<a class="reference external" href="https://github.com/html5lib/html5lib-python">html5lib</a>，并且事情会自动运行，而不必使用<cite>conda</cite>。</span><span class="yiyi-st" id="yiyi-222">如果你想要两个世界中最好的，然后安装<a class="reference external" href="https://github.com/html5lib/html5lib-python">html5lib</a>和<a class="reference external" href="http://lxml.de">lxml</a>。</span><span class="yiyi-st" id="yiyi-223">如果您安装<a class="reference external" href="http://lxml.de">lxml</a>，则需要执行以下命令以确保lxml正常工作：</span></p>
+<div class="highlight-sh"><div class="highlight"><pre><span></span><span class="c1"># remove the included version</span>
+conda remove lxml
+
+<span class="c1"># install the latest version of lxml</span>
+pip install <span class="s1">&apos;git+git://github.com/lxml/lxml.git&apos;</span>
+
+<span class="c1"># install the latest version of beautifulsoup4</span>
+pip install <span class="s1">&apos;bzr+lp:beautifulsoup&apos;</span>
+</pre></div>
+</div>
+<p class="last"><span class="yiyi-st" id="yiyi-224">请注意，您需要安装<a class="reference external" href="http://bazaar.canonical.com/en">bzr</a>和<a class="reference external" href="http://git-scm.com">git</a>才能执行最后两个操作。</span></p>
+</div>
+</div></blockquote>
+</div>
+<div class="section" id="byte-ordering-issues">
+<h2><span class="yiyi-st" id="yiyi-225">Byte-Ordering Issues</span></h2>
+<p><span class="yiyi-st" id="yiyi-226">有时，您可能必须处理在机器上创建的数据具有与运行Python不同的字节顺序。</span><span class="yiyi-st" id="yiyi-227">这个问题的常见症状是错误</span></p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">Traceback</span>
+    <span class="o">...</span>
+<span class="ne">ValueError</span><span class="p">:</span> <span class="n">Big</span><span class="o">-</span><span class="n">endian</span> <span class="nb">buffer</span> <span class="ow">not</span> <span class="n">supported</span> <span class="n">on</span> <span class="n">little</span><span class="o">-</span><span class="n">endian</span> <span class="n">compiler</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-228">要处理这个问题，应该使用类似于以下内容的方法将底层NumPy数组转换为本地系统字节顺序<em>之后</em>传递给Series / DataFrame / Panel构造函数：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [41]: </span><span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">)),</span> <span class="s1">&apos;&gt;i4&apos;</span><span class="p">)</span> <span class="c1"># big endian</span>
+
+<span class="gp">In [42]: </span><span class="n">newx</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">byteswap</span><span class="p">()</span><span class="o">.</span><span class="n">newbyteorder</span><span class="p">()</span> <span class="c1"># force native byteorder</span>
+
+<span class="gp">In [43]: </span><span class="n">s</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">newx</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-229">有关详细信息，请参阅<a class="reference external" href="http://docs.scipy.org/doc/numpy/user/basics.byteswapping.html">有关字节顺序的NumPy文档</a>。</span></p>
+</div>

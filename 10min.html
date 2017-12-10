@@ -1,0 +1,1015 @@
+<h1>十分钟搞定 pandas</h1>
+        <blockquote>
+        <p>原文：<a href="http://pandas.pydata.org/pandas-docs/stable/10min.html">http://pandas.pydata.org/pandas-docs/stable/10min.html</a></p>
+        <p>译者：<a href="http://home.cnblogs.com/u/chaosimple/">ChaoSimple</a></p>
+        <p>校对：<a href="https://github.com/wizardforcel">飞龙</a></p>
+        </blockquote>
+<p>官方网站上《10 Minutes to pandas》的一个简单的翻译，原文在<a href="http://pandas.pydata.org/pandas-docs/stable/10min.html" rel="nofollow">这里</a>。这篇文章是对 pandas 的一个简单的介绍，详细的介绍请参考：<a href="http://pandas.pydata.org/pandas-docs/stable/cookbook.html#cookbook" rel="nofollow">秘籍</a>  。习惯上，我们会按下面格式引入所需要的包：</p>
+<div class="highlight highlight-source-python"><pre>In [<span class="pl-c1">1</span>]: <span class="pl-k">import</span> pandas <span class="pl-k">as</span> pd
+
+In [<span class="pl-c1">2</span>]: <span class="pl-k">import</span> numpy <span class="pl-k">as</span> np
+
+In [<span class="pl-c1">3</span>]: <span class="pl-k">import</span> matplotlib.pyplot <span class="pl-k">as</span> plt</pre></div>
+<h1>一、 创建对象</h1>
+<p>可以通过 <a href="http://pandas.pydata.org/pandas-docs/stable/dsintro.html#dsintro" rel="nofollow">数据结构入门</a>  来查看有关该节内容的详细信息。</p>
+<p>1、可以通过传递一个<code>list</code>对象来创建一个<code>Series</code>，pandas 会默认创建整型索引：</p>
+<div class="highlight highlight-source-python"><pre>In [<span class="pl-c1">4</span>]: s <span class="pl-k">=</span> pd.Series([<span class="pl-c1">1</span>,<span class="pl-c1">3</span>,<span class="pl-c1">5</span>,np.nan,<span class="pl-c1">6</span>,<span class="pl-c1">8</span>])
+
+In [<span class="pl-c1">5</span>]: s
+Out[<span class="pl-c1">5</span>]: 
+<span class="pl-c1">0</span>    <span class="pl-c1">1.0</span>
+<span class="pl-c1">1</span>    <span class="pl-c1">3.0</span>
+<span class="pl-c1">2</span>    <span class="pl-c1">5.0</span>
+<span class="pl-c1">3</span>    NaN
+<span class="pl-c1">4</span>    <span class="pl-c1">6.0</span>
+<span class="pl-c1">5</span>    <span class="pl-c1">8.0</span>
+dtype: float64</pre></div>
+<p>2、通过传递一个 numpy<code>array</code>，时间索引以及列标签来创建一个<code>DataFrame</code>：</p>
+<div class="highlight highlight-source-python"><pre>In [<span class="pl-c1">6</span>]: dates <span class="pl-k">=</span> pd.date_range(<span class="pl-s"><span class="pl-pds">'</span>20130101<span class="pl-pds">'</span></span>, <span class="pl-v">periods</span><span class="pl-k">=</span><span class="pl-c1">6</span>)
+
+In [<span class="pl-c1">7</span>]: dates
+Out[<span class="pl-c1">7</span>]: 
+DatetimeIndex([<span class="pl-s"><span class="pl-pds">'</span>2013-01-01<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>2013-01-02<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>2013-01-03<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>2013-01-04<span class="pl-pds">'</span></span>,
+               <span class="pl-s"><span class="pl-pds">'</span>2013-01-05<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>2013-01-06<span class="pl-pds">'</span></span>],
+              <span class="pl-v">dtype</span><span class="pl-k">=</span><span class="pl-s"><span class="pl-pds">'</span>datetime64[ns]<span class="pl-pds">'</span></span>, <span class="pl-v">freq</span><span class="pl-k">=</span><span class="pl-s"><span class="pl-pds">'</span>D<span class="pl-pds">'</span></span>)
+
+In [<span class="pl-c1">8</span>]: df <span class="pl-k">=</span> pd.DataFrame(np.random.randn(<span class="pl-c1">6</span>,<span class="pl-c1">4</span>), <span class="pl-v">index</span><span class="pl-k">=</span>dates, <span class="pl-v">columns</span><span class="pl-k">=</span><span class="pl-c1">list</span>(<span class="pl-s"><span class="pl-pds">'</span>ABCD<span class="pl-pds">'</span></span>))
+
+In [<span class="pl-c1">9</span>]: df
+Out[<span class="pl-c1">9</span>]: 
+                   A         B         C         D
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span>  <span class="pl-c1">0.469112</span> <span class="pl-k">-</span><span class="pl-c1">0.282863</span> <span class="pl-k">-</span><span class="pl-c1">1.509059</span> <span class="pl-k">-</span><span class="pl-c1">1.135632</span>
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">2</span></span>  <span class="pl-c1">1.212112</span> <span class="pl-k">-</span><span class="pl-c1">0.173215</span>  <span class="pl-c1">0.119209</span> <span class="pl-k">-</span><span class="pl-c1">1.044236</span>
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">3</span></span> <span class="pl-k">-</span><span class="pl-c1">0.861849</span> <span class="pl-k">-</span><span class="pl-c1">2.104569</span> <span class="pl-k">-</span><span class="pl-c1">0.494929</span>  <span class="pl-c1">1.071804</span>
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">4</span></span>  <span class="pl-c1">0.721555</span> <span class="pl-k">-</span><span class="pl-c1">0.706771</span> <span class="pl-k">-</span><span class="pl-c1">1.039575</span>  <span class="pl-c1">0.271860</span>
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">5</span></span> <span class="pl-k">-</span><span class="pl-c1">0.424972</span>  <span class="pl-c1">0.567020</span>  <span class="pl-c1">0.276232</span> <span class="pl-k">-</span><span class="pl-c1">1.087401</span>
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">6</span></span> <span class="pl-k">-</span><span class="pl-c1">0.673690</span>  <span class="pl-c1">0.113648</span> <span class="pl-k">-</span><span class="pl-c1">1.478427</span>  <span class="pl-c1">0.524988</span></pre></div>
+<p>3、通过传递一个能够被转换成类似序列结构的字典对象来创建一个<code>DataFrame</code>：</p>
+<div class="highlight highlight-source-python"><pre>In [<span class="pl-c1">10</span>]: df2 <span class="pl-k">=</span> pd.DataFrame({ <span class="pl-s"><span class="pl-pds">'</span>A<span class="pl-pds">'</span></span> : <span class="pl-c1">1</span>.,
+   <span class="pl-c1">...</span>.:                      <span class="pl-s"><span class="pl-pds">'</span>B<span class="pl-pds">'</span></span> : pd.Timestamp(<span class="pl-s"><span class="pl-pds">'</span>20130102<span class="pl-pds">'</span></span>),
+   <span class="pl-c1">...</span>.:                      <span class="pl-s"><span class="pl-pds">'</span>C<span class="pl-pds">'</span></span> : pd.Series(<span class="pl-c1">1</span>,<span class="pl-v">index</span><span class="pl-k">=</span><span class="pl-c1">list</span>(<span class="pl-c1">range</span>(<span class="pl-c1">4</span>)),<span class="pl-v">dtype</span><span class="pl-k">=</span><span class="pl-s"><span class="pl-pds">'</span>float32<span class="pl-pds">'</span></span>),
+   <span class="pl-c1">...</span>.:                      <span class="pl-s"><span class="pl-pds">'</span>D<span class="pl-pds">'</span></span> : np.array([<span class="pl-c1">3</span>] <span class="pl-k">*</span> <span class="pl-c1">4</span>,<span class="pl-v">dtype</span><span class="pl-k">=</span><span class="pl-s"><span class="pl-pds">'</span>int32<span class="pl-pds">'</span></span>),
+   <span class="pl-c1">...</span>.:                      <span class="pl-s"><span class="pl-pds">'</span>E<span class="pl-pds">'</span></span> : pd.Categorical([<span class="pl-s"><span class="pl-pds">"</span>test<span class="pl-pds">"</span></span>,<span class="pl-s"><span class="pl-pds">"</span>train<span class="pl-pds">"</span></span>,<span class="pl-s"><span class="pl-pds">"</span>test<span class="pl-pds">"</span></span>,<span class="pl-s"><span class="pl-pds">"</span>train<span class="pl-pds">"</span></span>]),
+   <span class="pl-c1">...</span>.:                      <span class="pl-s"><span class="pl-pds">'</span>F<span class="pl-pds">'</span></span> : <span class="pl-s"><span class="pl-pds">'</span>foo<span class="pl-pds">'</span></span> })
+   <span class="pl-c1">...</span>.: 
+
+In [<span class="pl-c1">11</span>]: df2
+Out[<span class="pl-c1">11</span>]: 
+     A          B    C  D      E    F
+<span class="pl-c1">0</span>  <span class="pl-c1">1.0</span> <span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">2</span></span>  <span class="pl-c1">1.0</span>  <span class="pl-c1">3</span>   test  foo
+<span class="pl-c1">1</span>  <span class="pl-c1">1.0</span> <span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">2</span></span>  <span class="pl-c1">1.0</span>  <span class="pl-c1">3</span>  train  foo
+<span class="pl-c1">2</span>  <span class="pl-c1">1.0</span> <span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">2</span></span>  <span class="pl-c1">1.0</span>  <span class="pl-c1">3</span>   test  foo
+<span class="pl-c1">3</span>  <span class="pl-c1">1.0</span> <span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">2</span></span>  <span class="pl-c1">1.0</span>  <span class="pl-c1">3</span>  train  foo</pre></div>
+<p>4、查看不同列的数据类型：</p>
+<div class="highlight highlight-source-python"><pre>In [<span class="pl-c1">12</span>]: df2.dtypes
+Out[<span class="pl-c1">12</span>]: 
+A           float64
+B    datetime64[ns]
+C           float32
+D             int32
+E          category
+F            <span class="pl-c1">object</span>
+dtype: <span class="pl-c1">object</span></pre></div>
+<p>5、如果你使用的是 IPython，使用 Tab 自动补全功能会自动识别所有的属性以及自定义的列，下图中是所有能够被自动识别的属性的一个子集：</p>
+<div class="highlight highlight-source-python"><pre>In [<span class="pl-c1">13</span>]: df2.<span class="pl-k">&lt;</span><span class="pl-c1">TAB</span><span class="pl-k">&gt;</span>
+df2.A                  df2.boxplot
+df2.abs                df2.C
+df2.add                df2.clip
+df2.add_prefix         df2.clip_lower
+df2.add_suffix         df2.clip_upper
+df2.align              df2.columns
+df2.all                df2.combine
+df2.any                df2.combineAdd
+df2.append             df2.combine_first
+df2.apply              df2.combineMult
+df2.applymap           df2.compound
+df2.as_blocks          df2.consolidate
+df2.asfreq             df2.convert_objects
+df2.as_matrix          df2.copy
+df2.astype             df2.corr
+df2.at                 df2.corrwith
+df2.at_time            df2.count
+df2.axes               df2.cov
+df2.B                  df2.cummax
+df2.between_time       df2.cummin
+df2.bfill              df2.cumprod
+df2.blocks             df2.cumsum
+df2.bool               df2.D</pre></div>
+<h1>二、 查看数据</h1>
+<p>详情请参阅：<a href="http://pandas.pydata.org/pandas-docs/stable/basics.html#basics" rel="nofollow">基础</a>。</p>
+<p>1、 查看<code>DataFrame</code>中头部和尾部的行：</p>
+<div class="highlight highlight-source-python"><pre>In [<span class="pl-c1">14</span>]: df.head()
+Out[<span class="pl-c1">14</span>]: 
+                   A         B         C         D
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span>  <span class="pl-c1">0.469112</span> <span class="pl-k">-</span><span class="pl-c1">0.282863</span> <span class="pl-k">-</span><span class="pl-c1">1.509059</span> <span class="pl-k">-</span><span class="pl-c1">1.135632</span>
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">2</span></span>  <span class="pl-c1">1.212112</span> <span class="pl-k">-</span><span class="pl-c1">0.173215</span>  <span class="pl-c1">0.119209</span> <span class="pl-k">-</span><span class="pl-c1">1.044236</span>
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">3</span></span> <span class="pl-k">-</span><span class="pl-c1">0.861849</span> <span class="pl-k">-</span><span class="pl-c1">2.104569</span> <span class="pl-k">-</span><span class="pl-c1">0.494929</span>  <span class="pl-c1">1.071804</span>
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">4</span></span>  <span class="pl-c1">0.721555</span> <span class="pl-k">-</span><span class="pl-c1">0.706771</span> <span class="pl-k">-</span><span class="pl-c1">1.039575</span>  <span class="pl-c1">0.271860</span>
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">5</span></span> <span class="pl-k">-</span><span class="pl-c1">0.424972</span>  <span class="pl-c1">0.567020</span>  <span class="pl-c1">0.276232</span> <span class="pl-k">-</span><span class="pl-c1">1.087401</span>
+
+In [<span class="pl-c1">15</span>]: df.tail(<span class="pl-c1">3</span>)
+Out[<span class="pl-c1">15</span>]: 
+                   A         B         C         D
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">4</span></span>  <span class="pl-c1">0.721555</span> <span class="pl-k">-</span><span class="pl-c1">0.706771</span> <span class="pl-k">-</span><span class="pl-c1">1.039575</span>  <span class="pl-c1">0.271860</span>
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">5</span></span> <span class="pl-k">-</span><span class="pl-c1">0.424972</span>  <span class="pl-c1">0.567020</span>  <span class="pl-c1">0.276232</span> <span class="pl-k">-</span><span class="pl-c1">1.087401</span>
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">6</span></span> <span class="pl-k">-</span><span class="pl-c1">0.673690</span>  <span class="pl-c1">0.113648</span> <span class="pl-k">-</span><span class="pl-c1">1.478427</span>  <span class="pl-c1">0.524988</span></pre></div>
+<p>2、 显示索引、列和底层的 numpy 数据：</p>
+<div class="highlight highlight-source-python"><pre>In [<span class="pl-c1">16</span>]: df.index
+Out[<span class="pl-c1">16</span>]: 
+DatetimeIndex([<span class="pl-s"><span class="pl-pds">'</span>2013-01-01<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>2013-01-02<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>2013-01-03<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>2013-01-04<span class="pl-pds">'</span></span>,
+               <span class="pl-s"><span class="pl-pds">'</span>2013-01-05<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>2013-01-06<span class="pl-pds">'</span></span>],
+              <span class="pl-v">dtype</span><span class="pl-k">=</span><span class="pl-s"><span class="pl-pds">'</span>datetime64[ns]<span class="pl-pds">'</span></span>, <span class="pl-v">freq</span><span class="pl-k">=</span><span class="pl-s"><span class="pl-pds">'</span>D<span class="pl-pds">'</span></span>)
+
+In [<span class="pl-c1">17</span>]: df.columns
+Out[<span class="pl-c1">17</span>]: Index([<span class="pl-s"><span class="pl-k">u</span><span class="pl-pds">'</span>A<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-k">u</span><span class="pl-pds">'</span>B<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-k">u</span><span class="pl-pds">'</span>C<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-k">u</span><span class="pl-pds">'</span>D<span class="pl-pds">'</span></span>], <span class="pl-v">dtype</span><span class="pl-k">=</span><span class="pl-s"><span class="pl-pds">'</span>object<span class="pl-pds">'</span></span>)
+
+In [<span class="pl-c1">18</span>]: df.values
+Out[<span class="pl-c1">18</span>]: 
+array([[ <span class="pl-c1">0.4691</span>, <span class="pl-k">-</span><span class="pl-c1">0.2829</span>, <span class="pl-k">-</span><span class="pl-c1">1.5091</span>, <span class="pl-k">-</span><span class="pl-c1">1.1356</span>],
+       [ <span class="pl-c1">1.2121</span>, <span class="pl-k">-</span><span class="pl-c1">0.1732</span>,  <span class="pl-c1">0.1192</span>, <span class="pl-k">-</span><span class="pl-c1">1.0442</span>],
+       [<span class="pl-k">-</span><span class="pl-c1">0.8618</span>, <span class="pl-k">-</span><span class="pl-c1">2.1046</span>, <span class="pl-k">-</span><span class="pl-c1">0.4949</span>,  <span class="pl-c1">1.0718</span>],
+       [ <span class="pl-c1">0.7216</span>, <span class="pl-k">-</span><span class="pl-c1">0.7068</span>, <span class="pl-k">-</span><span class="pl-c1">1.0396</span>,  <span class="pl-c1">0.2719</span>],
+       [<span class="pl-k">-</span><span class="pl-c1">0.425</span> ,  <span class="pl-c1">0.567</span> ,  <span class="pl-c1">0.2762</span>, <span class="pl-k">-</span><span class="pl-c1">1.0874</span>],
+       [<span class="pl-k">-</span><span class="pl-c1">0.6737</span>,  <span class="pl-c1">0.1136</span>, <span class="pl-k">-</span><span class="pl-c1">1.4784</span>,  <span class="pl-c1">0.525</span> ]])</pre></div>
+<p>3、 <code>describe()</code>函数对于数据的快速统计汇总：</p>
+<div class="highlight highlight-source-python"><pre>In [<span class="pl-c1">19</span>]: df.describe()
+Out[<span class="pl-c1">19</span>]: 
+              A         B         C         D
+count  <span class="pl-c1">6.000000</span>  <span class="pl-c1">6.000000</span>  <span class="pl-c1">6.000000</span>  <span class="pl-c1">6.000000</span>
+mean   <span class="pl-c1">0.073711</span> <span class="pl-k">-</span><span class="pl-c1">0.431125</span> <span class="pl-k">-</span><span class="pl-c1">0.687758</span> <span class="pl-k">-</span><span class="pl-c1">0.233103</span>
+std    <span class="pl-c1">0.843157</span>  <span class="pl-c1">0.922818</span>  <span class="pl-c1">0.779887</span>  <span class="pl-c1">0.973118</span>
+<span class="pl-c1">min</span>   <span class="pl-k">-</span><span class="pl-c1">0.861849</span> <span class="pl-k">-</span><span class="pl-c1">2.104569</span> <span class="pl-k">-</span><span class="pl-c1">1.509059</span> <span class="pl-k">-</span><span class="pl-c1">1.135632</span>
+<span class="pl-c1">25</span><span class="pl-k">%</span>   <span class="pl-k">-</span><span class="pl-c1">0.611510</span> <span class="pl-k">-</span><span class="pl-c1">0.600794</span> <span class="pl-k">-</span><span class="pl-c1">1.368714</span> <span class="pl-k">-</span><span class="pl-c1">1.076610</span>
+<span class="pl-c1">50</span><span class="pl-k">%</span>    <span class="pl-c1">0.022070</span> <span class="pl-k">-</span><span class="pl-c1">0.228039</span> <span class="pl-k">-</span><span class="pl-c1">0.767252</span> <span class="pl-k">-</span><span class="pl-c1">0.386188</span>
+<span class="pl-c1">75</span><span class="pl-k">%</span>    <span class="pl-c1">0.658444</span>  <span class="pl-c1">0.041933</span> <span class="pl-k">-</span><span class="pl-c1">0.034326</span>  <span class="pl-c1">0.461706</span>
+<span class="pl-c1">max</span>    <span class="pl-c1">1.212112</span>  <span class="pl-c1">0.567020</span>  <span class="pl-c1">0.276232</span>  <span class="pl-c1">1.071804</span></pre></div>
+<p>4、 对数据的转置：</p>
+<div class="highlight highlight-source-python"><pre>In [<span class="pl-c1">20</span>]: df.T
+Out[<span class="pl-c1">20</span>]: 
+   <span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span>  <span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">2</span></span>  <span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">3</span></span>  <span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">4</span></span>  <span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">5</span></span>  <span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">6</span></span>
+A    <span class="pl-c1">0.469112</span>    <span class="pl-c1">1.212112</span>   <span class="pl-k">-</span><span class="pl-c1">0.861849</span>    <span class="pl-c1">0.721555</span>   <span class="pl-k">-</span><span class="pl-c1">0.424972</span>   <span class="pl-k">-</span><span class="pl-c1">0.673690</span>
+B   <span class="pl-k">-</span><span class="pl-c1">0.282863</span>   <span class="pl-k">-</span><span class="pl-c1">0.173215</span>   <span class="pl-k">-</span><span class="pl-c1">2.104569</span>   <span class="pl-k">-</span><span class="pl-c1">0.706771</span>    <span class="pl-c1">0.567020</span>    <span class="pl-c1">0.113648</span>
+C   <span class="pl-k">-</span><span class="pl-c1">1.509059</span>    <span class="pl-c1">0.119209</span>   <span class="pl-k">-</span><span class="pl-c1">0.494929</span>   <span class="pl-k">-</span><span class="pl-c1">1.039575</span>    <span class="pl-c1">0.276232</span>   <span class="pl-k">-</span><span class="pl-c1">1.478427</span>
+D   <span class="pl-k">-</span><span class="pl-c1">1.135632</span>   <span class="pl-k">-</span><span class="pl-c1">1.044236</span>    <span class="pl-c1">1.071804</span>    <span class="pl-c1">0.271860</span>   <span class="pl-k">-</span><span class="pl-c1">1.087401</span>    <span class="pl-c1">0.524988</span></pre></div>
+<p>5、 按轴进行排序</p>
+<div class="highlight highlight-source-python"><pre>In [<span class="pl-c1">21</span>]: df.sort_index(<span class="pl-v">axis</span><span class="pl-k">=</span><span class="pl-c1">1</span>, <span class="pl-v">ascending</span><span class="pl-k">=</span><span class="pl-c1">False</span>)
+Out[<span class="pl-c1">21</span>]: 
+                   D         C         B         A
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span> <span class="pl-k">-</span><span class="pl-c1">1.135632</span> <span class="pl-k">-</span><span class="pl-c1">1.509059</span> <span class="pl-k">-</span><span class="pl-c1">0.282863</span>  <span class="pl-c1">0.469112</span>
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">2</span></span> <span class="pl-k">-</span><span class="pl-c1">1.044236</span>  <span class="pl-c1">0.119209</span> <span class="pl-k">-</span><span class="pl-c1">0.173215</span>  <span class="pl-c1">1.212112</span>
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">3</span></span>  <span class="pl-c1">1.071804</span> <span class="pl-k">-</span><span class="pl-c1">0.494929</span> <span class="pl-k">-</span><span class="pl-c1">2.104569</span> <span class="pl-k">-</span><span class="pl-c1">0.861849</span>
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">4</span></span>  <span class="pl-c1">0.271860</span> <span class="pl-k">-</span><span class="pl-c1">1.039575</span> <span class="pl-k">-</span><span class="pl-c1">0.706771</span>  <span class="pl-c1">0.721555</span>
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">5</span></span> <span class="pl-k">-</span><span class="pl-c1">1.087401</span>  <span class="pl-c1">0.276232</span>  <span class="pl-c1">0.567020</span> <span class="pl-k">-</span><span class="pl-c1">0.424972</span>
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">6</span></span>  <span class="pl-c1">0.524988</span> <span class="pl-k">-</span><span class="pl-c1">1.478427</span>  <span class="pl-c1">0.113648</span> <span class="pl-k">-</span><span class="pl-c1">0.673690</span></pre></div>
+<p>6、 按值进行排序</p>
+<div class="highlight highlight-source-python"><pre>In [<span class="pl-c1">22</span>]: df.sort_values(<span class="pl-v">by</span><span class="pl-k">=</span><span class="pl-s"><span class="pl-pds">'</span>B<span class="pl-pds">'</span></span>)
+Out[<span class="pl-c1">22</span>]: 
+                   A         B         C         D
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">3</span></span> <span class="pl-k">-</span><span class="pl-c1">0.861849</span> <span class="pl-k">-</span><span class="pl-c1">2.104569</span> <span class="pl-k">-</span><span class="pl-c1">0.494929</span>  <span class="pl-c1">1.071804</span>
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">4</span></span>  <span class="pl-c1">0.721555</span> <span class="pl-k">-</span><span class="pl-c1">0.706771</span> <span class="pl-k">-</span><span class="pl-c1">1.039575</span>  <span class="pl-c1">0.271860</span>
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span>  <span class="pl-c1">0.469112</span> <span class="pl-k">-</span><span class="pl-c1">0.282863</span> <span class="pl-k">-</span><span class="pl-c1">1.509059</span> <span class="pl-k">-</span><span class="pl-c1">1.135632</span>
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">2</span></span>  <span class="pl-c1">1.212112</span> <span class="pl-k">-</span><span class="pl-c1">0.173215</span>  <span class="pl-c1">0.119209</span> <span class="pl-k">-</span><span class="pl-c1">1.044236</span>
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">6</span></span> <span class="pl-k">-</span><span class="pl-c1">0.673690</span>  <span class="pl-c1">0.113648</span> <span class="pl-k">-</span><span class="pl-c1">1.478427</span>  <span class="pl-c1">0.524988</span>
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">5</span></span> <span class="pl-k">-</span><span class="pl-c1">0.424972</span>  <span class="pl-c1">0.567020</span>  <span class="pl-c1">0.276232</span> <span class="pl-k">-</span><span class="pl-c1">1.087401</span></pre></div>
+<h1>三、 选择</h1>
+<p>虽然标准的 Python/Numpy 的选择和设置表达式都能够直接派上用场，但是作为工程使用的代码，我们推荐使用经过优化的 pandas 数据访问方式： <code>.at</code>,&nbsp;<code>.iat</code>,&nbsp;<code>.loc</code>,&nbsp;<code>.iloc</code>&nbsp;和&nbsp;<code>.ix</code>。详情请参阅<a href="http://pandas.pydata.org/pandas-docs/stable/indexing.html#indexing" rel="nofollow">索引和选取数据</a>  和  <a href="http://pandas.pydata.org/pandas-docs/stable/advanced.html#advanced" rel="nofollow">多重索引/高级索引</a>。</p>
+<h2>获取</h2>
+<p>1、  选择一个单独的列，这将会返回一个<code>Series</code>，等同于<code>df.A</code>：</p>
+<div class="highlight highlight-source-python"><pre>In [<span class="pl-c1">23</span>]: df[<span class="pl-s"><span class="pl-pds">'</span>A<span class="pl-pds">'</span></span>]
+Out[<span class="pl-c1">23</span>]: 
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span>    <span class="pl-c1">0.469112</span>
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">2</span></span>    <span class="pl-c1">1.212112</span>
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">3</span></span>   <span class="pl-k">-</span><span class="pl-c1">0.861849</span>
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">4</span></span>    <span class="pl-c1">0.721555</span>
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">5</span></span>   <span class="pl-k">-</span><span class="pl-c1">0.424972</span>
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">6</span></span>   <span class="pl-k">-</span><span class="pl-c1">0.673690</span>
+Freq: D, Name: A, dtype: float64</pre></div>
+<p>2、  通过<code>[]</code>进行选择，这将会对行进行切片</p>
+<div class="highlight highlight-source-python"><pre>In [<span class="pl-c1">24</span>]: df[<span class="pl-c1">0</span>:<span class="pl-c1">3</span>]
+Out[<span class="pl-c1">24</span>]: 
+                   A         B         C         D
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span>  <span class="pl-c1">0.469112</span> <span class="pl-k">-</span><span class="pl-c1">0.282863</span> <span class="pl-k">-</span><span class="pl-c1">1.509059</span> <span class="pl-k">-</span><span class="pl-c1">1.135632</span>
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">2</span></span>  <span class="pl-c1">1.212112</span> <span class="pl-k">-</span><span class="pl-c1">0.173215</span>  <span class="pl-c1">0.119209</span> <span class="pl-k">-</span><span class="pl-c1">1.044236</span>
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">3</span></span> <span class="pl-k">-</span><span class="pl-c1">0.861849</span> <span class="pl-k">-</span><span class="pl-c1">2.104569</span> <span class="pl-k">-</span><span class="pl-c1">0.494929</span>  <span class="pl-c1">1.071804</span>
+
+In [<span class="pl-c1">25</span>]: df[<span class="pl-s"><span class="pl-pds">'</span>20130102<span class="pl-pds">'</span></span>:<span class="pl-s"><span class="pl-pds">'</span>20130104<span class="pl-pds">'</span></span>]
+Out[<span class="pl-c1">25</span>]: 
+                   A         B         C         D
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">2</span></span>  <span class="pl-c1">1.212112</span> <span class="pl-k">-</span><span class="pl-c1">0.173215</span>  <span class="pl-c1">0.119209</span> <span class="pl-k">-</span><span class="pl-c1">1.044236</span>
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">3</span></span> <span class="pl-k">-</span><span class="pl-c1">0.861849</span> <span class="pl-k">-</span><span class="pl-c1">2.104569</span> <span class="pl-k">-</span><span class="pl-c1">0.494929</span>  <span class="pl-c1">1.071804</span>
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">4</span></span>  <span class="pl-c1">0.721555</span> <span class="pl-k">-</span><span class="pl-c1">0.706771</span> <span class="pl-k">-</span><span class="pl-c1">1.039575</span>  <span class="pl-c1">0.271860</span></pre></div>
+<h2>通过标签选择</h2>
+<p>1、  使用标签来获取一个交叉的区域</p>
+<div class="highlight highlight-source-python"><pre>In [<span class="pl-c1">26</span>]: df.loc[dates[<span class="pl-c1">0</span>]]
+Out[<span class="pl-c1">26</span>]: 
+A    <span class="pl-c1">0.469112</span>
+B   <span class="pl-k">-</span><span class="pl-c1">0.282863</span>
+C   <span class="pl-k">-</span><span class="pl-c1">1.509059</span>
+D   <span class="pl-k">-</span><span class="pl-c1">1.135632</span>
+Name: <span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span> <span class="pl-c1">00</span>:<span class="pl-c1">00</span>:<span class="pl-c1">00</span>, dtype: float64</pre></div>
+<p>2、  通过标签来在多个轴上进行选择</p>
+<div class="highlight highlight-source-python"><pre>In [<span class="pl-c1">27</span>]: df.loc[:,[<span class="pl-s"><span class="pl-pds">'</span>A<span class="pl-pds">'</span></span>,<span class="pl-s"><span class="pl-pds">'</span>B<span class="pl-pds">'</span></span>]]
+Out[<span class="pl-c1">27</span>]: 
+                   A         B
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span>  <span class="pl-c1">0.469112</span> <span class="pl-k">-</span><span class="pl-c1">0.282863</span>
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">2</span></span>  <span class="pl-c1">1.212112</span> <span class="pl-k">-</span><span class="pl-c1">0.173215</span>
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">3</span></span> <span class="pl-k">-</span><span class="pl-c1">0.861849</span> <span class="pl-k">-</span><span class="pl-c1">2.104569</span>
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">4</span></span>  <span class="pl-c1">0.721555</span> <span class="pl-k">-</span><span class="pl-c1">0.706771</span>
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">5</span></span> <span class="pl-k">-</span><span class="pl-c1">0.424972</span>  <span class="pl-c1">0.567020</span>
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">6</span></span> <span class="pl-k">-</span><span class="pl-c1">0.673690</span>  <span class="pl-c1">0.113648</span></pre></div>
+<p>3、  标签切片</p>
+<div class="highlight highlight-source-python"><pre>In [<span class="pl-c1">28</span>]: df.loc[<span class="pl-s"><span class="pl-pds">'</span>20130102<span class="pl-pds">'</span></span>:<span class="pl-s"><span class="pl-pds">'</span>20130104<span class="pl-pds">'</span></span>,[<span class="pl-s"><span class="pl-pds">'</span>A<span class="pl-pds">'</span></span>,<span class="pl-s"><span class="pl-pds">'</span>B<span class="pl-pds">'</span></span>]]
+Out[<span class="pl-c1">28</span>]: 
+                   A         B
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">2</span></span>  <span class="pl-c1">1.212112</span> <span class="pl-k">-</span><span class="pl-c1">0.173215</span>
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">3</span></span> <span class="pl-k">-</span><span class="pl-c1">0.861849</span> <span class="pl-k">-</span><span class="pl-c1">2.104569</span>
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">4</span></span>  <span class="pl-c1">0.721555</span> <span class="pl-k">-</span><span class="pl-c1">0.706771</span></pre></div>
+<p>4、  对于返回的对象进行维度缩减</p>
+<div class="highlight highlight-source-python"><pre>In [<span class="pl-c1">29</span>]: df.loc[<span class="pl-s"><span class="pl-pds">'</span>20130102<span class="pl-pds">'</span></span>,[<span class="pl-s"><span class="pl-pds">'</span>A<span class="pl-pds">'</span></span>,<span class="pl-s"><span class="pl-pds">'</span>B<span class="pl-pds">'</span></span>]]
+Out[<span class="pl-c1">29</span>]: 
+A    <span class="pl-c1">1.212112</span>
+B   <span class="pl-k">-</span><span class="pl-c1">0.173215</span>
+Name: <span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">2</span></span> <span class="pl-c1">00</span>:<span class="pl-c1">00</span>:<span class="pl-c1">00</span>, dtype: float64</pre></div>
+<p>5、  获取一个标量</p>
+<div class="highlight highlight-source-python"><pre>In [<span class="pl-c1">30</span>]: df.loc[dates[<span class="pl-c1">0</span>],<span class="pl-s"><span class="pl-pds">'</span>A<span class="pl-pds">'</span></span>]
+Out[<span class="pl-c1">30</span>]: <span class="pl-c1">0.46911229990718628</span></pre></div>
+<p>6、  快速访问一个标量（与上一个方法等价）</p>
+<div class="highlight highlight-source-python"><pre>In [<span class="pl-c1">31</span>]: df.at[dates[<span class="pl-c1">0</span>],<span class="pl-s"><span class="pl-pds">'</span>A<span class="pl-pds">'</span></span>]
+Out[<span class="pl-c1">31</span>]: <span class="pl-c1">0.46911229990718628</span></pre></div>
+<h2>通过位置选择</h2>
+<p>1、  通过传递数值进行位置选择（选择的是行）</p>
+<div class="highlight highlight-source-python"><pre>In [<span class="pl-c1">32</span>]: df.iloc[<span class="pl-c1">3</span>]
+Out[<span class="pl-c1">32</span>]: 
+A    <span class="pl-c1">0.721555</span>
+B   <span class="pl-k">-</span><span class="pl-c1">0.706771</span>
+C   <span class="pl-k">-</span><span class="pl-c1">1.039575</span>
+D    <span class="pl-c1">0.271860</span>
+Name: <span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">4</span></span> <span class="pl-c1">00</span>:<span class="pl-c1">00</span>:<span class="pl-c1">00</span>, dtype: float64</pre></div>
+<p>2、  通过数值进行切片，与 numpy/python 中的情况类似</p>
+<div class="highlight highlight-source-python"><pre>In [<span class="pl-c1">33</span>]: df.iloc[<span class="pl-c1">3</span>:<span class="pl-c1">5</span>,<span class="pl-c1">0</span>:<span class="pl-c1">2</span>]
+Out[<span class="pl-c1">33</span>]: 
+                   A         B
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">4</span></span>  <span class="pl-c1">0.721555</span> <span class="pl-k">-</span><span class="pl-c1">0.706771</span>
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">5</span></span> <span class="pl-k">-</span><span class="pl-c1">0.424972</span>  <span class="pl-c1">0.567020</span></pre></div>
+<p>3、  通过指定一个位置的列表，与 numpy/python 中的情况类似</p>
+<div class="highlight highlight-source-python"><pre>In [<span class="pl-c1">34</span>]: df.iloc[[<span class="pl-c1">1</span>,<span class="pl-c1">2</span>,<span class="pl-c1">4</span>],[<span class="pl-c1">0</span>,<span class="pl-c1">2</span>]]
+Out[<span class="pl-c1">34</span>]: 
+                   A         C
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">2</span></span>  <span class="pl-c1">1.212112</span>  <span class="pl-c1">0.119209</span>
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">3</span></span> <span class="pl-k">-</span><span class="pl-c1">0.861849</span> <span class="pl-k">-</span><span class="pl-c1">0.494929</span>
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">5</span></span> <span class="pl-k">-</span><span class="pl-c1">0.424972</span>  <span class="pl-c1">0.276232</span></pre></div>
+<p>4、  对行进行切片</p>
+<div class="highlight highlight-source-python"><pre>In [<span class="pl-c1">35</span>]: df.iloc[<span class="pl-c1">1</span>:<span class="pl-c1">3</span>,:]
+Out[<span class="pl-c1">35</span>]: 
+                   A         B         C         D
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">2</span></span>  <span class="pl-c1">1.212112</span> <span class="pl-k">-</span><span class="pl-c1">0.173215</span>  <span class="pl-c1">0.119209</span> <span class="pl-k">-</span><span class="pl-c1">1.044236</span>
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">3</span></span> <span class="pl-k">-</span><span class="pl-c1">0.861849</span> <span class="pl-k">-</span><span class="pl-c1">2.104569</span> <span class="pl-k">-</span><span class="pl-c1">0.494929</span>  <span class="pl-c1">1.071804</span></pre></div>
+<p>5、  对列进行切片</p>
+<div class="highlight highlight-source-python"><pre>In [<span class="pl-c1">36</span>]: df.iloc[:,<span class="pl-c1">1</span>:<span class="pl-c1">3</span>]
+Out[<span class="pl-c1">36</span>]: 
+                   B         C
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span> <span class="pl-k">-</span><span class="pl-c1">0.282863</span> <span class="pl-k">-</span><span class="pl-c1">1.509059</span>
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">2</span></span> <span class="pl-k">-</span><span class="pl-c1">0.173215</span>  <span class="pl-c1">0.119209</span>
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">3</span></span> <span class="pl-k">-</span><span class="pl-c1">2.104569</span> <span class="pl-k">-</span><span class="pl-c1">0.494929</span>
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">4</span></span> <span class="pl-k">-</span><span class="pl-c1">0.706771</span> <span class="pl-k">-</span><span class="pl-c1">1.039575</span>
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">5</span></span>  <span class="pl-c1">0.567020</span>  <span class="pl-c1">0.276232</span>
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">6</span></span>  <span class="pl-c1">0.113648</span> <span class="pl-k">-</span><span class="pl-c1">1.478427</span></pre></div>
+<p>6、  获取特定的值</p>
+<div class="highlight highlight-source-python"><pre>In [<span class="pl-c1">37</span>]: df.iloc[<span class="pl-c1">1</span>,<span class="pl-c1">1</span>]
+Out[<span class="pl-c1">37</span>]: <span class="pl-k">-</span><span class="pl-c1">0.17321464905330858</span></pre></div>
+<p>快速访问标量（等同于前一个方法）：</p>
+<div class="highlight highlight-source-python"><pre>In [<span class="pl-c1">38</span>]: df.iat[<span class="pl-c1">1</span>,<span class="pl-c1">1</span>]
+Out[<span class="pl-c1">38</span>]: <span class="pl-k">-</span><span class="pl-c1">0.17321464905330858</span></pre></div>
+<h2>布尔索引</h2>
+<p>1、  使用一个单独列的值来选择数据：</p>
+<div class="highlight highlight-source-python"><pre>In [<span class="pl-c1">39</span>]: df[df.A <span class="pl-k">&gt;</span> <span class="pl-c1">0</span>]
+Out[<span class="pl-c1">39</span>]: 
+                   A         B         C         D
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span>  <span class="pl-c1">0.469112</span> <span class="pl-k">-</span><span class="pl-c1">0.282863</span> <span class="pl-k">-</span><span class="pl-c1">1.509059</span> <span class="pl-k">-</span><span class="pl-c1">1.135632</span>
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">2</span></span>  <span class="pl-c1">1.212112</span> <span class="pl-k">-</span><span class="pl-c1">0.173215</span>  <span class="pl-c1">0.119209</span> <span class="pl-k">-</span><span class="pl-c1">1.044236</span>
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">4</span></span>  <span class="pl-c1">0.721555</span> <span class="pl-k">-</span><span class="pl-c1">0.706771</span> <span class="pl-k">-</span><span class="pl-c1">1.039575</span>  <span class="pl-c1">0.271860</span></pre></div>
+<p>2、  使用<code>where</code>操作来选择数据：</p>
+<div class="highlight highlight-source-python"><pre>In [<span class="pl-c1">40</span>]: df[df <span class="pl-k">&gt;</span> <span class="pl-c1">0</span>]
+Out[<span class="pl-c1">40</span>]: 
+                   A         B         C         D
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span>  <span class="pl-c1">0.469112</span>       NaN       NaN       NaN
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">2</span></span>  <span class="pl-c1">1.212112</span>       NaN  <span class="pl-c1">0.119209</span>       NaN
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">3</span></span>       NaN       NaN       NaN  <span class="pl-c1">1.071804</span>
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">4</span></span>  <span class="pl-c1">0.721555</span>       NaN       NaN  <span class="pl-c1">0.271860</span>
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">5</span></span>       NaN  <span class="pl-c1">0.567020</span>  <span class="pl-c1">0.276232</span>       NaN
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">6</span></span>       NaN  <span class="pl-c1">0.113648</span>       NaN  <span class="pl-c1">0.524988</span></pre></div>
+<p>3、  使用<code>isin()</code>方法来过滤：</p>
+<div class="highlight highlight-source-python"><pre>In [<span class="pl-c1">41</span>]: df2 <span class="pl-k">=</span> df.copy()
+
+In [<span class="pl-c1">42</span>]: df2[<span class="pl-s"><span class="pl-pds">'</span>E<span class="pl-pds">'</span></span>] <span class="pl-k">=</span> [<span class="pl-s"><span class="pl-pds">'</span>one<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>one<span class="pl-pds">'</span></span>,<span class="pl-s"><span class="pl-pds">'</span>two<span class="pl-pds">'</span></span>,<span class="pl-s"><span class="pl-pds">'</span>three<span class="pl-pds">'</span></span>,<span class="pl-s"><span class="pl-pds">'</span>four<span class="pl-pds">'</span></span>,<span class="pl-s"><span class="pl-pds">'</span>three<span class="pl-pds">'</span></span>]
+
+In [<span class="pl-c1">43</span>]: df2
+Out[<span class="pl-c1">43</span>]: 
+                   A         B         C         D      E
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span>  <span class="pl-c1">0.469112</span> <span class="pl-k">-</span><span class="pl-c1">0.282863</span> <span class="pl-k">-</span><span class="pl-c1">1.509059</span> <span class="pl-k">-</span><span class="pl-c1">1.135632</span>    one
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">2</span></span>  <span class="pl-c1">1.212112</span> <span class="pl-k">-</span><span class="pl-c1">0.173215</span>  <span class="pl-c1">0.119209</span> <span class="pl-k">-</span><span class="pl-c1">1.044236</span>    one
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">3</span></span> <span class="pl-k">-</span><span class="pl-c1">0.861849</span> <span class="pl-k">-</span><span class="pl-c1">2.104569</span> <span class="pl-k">-</span><span class="pl-c1">0.494929</span>  <span class="pl-c1">1.071804</span>    two
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">4</span></span>  <span class="pl-c1">0.721555</span> <span class="pl-k">-</span><span class="pl-c1">0.706771</span> <span class="pl-k">-</span><span class="pl-c1">1.039575</span>  <span class="pl-c1">0.271860</span>  three
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">5</span></span> <span class="pl-k">-</span><span class="pl-c1">0.424972</span>  <span class="pl-c1">0.567020</span>  <span class="pl-c1">0.276232</span> <span class="pl-k">-</span><span class="pl-c1">1.087401</span>   four
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">6</span></span> <span class="pl-k">-</span><span class="pl-c1">0.673690</span>  <span class="pl-c1">0.113648</span> <span class="pl-k">-</span><span class="pl-c1">1.478427</span>  <span class="pl-c1">0.524988</span>  three
+
+In [<span class="pl-c1">44</span>]: df2[df2[<span class="pl-s"><span class="pl-pds">'</span>E<span class="pl-pds">'</span></span>].isin([<span class="pl-s"><span class="pl-pds">'</span>two<span class="pl-pds">'</span></span>,<span class="pl-s"><span class="pl-pds">'</span>four<span class="pl-pds">'</span></span>])]
+Out[<span class="pl-c1">44</span>]: 
+                   A         B         C         D     E
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">3</span></span> <span class="pl-k">-</span><span class="pl-c1">0.861849</span> <span class="pl-k">-</span><span class="pl-c1">2.104569</span> <span class="pl-k">-</span><span class="pl-c1">0.494929</span>  <span class="pl-c1">1.071804</span>   two
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">5</span></span> <span class="pl-k">-</span><span class="pl-c1">0.424972</span>  <span class="pl-c1">0.567020</span>  <span class="pl-c1">0.276232</span> <span class="pl-k">-</span><span class="pl-c1">1.087401</span>  four</pre></div>
+<h2>设置</h2>
+<p>1、  设置一个新的列：</p>
+<div class="highlight highlight-source-python"><pre>In [<span class="pl-c1">45</span>]: s1 <span class="pl-k">=</span> pd.Series([<span class="pl-c1">1</span>,<span class="pl-c1">2</span>,<span class="pl-c1">3</span>,<span class="pl-c1">4</span>,<span class="pl-c1">5</span>,<span class="pl-c1">6</span>], <span class="pl-v">index</span><span class="pl-k">=</span>pd.date_range(<span class="pl-s"><span class="pl-pds">'</span>20130102<span class="pl-pds">'</span></span>, <span class="pl-v">periods</span><span class="pl-k">=</span><span class="pl-c1">6</span>))
+
+In [<span class="pl-c1">46</span>]: s1
+Out[<span class="pl-c1">46</span>]: 
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">2</span></span>    <span class="pl-c1">1</span>
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">3</span></span>    <span class="pl-c1">2</span>
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">4</span></span>    <span class="pl-c1">3</span>
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">5</span></span>    <span class="pl-c1">4</span>
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">6</span></span>    <span class="pl-c1">5</span>
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">7</span></span>    <span class="pl-c1">6</span>
+Freq: D, dtype: int64
+
+In [<span class="pl-c1">47</span>]: df[<span class="pl-s"><span class="pl-pds">'</span>F<span class="pl-pds">'</span></span>] <span class="pl-k">=</span> s1</pre></div>
+<p>2、  通过标签设置新的值：</p>
+<div class="highlight highlight-source-python"><pre>In [<span class="pl-c1">48</span>]: df.at[dates[<span class="pl-c1">0</span>],<span class="pl-s"><span class="pl-pds">'</span>A<span class="pl-pds">'</span></span>] <span class="pl-k">=</span> <span class="pl-c1">0</span></pre></div>
+<p>3、  通过位置设置新的值：</p>
+<div class="highlight highlight-source-python"><pre>In [<span class="pl-c1">49</span>]: df.iat[<span class="pl-c1">0</span>,<span class="pl-c1">1</span>] <span class="pl-k">=</span> <span class="pl-c1">0</span></pre></div>
+<p>4、  通过一个numpy数组设置一组新值：</p>
+<div class="highlight highlight-source-python"><pre>In [<span class="pl-c1">50</span>]: df.loc[:,<span class="pl-s"><span class="pl-pds">'</span>D<span class="pl-pds">'</span></span>] <span class="pl-k">=</span> np.array([<span class="pl-c1">5</span>] <span class="pl-k">*</span> <span class="pl-c1">len</span>(df))</pre></div>
+<p>上述操作结果如下：</p>
+<div class="highlight highlight-source-python"><pre>In [<span class="pl-c1">51</span>]: df
+Out[<span class="pl-c1">51</span>]: 
+                   A         B         C  D    F
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span>  <span class="pl-c1">0.000000</span>  <span class="pl-c1">0.000000</span> <span class="pl-k">-</span><span class="pl-c1">1.509059</span>  <span class="pl-c1">5</span>  NaN
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">2</span></span>  <span class="pl-c1">1.212112</span> <span class="pl-k">-</span><span class="pl-c1">0.173215</span>  <span class="pl-c1">0.119209</span>  <span class="pl-c1">5</span>  <span class="pl-c1">1.0</span>
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">3</span></span> <span class="pl-k">-</span><span class="pl-c1">0.861849</span> <span class="pl-k">-</span><span class="pl-c1">2.104569</span> <span class="pl-k">-</span><span class="pl-c1">0.494929</span>  <span class="pl-c1">5</span>  <span class="pl-c1">2.0</span>
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">4</span></span>  <span class="pl-c1">0.721555</span> <span class="pl-k">-</span><span class="pl-c1">0.706771</span> <span class="pl-k">-</span><span class="pl-c1">1.039575</span>  <span class="pl-c1">5</span>  <span class="pl-c1">3.0</span>
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">5</span></span> <span class="pl-k">-</span><span class="pl-c1">0.424972</span>  <span class="pl-c1">0.567020</span>  <span class="pl-c1">0.276232</span>  <span class="pl-c1">5</span>  <span class="pl-c1">4.0</span>
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">6</span></span> <span class="pl-k">-</span><span class="pl-c1">0.673690</span>  <span class="pl-c1">0.113648</span> <span class="pl-k">-</span><span class="pl-c1">1.478427</span>  <span class="pl-c1">5</span>  <span class="pl-c1">5.0</span></pre></div>
+<p>5、  通过where操作来设置新的值：</p>
+<div class="highlight highlight-source-python"><pre>In [<span class="pl-c1">52</span>]: df2 <span class="pl-k">=</span> df.copy()
+
+In [<span class="pl-c1">53</span>]: df2[df2 <span class="pl-k">&gt;</span> <span class="pl-c1">0</span>] <span class="pl-k">=</span> <span class="pl-k">-</span>df2
+
+In [<span class="pl-c1">54</span>]: df2
+Out[<span class="pl-c1">54</span>]: 
+                   A         B         C  D    F
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span>  <span class="pl-c1">0.000000</span>  <span class="pl-c1">0.000000</span> <span class="pl-k">-</span><span class="pl-c1">1.509059</span> <span class="pl-k">-</span><span class="pl-c1">5</span>  NaN
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">2</span></span> <span class="pl-k">-</span><span class="pl-c1">1.212112</span> <span class="pl-k">-</span><span class="pl-c1">0.173215</span> <span class="pl-k">-</span><span class="pl-c1">0.119209</span> <span class="pl-k">-</span><span class="pl-c1">5</span> <span class="pl-k">-</span><span class="pl-c1">1.0</span>
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">3</span></span> <span class="pl-k">-</span><span class="pl-c1">0.861849</span> <span class="pl-k">-</span><span class="pl-c1">2.104569</span> <span class="pl-k">-</span><span class="pl-c1">0.494929</span> <span class="pl-k">-</span><span class="pl-c1">5</span> <span class="pl-k">-</span><span class="pl-c1">2.0</span>
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">4</span></span> <span class="pl-k">-</span><span class="pl-c1">0.721555</span> <span class="pl-k">-</span><span class="pl-c1">0.706771</span> <span class="pl-k">-</span><span class="pl-c1">1.039575</span> <span class="pl-k">-</span><span class="pl-c1">5</span> <span class="pl-k">-</span><span class="pl-c1">3.0</span>
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">5</span></span> <span class="pl-k">-</span><span class="pl-c1">0.424972</span> <span class="pl-k">-</span><span class="pl-c1">0.567020</span> <span class="pl-k">-</span><span class="pl-c1">0.276232</span> <span class="pl-k">-</span><span class="pl-c1">5</span> <span class="pl-k">-</span><span class="pl-c1">4.0</span>
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">6</span></span> <span class="pl-k">-</span><span class="pl-c1">0.673690</span> <span class="pl-k">-</span><span class="pl-c1">0.113648</span> <span class="pl-k">-</span><span class="pl-c1">1.478427</span> <span class="pl-k">-</span><span class="pl-c1">5</span> <span class="pl-k">-</span><span class="pl-c1">5.0</span></pre></div>
+<h1>四、 缺失值处理</h1>
+<p>在 pandas 中，使用<code>np.nan</code>来代替缺失值，这些值将默认不会包含在计算中，详情请参阅：<a href="http://pandas.pydata.org/pandas-docs/stable/missing_data.html#missing-data" rel="nofollow">缺失的数据</a>。</p>
+<p>1、 <code>reindex()</code>方法可以对指定轴上的索引进行改变/增加/删除操作，这将返回原始数据的一个拷贝：</p>
+<div class="highlight highlight-source-python"><pre>In [<span class="pl-c1">55</span>]: df1 <span class="pl-k">=</span> df.reindex(<span class="pl-v">index</span><span class="pl-k">=</span>dates[<span class="pl-c1">0</span>:<span class="pl-c1">4</span>], <span class="pl-v">columns</span><span class="pl-k">=</span><span class="pl-c1">list</span>(df.columns) <span class="pl-k">+</span> [<span class="pl-s"><span class="pl-pds">'</span>E<span class="pl-pds">'</span></span>])
+
+In [<span class="pl-c1">56</span>]: df1.loc[dates[<span class="pl-c1">0</span>]:dates[<span class="pl-c1">1</span>],<span class="pl-s"><span class="pl-pds">'</span>E<span class="pl-pds">'</span></span>] <span class="pl-k">=</span> <span class="pl-c1">1</span>
+
+In [<span class="pl-c1">57</span>]: df1
+Out[<span class="pl-c1">57</span>]: 
+                   A         B         C  D    F    E
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span>  <span class="pl-c1">0.000000</span>  <span class="pl-c1">0.000000</span> <span class="pl-k">-</span><span class="pl-c1">1.509059</span>  <span class="pl-c1">5</span>  NaN  <span class="pl-c1">1.0</span>
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">2</span></span>  <span class="pl-c1">1.212112</span> <span class="pl-k">-</span><span class="pl-c1">0.173215</span>  <span class="pl-c1">0.119209</span>  <span class="pl-c1">5</span>  <span class="pl-c1">1.0</span>  <span class="pl-c1">1.0</span>
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">3</span></span> <span class="pl-k">-</span><span class="pl-c1">0.861849</span> <span class="pl-k">-</span><span class="pl-c1">2.104569</span> <span class="pl-k">-</span><span class="pl-c1">0.494929</span>  <span class="pl-c1">5</span>  <span class="pl-c1">2.0</span>  NaN
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">4</span></span>  <span class="pl-c1">0.721555</span> <span class="pl-k">-</span><span class="pl-c1">0.706771</span> <span class="pl-k">-</span><span class="pl-c1">1.039575</span>  <span class="pl-c1">5</span>  <span class="pl-c1">3.0</span>  NaN</pre></div>
+<p>2、 去掉包含缺失值的行：</p>
+<div class="highlight highlight-source-python"><pre>In [<span class="pl-c1">58</span>]: df1.dropna(<span class="pl-v">how</span><span class="pl-k">=</span><span class="pl-s"><span class="pl-pds">'</span>any<span class="pl-pds">'</span></span>)
+Out[<span class="pl-c1">58</span>]: 
+                   A         B         C  D    F    E
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">2</span></span>  <span class="pl-c1">1.212112</span> <span class="pl-k">-</span><span class="pl-c1">0.173215</span>  <span class="pl-c1">0.119209</span>  <span class="pl-c1">5</span>  <span class="pl-c1">1.0</span>  <span class="pl-c1">1.0</span></pre></div>
+<p>3、 对缺失值进行填充：</p>
+<div class="highlight highlight-source-python"><pre>In [<span class="pl-c1">59</span>]: df1.fillna(<span class="pl-v">value</span><span class="pl-k">=</span><span class="pl-c1">5</span>)
+Out[<span class="pl-c1">59</span>]: 
+                   A         B         C  D    F    E
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span>  <span class="pl-c1">0.000000</span>  <span class="pl-c1">0.000000</span> <span class="pl-k">-</span><span class="pl-c1">1.509059</span>  <span class="pl-c1">5</span>  <span class="pl-c1">5.0</span>  <span class="pl-c1">1.0</span>
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">2</span></span>  <span class="pl-c1">1.212112</span> <span class="pl-k">-</span><span class="pl-c1">0.173215</span>  <span class="pl-c1">0.119209</span>  <span class="pl-c1">5</span>  <span class="pl-c1">1.0</span>  <span class="pl-c1">1.0</span>
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">3</span></span> <span class="pl-k">-</span><span class="pl-c1">0.861849</span> <span class="pl-k">-</span><span class="pl-c1">2.104569</span> <span class="pl-k">-</span><span class="pl-c1">0.494929</span>  <span class="pl-c1">5</span>  <span class="pl-c1">2.0</span>  <span class="pl-c1">5.0</span>
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">4</span></span>  <span class="pl-c1">0.721555</span> <span class="pl-k">-</span><span class="pl-c1">0.706771</span> <span class="pl-k">-</span><span class="pl-c1">1.039575</span>  <span class="pl-c1">5</span>  <span class="pl-c1">3.0</span>  <span class="pl-c1">5.0</span></pre></div>
+<p>4、 对数据进行布尔填充：</p>
+<div class="highlight highlight-source-python"><pre>n [<span class="pl-c1">60</span>]: pd.isnull(df1)
+Out[<span class="pl-c1">60</span>]: 
+                A      B      C      D      F      E
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span>  <span class="pl-c1">False</span>  <span class="pl-c1">False</span>  <span class="pl-c1">False</span>  <span class="pl-c1">False</span>   <span class="pl-c1">True</span>  <span class="pl-c1">False</span>
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">2</span></span>  <span class="pl-c1">False</span>  <span class="pl-c1">False</span>  <span class="pl-c1">False</span>  <span class="pl-c1">False</span>  <span class="pl-c1">False</span>  <span class="pl-c1">False</span>
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">3</span></span>  <span class="pl-c1">False</span>  <span class="pl-c1">False</span>  <span class="pl-c1">False</span>  <span class="pl-c1">False</span>  <span class="pl-c1">False</span>   <span class="pl-c1">True</span>
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">4</span></span>  <span class="pl-c1">False</span>  <span class="pl-c1">False</span>  <span class="pl-c1">False</span>  <span class="pl-c1">False</span>  <span class="pl-c1">False</span>   <span class="pl-c1">True</span></pre></div>
+<h1>五、 相关操作</h1>
+<p>详情请参与 <a href="http://pandas.pydata.org/pandas-docs/stable/basics.html#basics-binop" rel="nofollow">基本的二进制操作</a></p>
+<h2>统计（相关操作通常情况下不包括缺失值）</h2>
+<p>1、 执行描述性统计：</p>
+<div class="highlight highlight-source-python"><pre>In [<span class="pl-c1">61</span>]: df.mean()
+Out[<span class="pl-c1">61</span>]: 
+A   <span class="pl-k">-</span><span class="pl-c1">0.004474</span>
+B   <span class="pl-k">-</span><span class="pl-c1">0.383981</span>
+C   <span class="pl-k">-</span><span class="pl-c1">0.687758</span>
+D    <span class="pl-c1">5.000000</span>
+F    <span class="pl-c1">3.000000</span>
+dtype: float64</pre></div>
+<p>2、 在其他轴上进行相同的操作：</p>
+<div class="highlight highlight-source-python"><pre>In [<span class="pl-c1">62</span>]: df.mean(<span class="pl-c1">1</span>)
+Out[<span class="pl-c1">62</span>]: 
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span>    <span class="pl-c1">0.872735</span>
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">2</span></span>    <span class="pl-c1">1.431621</span>
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">3</span></span>    <span class="pl-c1">0.707731</span>
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">4</span></span>    <span class="pl-c1">1.395042</span>
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">5</span></span>    <span class="pl-c1">1.883656</span>
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">6</span></span>    <span class="pl-c1">1.592306</span>
+Freq: D, dtype: float64</pre></div>
+<p>3、 对于拥有不同维度，需要对齐的对象进行操作。Pandas 会自动的沿着指定的维度进行广播：</p>
+<div class="highlight highlight-source-python"><pre>In [<span class="pl-c1">63</span>]: s <span class="pl-k">=</span> pd.Series([<span class="pl-c1">1</span>,<span class="pl-c1">3</span>,<span class="pl-c1">5</span>,np.nan,<span class="pl-c1">6</span>,<span class="pl-c1">8</span>], <span class="pl-v">index</span><span class="pl-k">=</span>dates).shift(<span class="pl-c1">2</span>)
+
+In [<span class="pl-c1">64</span>]: s
+Out[<span class="pl-c1">64</span>]: 
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span>    NaN
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">2</span></span>    NaN
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">3</span></span>    <span class="pl-c1">1.0</span>
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">4</span></span>    <span class="pl-c1">3.0</span>
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">5</span></span>    <span class="pl-c1">5.0</span>
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">6</span></span>    NaN
+Freq: D, dtype: float64
+
+In [<span class="pl-c1">65</span>]: df.sub(s, <span class="pl-v">axis</span><span class="pl-k">=</span><span class="pl-s"><span class="pl-pds">'</span>index<span class="pl-pds">'</span></span>)
+Out[<span class="pl-c1">65</span>]: 
+                   A         B         C    D    F
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span>       NaN       NaN       NaN  NaN  NaN
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">2</span></span>       NaN       NaN       NaN  NaN  NaN
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">3</span></span> <span class="pl-k">-</span><span class="pl-c1">1.861849</span> <span class="pl-k">-</span><span class="pl-c1">3.104569</span> <span class="pl-k">-</span><span class="pl-c1">1.494929</span>  <span class="pl-c1">4.0</span>  <span class="pl-c1">1.0</span>
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">4</span></span> <span class="pl-k">-</span><span class="pl-c1">2.278445</span> <span class="pl-k">-</span><span class="pl-c1">3.706771</span> <span class="pl-k">-</span><span class="pl-c1">4.039575</span>  <span class="pl-c1">2.0</span>  <span class="pl-c1">0.0</span>
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">5</span></span> <span class="pl-k">-</span><span class="pl-c1">5.424972</span> <span class="pl-k">-</span><span class="pl-c1">4.432980</span> <span class="pl-k">-</span><span class="pl-c1">4.723768</span>  <span class="pl-c1">0.0</span> <span class="pl-k">-</span><span class="pl-c1">1.0</span>
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">6</span></span>       NaN       NaN       NaN  NaN  NaN</pre></div>
+<h2><code>Apply</code></h2>
+<p>1、 对数据应用函数：</p>
+<div class="highlight highlight-source-python"><pre>In [<span class="pl-c1">66</span>]: df.apply(np.cumsum)
+Out[<span class="pl-c1">66</span>]: 
+                   A         B         C   D     F
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span>  <span class="pl-c1">0.000000</span>  <span class="pl-c1">0.000000</span> <span class="pl-k">-</span><span class="pl-c1">1.509059</span>   <span class="pl-c1">5</span>   NaN
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">2</span></span>  <span class="pl-c1">1.212112</span> <span class="pl-k">-</span><span class="pl-c1">0.173215</span> <span class="pl-k">-</span><span class="pl-c1">1.389850</span>  <span class="pl-c1">10</span>   <span class="pl-c1">1.0</span>
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">3</span></span>  <span class="pl-c1">0.350263</span> <span class="pl-k">-</span><span class="pl-c1">2.277784</span> <span class="pl-k">-</span><span class="pl-c1">1.884779</span>  <span class="pl-c1">15</span>   <span class="pl-c1">3.0</span>
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">4</span></span>  <span class="pl-c1">1.071818</span> <span class="pl-k">-</span><span class="pl-c1">2.984555</span> <span class="pl-k">-</span><span class="pl-c1">2.924354</span>  <span class="pl-c1">20</span>   <span class="pl-c1">6.0</span>
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">5</span></span>  <span class="pl-c1">0.646846</span> <span class="pl-k">-</span><span class="pl-c1">2.417535</span> <span class="pl-k">-</span><span class="pl-c1">2.648122</span>  <span class="pl-c1">25</span>  <span class="pl-c1">10.0</span>
+<span class="pl-c1">2013</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">6</span></span> <span class="pl-k">-</span><span class="pl-c1">0.026844</span> <span class="pl-k">-</span><span class="pl-c1">2.303886</span> <span class="pl-k">-</span><span class="pl-c1">4.126549</span>  <span class="pl-c1">30</span>  <span class="pl-c1">15.0</span>
+
+In [<span class="pl-c1">67</span>]: df.apply(<span class="pl-k">lambda</span> <span class="pl-smi">x</span>: x.max() <span class="pl-k">-</span> x.min())
+Out[<span class="pl-c1">67</span>]: 
+A    <span class="pl-c1">2.073961</span>
+B    <span class="pl-c1">2.671590</span>
+C    <span class="pl-c1">1.785291</span>
+D    <span class="pl-c1">0.000000</span>
+F    <span class="pl-c1">4.000000</span>
+dtype: float64</pre></div>
+<h2>直方图</h2>
+<p>具体请参照：<a href="http://pandas.pydata.org/pandas-docs/stable/basics.html#basics-discretization" rel="nofollow">直方图和离散化</a>。</p>
+<div class="highlight highlight-source-python"><pre>In [<span class="pl-c1">68</span>]: s <span class="pl-k">=</span> pd.Series(np.random.randint(<span class="pl-c1">0</span>, <span class="pl-c1">7</span>, <span class="pl-v">size</span><span class="pl-k">=</span><span class="pl-c1">10</span>))
+
+In [<span class="pl-c1">69</span>]: s
+Out[<span class="pl-c1">69</span>]: 
+<span class="pl-c1">0</span>    <span class="pl-c1">4</span>
+<span class="pl-c1">1</span>    <span class="pl-c1">2</span>
+<span class="pl-c1">2</span>    <span class="pl-c1">1</span>
+<span class="pl-c1">3</span>    <span class="pl-c1">2</span>
+<span class="pl-c1">4</span>    <span class="pl-c1">6</span>
+<span class="pl-c1">5</span>    <span class="pl-c1">4</span>
+<span class="pl-c1">6</span>    <span class="pl-c1">4</span>
+<span class="pl-c1">7</span>    <span class="pl-c1">6</span>
+<span class="pl-c1">8</span>    <span class="pl-c1">4</span>
+<span class="pl-c1">9</span>    <span class="pl-c1">4</span>
+dtype: int64
+
+In [<span class="pl-c1">70</span>]: s.value_counts()
+Out[<span class="pl-c1">70</span>]: 
+<span class="pl-c1">4</span>    <span class="pl-c1">5</span>
+<span class="pl-c1">6</span>    <span class="pl-c1">2</span>
+<span class="pl-c1">2</span>    <span class="pl-c1">2</span>
+<span class="pl-c1">1</span>    <span class="pl-c1">1</span>
+dtype: int64</pre></div>
+<h2>字符串方法</h2>
+<p><code>Series</code>对象在其<code>str</code>属性中配备了一组字符串处理方法，可以很容易的应用到数组中的每个元素，如下段代码所示。更多详情请参考：<a href="http://pandas.pydata.org/pandas-docs/stable/text.html#text-string-methods" rel="nofollow">字符串向量化方法</a>。</p>
+<div class="highlight highlight-source-python"><pre>In [<span class="pl-c1">71</span>]: s <span class="pl-k">=</span> pd.Series([<span class="pl-s"><span class="pl-pds">'</span>A<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>B<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>C<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>Aaba<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>Baca<span class="pl-pds">'</span></span>, np.nan, <span class="pl-s"><span class="pl-pds">'</span>CABA<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>dog<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>cat<span class="pl-pds">'</span></span>])
+
+In [<span class="pl-c1">72</span>]: s.str.lower()
+Out[<span class="pl-c1">72</span>]: 
+<span class="pl-c1">0</span>       a
+<span class="pl-c1">1</span>       b
+<span class="pl-c1">2</span>       c
+<span class="pl-c1">3</span>    aaba
+<span class="pl-c1">4</span>    baca
+<span class="pl-c1">5</span>     NaN
+<span class="pl-c1">6</span>    caba
+<span class="pl-c1">7</span>     dog
+<span class="pl-c1">8</span>     cat
+dtype: <span class="pl-c1">object</span></pre></div>
+<h1>六、 合并</h1>
+<p>Pandas 提供了大量的方法能够轻松的对<code>Series</code>，<code>DataFrame</code>和<code>Panel</code>对象进行各种符合各种逻辑关系的合并操作。具体请参阅：<a href="http://pandas.pydata.org/pandas-docs/stable/merging.html#merging" rel="nofollow">合并</a>。</p>
+<h2><code>Concat</code></h2>
+<div class="highlight highlight-source-python"><pre>In [<span class="pl-c1">73</span>]: df <span class="pl-k">=</span> pd.DataFrame(np.random.randn(<span class="pl-c1">10</span>, <span class="pl-c1">4</span>))
+
+In [<span class="pl-c1">74</span>]: df
+Out[<span class="pl-c1">74</span>]: 
+          <span class="pl-c1">0</span>         <span class="pl-c1">1</span>         <span class="pl-c1">2</span>         <span class="pl-c1">3</span>
+<span class="pl-c1">0</span> <span class="pl-k">-</span><span class="pl-c1">0.548702</span>  <span class="pl-c1">1.467327</span> <span class="pl-k">-</span><span class="pl-c1">1.015962</span> <span class="pl-k">-</span><span class="pl-c1">0.483075</span>
+<span class="pl-c1">1</span>  <span class="pl-c1">1.637550</span> <span class="pl-k">-</span><span class="pl-c1">1.217659</span> <span class="pl-k">-</span><span class="pl-c1">0.291519</span> <span class="pl-k">-</span><span class="pl-c1">1.745505</span>
+<span class="pl-c1">2</span> <span class="pl-k">-</span><span class="pl-c1">0.263952</span>  <span class="pl-c1">0.991460</span> <span class="pl-k">-</span><span class="pl-c1">0.919069</span>  <span class="pl-c1">0.266046</span>
+<span class="pl-c1">3</span> <span class="pl-k">-</span><span class="pl-c1">0.709661</span>  <span class="pl-c1">1.669052</span>  <span class="pl-c1">1.037882</span> <span class="pl-k">-</span><span class="pl-c1">1.705775</span>
+<span class="pl-c1">4</span> <span class="pl-k">-</span><span class="pl-c1">0.919854</span> <span class="pl-k">-</span><span class="pl-c1">0.042379</span>  <span class="pl-c1">1.247642</span> <span class="pl-k">-</span><span class="pl-c1">0.009920</span>
+<span class="pl-c1">5</span>  <span class="pl-c1">0.290213</span>  <span class="pl-c1">0.495767</span>  <span class="pl-c1">0.362949</span>  <span class="pl-c1">1.548106</span>
+<span class="pl-c1">6</span> <span class="pl-k">-</span><span class="pl-c1">1.131345</span> <span class="pl-k">-</span><span class="pl-c1">0.089329</span>  <span class="pl-c1">0.337863</span> <span class="pl-k">-</span><span class="pl-c1">0.945867</span>
+<span class="pl-c1">7</span> <span class="pl-k">-</span><span class="pl-c1">0.932132</span>  <span class="pl-c1">1.956030</span>  <span class="pl-c1">0.017587</span> <span class="pl-k">-</span><span class="pl-c1">0.016692</span>
+<span class="pl-c1">8</span> <span class="pl-k">-</span><span class="pl-c1">0.575247</span>  <span class="pl-c1">0.254161</span> <span class="pl-k">-</span><span class="pl-c1">1.143704</span>  <span class="pl-c1">0.215897</span>
+<span class="pl-c1">9</span>  <span class="pl-c1">1.193555</span> <span class="pl-k">-</span><span class="pl-c1">0.077118</span> <span class="pl-k">-</span><span class="pl-c1">0.408530</span> <span class="pl-k">-</span><span class="pl-c1">0.862495</span>
+
+<span class="pl-c"><span class="pl-c">#</span> break it into pieces</span>
+In [<span class="pl-c1">75</span>]: pieces <span class="pl-k">=</span> [df[:<span class="pl-c1">3</span>], df[<span class="pl-c1">3</span>:<span class="pl-c1">7</span>], df[<span class="pl-c1">7</span>:]]
+
+In [<span class="pl-c1">76</span>]: pd.concat(pieces)
+Out[<span class="pl-c1">76</span>]: 
+          <span class="pl-c1">0</span>         <span class="pl-c1">1</span>         <span class="pl-c1">2</span>         <span class="pl-c1">3</span>
+<span class="pl-c1">0</span> <span class="pl-k">-</span><span class="pl-c1">0.548702</span>  <span class="pl-c1">1.467327</span> <span class="pl-k">-</span><span class="pl-c1">1.015962</span> <span class="pl-k">-</span><span class="pl-c1">0.483075</span>
+<span class="pl-c1">1</span>  <span class="pl-c1">1.637550</span> <span class="pl-k">-</span><span class="pl-c1">1.217659</span> <span class="pl-k">-</span><span class="pl-c1">0.291519</span> <span class="pl-k">-</span><span class="pl-c1">1.745505</span>
+<span class="pl-c1">2</span> <span class="pl-k">-</span><span class="pl-c1">0.263952</span>  <span class="pl-c1">0.991460</span> <span class="pl-k">-</span><span class="pl-c1">0.919069</span>  <span class="pl-c1">0.266046</span>
+<span class="pl-c1">3</span> <span class="pl-k">-</span><span class="pl-c1">0.709661</span>  <span class="pl-c1">1.669052</span>  <span class="pl-c1">1.037882</span> <span class="pl-k">-</span><span class="pl-c1">1.705775</span>
+<span class="pl-c1">4</span> <span class="pl-k">-</span><span class="pl-c1">0.919854</span> <span class="pl-k">-</span><span class="pl-c1">0.042379</span>  <span class="pl-c1">1.247642</span> <span class="pl-k">-</span><span class="pl-c1">0.009920</span>
+<span class="pl-c1">5</span>  <span class="pl-c1">0.290213</span>  <span class="pl-c1">0.495767</span>  <span class="pl-c1">0.362949</span>  <span class="pl-c1">1.548106</span>
+<span class="pl-c1">6</span> <span class="pl-k">-</span><span class="pl-c1">1.131345</span> <span class="pl-k">-</span><span class="pl-c1">0.089329</span>  <span class="pl-c1">0.337863</span> <span class="pl-k">-</span><span class="pl-c1">0.945867</span>
+<span class="pl-c1">7</span> <span class="pl-k">-</span><span class="pl-c1">0.932132</span>  <span class="pl-c1">1.956030</span>  <span class="pl-c1">0.017587</span> <span class="pl-k">-</span><span class="pl-c1">0.016692</span>
+<span class="pl-c1">8</span> <span class="pl-k">-</span><span class="pl-c1">0.575247</span>  <span class="pl-c1">0.254161</span> <span class="pl-k">-</span><span class="pl-c1">1.143704</span>  <span class="pl-c1">0.215897</span>
+<span class="pl-c1">9</span>  <span class="pl-c1">1.193555</span> <span class="pl-k">-</span><span class="pl-c1">0.077118</span> <span class="pl-k">-</span><span class="pl-c1">0.408530</span> <span class="pl-k">-</span><span class="pl-c1">0.862495</span></pre></div>
+<h2><code>Join</code></h2>
+<p>类似于 SQL 类型的合并，具体请参阅：<a href="http://pandas.pydata.org/pandas-docs/stable/merging.html#merging-join" rel="nofollow">数据库风格的连接</a></p>
+<div class="highlight highlight-source-python"><pre>In [<span class="pl-c1">77</span>]: left <span class="pl-k">=</span> pd.DataFrame({<span class="pl-s"><span class="pl-pds">'</span>key<span class="pl-pds">'</span></span>: [<span class="pl-s"><span class="pl-pds">'</span>foo<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>foo<span class="pl-pds">'</span></span>], <span class="pl-s"><span class="pl-pds">'</span>lval<span class="pl-pds">'</span></span>: [<span class="pl-c1">1</span>, <span class="pl-c1">2</span>]})
+
+In [<span class="pl-c1">78</span>]: right <span class="pl-k">=</span> pd.DataFrame({<span class="pl-s"><span class="pl-pds">'</span>key<span class="pl-pds">'</span></span>: [<span class="pl-s"><span class="pl-pds">'</span>foo<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>foo<span class="pl-pds">'</span></span>], <span class="pl-s"><span class="pl-pds">'</span>rval<span class="pl-pds">'</span></span>: [<span class="pl-c1">4</span>, <span class="pl-c1">5</span>]})
+
+In [<span class="pl-c1">79</span>]: left
+Out[<span class="pl-c1">79</span>]: 
+   key  lval
+<span class="pl-c1">0</span>  foo     <span class="pl-c1">1</span>
+<span class="pl-c1">1</span>  foo     <span class="pl-c1">2</span>
+
+In [<span class="pl-c1">80</span>]: right
+Out[<span class="pl-c1">80</span>]: 
+   key  rval
+<span class="pl-c1">0</span>  foo     <span class="pl-c1">4</span>
+<span class="pl-c1">1</span>  foo     <span class="pl-c1">5</span>
+
+In [<span class="pl-c1">81</span>]: pd.merge(left, right, <span class="pl-v">on</span><span class="pl-k">=</span><span class="pl-s"><span class="pl-pds">'</span>key<span class="pl-pds">'</span></span>)
+Out[<span class="pl-c1">81</span>]: 
+   key  lval  rval
+<span class="pl-c1">0</span>  foo     <span class="pl-c1">1</span>     <span class="pl-c1">4</span>
+<span class="pl-c1">1</span>  foo     <span class="pl-c1">1</span>     <span class="pl-c1">5</span>
+<span class="pl-c1">2</span>  foo     <span class="pl-c1">2</span>     <span class="pl-c1">4</span>
+<span class="pl-c1">3</span>  foo     <span class="pl-c1">2</span>     <span class="pl-c1">5</span></pre></div>
+<p>另一个例子：</p>
+<div class="highlight highlight-source-python"><pre>In [<span class="pl-c1">82</span>]: left <span class="pl-k">=</span> pd.DataFrame({<span class="pl-s"><span class="pl-pds">'</span>key<span class="pl-pds">'</span></span>: [<span class="pl-s"><span class="pl-pds">'</span>foo<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>bar<span class="pl-pds">'</span></span>], <span class="pl-s"><span class="pl-pds">'</span>lval<span class="pl-pds">'</span></span>: [<span class="pl-c1">1</span>, <span class="pl-c1">2</span>]})
+
+In [<span class="pl-c1">83</span>]: right <span class="pl-k">=</span> pd.DataFrame({<span class="pl-s"><span class="pl-pds">'</span>key<span class="pl-pds">'</span></span>: [<span class="pl-s"><span class="pl-pds">'</span>foo<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>bar<span class="pl-pds">'</span></span>], <span class="pl-s"><span class="pl-pds">'</span>rval<span class="pl-pds">'</span></span>: [<span class="pl-c1">4</span>, <span class="pl-c1">5</span>]})
+
+In [<span class="pl-c1">84</span>]: left
+Out[<span class="pl-c1">84</span>]: 
+   key  lval
+<span class="pl-c1">0</span>  foo     <span class="pl-c1">1</span>
+<span class="pl-c1">1</span>  bar     <span class="pl-c1">2</span>
+
+In [<span class="pl-c1">85</span>]: right
+Out[<span class="pl-c1">85</span>]: 
+   key  rval
+<span class="pl-c1">0</span>  foo     <span class="pl-c1">4</span>
+<span class="pl-c1">1</span>  bar     <span class="pl-c1">5</span>
+
+In [<span class="pl-c1">86</span>]: pd.merge(left, right, <span class="pl-v">on</span><span class="pl-k">=</span><span class="pl-s"><span class="pl-pds">'</span>key<span class="pl-pds">'</span></span>)
+Out[<span class="pl-c1">86</span>]: 
+   key  lval  rval
+<span class="pl-c1">0</span>  foo     <span class="pl-c1">1</span>     <span class="pl-c1">4</span>
+<span class="pl-c1">1</span>  bar     <span class="pl-c1">2</span>     <span class="pl-c1">5</span></pre></div>
+<h2><code>Append</code></h2>
+<p>将一行连接到一个<code>DataFrame</code>上，具体请参阅<a href="http://pandas.pydata.org/pandas-docs/stable/merging.html#merging-concatenation" rel="nofollow">附加</a>：</p>
+<div class="highlight highlight-source-python"><pre>In [<span class="pl-c1">87</span>]: df <span class="pl-k">=</span> pd.DataFrame(np.random.randn(<span class="pl-c1">8</span>, <span class="pl-c1">4</span>), <span class="pl-v">columns</span><span class="pl-k">=</span>[<span class="pl-s"><span class="pl-pds">'</span>A<span class="pl-pds">'</span></span>,<span class="pl-s"><span class="pl-pds">'</span>B<span class="pl-pds">'</span></span>,<span class="pl-s"><span class="pl-pds">'</span>C<span class="pl-pds">'</span></span>,<span class="pl-s"><span class="pl-pds">'</span>D<span class="pl-pds">'</span></span>])
+
+In [<span class="pl-c1">88</span>]: df
+Out[<span class="pl-c1">88</span>]: 
+          A         B         C         D
+<span class="pl-c1">0</span>  <span class="pl-c1">1.346061</span>  <span class="pl-c1">1.511763</span>  <span class="pl-c1">1.627081</span> <span class="pl-k">-</span><span class="pl-c1">0.990582</span>
+<span class="pl-c1">1</span> <span class="pl-k">-</span><span class="pl-c1">0.441652</span>  <span class="pl-c1">1.211526</span>  <span class="pl-c1">0.268520</span>  <span class="pl-c1">0.024580</span>
+<span class="pl-c1">2</span> <span class="pl-k">-</span><span class="pl-c1">1.577585</span>  <span class="pl-c1">0.396823</span> <span class="pl-k">-</span><span class="pl-c1">0.105381</span> <span class="pl-k">-</span><span class="pl-c1">0.532532</span>
+<span class="pl-c1">3</span>  <span class="pl-c1">1.453749</span>  <span class="pl-c1">1.208843</span> <span class="pl-k">-</span><span class="pl-c1">0.080952</span> <span class="pl-k">-</span><span class="pl-c1">0.264610</span>
+<span class="pl-c1">4</span> <span class="pl-k">-</span><span class="pl-c1">0.727965</span> <span class="pl-k">-</span><span class="pl-c1">0.589346</span>  <span class="pl-c1">0.339969</span> <span class="pl-k">-</span><span class="pl-c1">0.693205</span>
+<span class="pl-c1">5</span> <span class="pl-k">-</span><span class="pl-c1">0.339355</span>  <span class="pl-c1">0.593616</span>  <span class="pl-c1">0.884345</span>  <span class="pl-c1">1.591431</span>
+<span class="pl-c1">6</span>  <span class="pl-c1">0.141809</span>  <span class="pl-c1">0.220390</span>  <span class="pl-c1">0.435589</span>  <span class="pl-c1">0.192451</span>
+<span class="pl-c1">7</span> <span class="pl-k">-</span><span class="pl-c1">0.096701</span>  <span class="pl-c1">0.803351</span>  <span class="pl-c1">1.715071</span> <span class="pl-k">-</span><span class="pl-c1">0.708758</span>
+
+In [<span class="pl-c1">89</span>]: s <span class="pl-k">=</span> df.iloc[<span class="pl-c1">3</span>]
+
+In [<span class="pl-c1">90</span>]: df.append(s, <span class="pl-v">ignore_index</span><span class="pl-k">=</span><span class="pl-c1">True</span>)
+Out[<span class="pl-c1">90</span>]: 
+          A         B         C         D
+<span class="pl-c1">0</span>  <span class="pl-c1">1.346061</span>  <span class="pl-c1">1.511763</span>  <span class="pl-c1">1.627081</span> <span class="pl-k">-</span><span class="pl-c1">0.990582</span>
+<span class="pl-c1">1</span> <span class="pl-k">-</span><span class="pl-c1">0.441652</span>  <span class="pl-c1">1.211526</span>  <span class="pl-c1">0.268520</span>  <span class="pl-c1">0.024580</span>
+<span class="pl-c1">2</span> <span class="pl-k">-</span><span class="pl-c1">1.577585</span>  <span class="pl-c1">0.396823</span> <span class="pl-k">-</span><span class="pl-c1">0.105381</span> <span class="pl-k">-</span><span class="pl-c1">0.532532</span>
+<span class="pl-c1">3</span>  <span class="pl-c1">1.453749</span>  <span class="pl-c1">1.208843</span> <span class="pl-k">-</span><span class="pl-c1">0.080952</span> <span class="pl-k">-</span><span class="pl-c1">0.264610</span>
+<span class="pl-c1">4</span> <span class="pl-k">-</span><span class="pl-c1">0.727965</span> <span class="pl-k">-</span><span class="pl-c1">0.589346</span>  <span class="pl-c1">0.339969</span> <span class="pl-k">-</span><span class="pl-c1">0.693205</span>
+<span class="pl-c1">5</span> <span class="pl-k">-</span><span class="pl-c1">0.339355</span>  <span class="pl-c1">0.593616</span>  <span class="pl-c1">0.884345</span>  <span class="pl-c1">1.591431</span>
+<span class="pl-c1">6</span>  <span class="pl-c1">0.141809</span>  <span class="pl-c1">0.220390</span>  <span class="pl-c1">0.435589</span>  <span class="pl-c1">0.192451</span>
+<span class="pl-c1">7</span> <span class="pl-k">-</span><span class="pl-c1">0.096701</span>  <span class="pl-c1">0.803351</span>  <span class="pl-c1">1.715071</span> <span class="pl-k">-</span><span class="pl-c1">0.708758</span>
+<span class="pl-c1">8</span>  <span class="pl-c1">1.453749</span>  <span class="pl-c1">1.208843</span> <span class="pl-k">-</span><span class="pl-c1">0.080952</span> <span class="pl-k">-</span><span class="pl-c1">0.264610</span></pre></div>
+<h1>七、 分组</h1>
+<p>对于”group by”操作，我们通常是指以下一个或多个操作步骤：</p>
+<ul>
+<li>
+<p>（Splitting）按照一些规则将数据分为不同的组；</p>
+</li>
+<li>
+<p>（Applying）对于每组数据分别执行一个函数；</p>
+</li>
+<li>
+<p>（Combining）将结果组合到一个数据结构中；</p>
+</li>
+</ul>
+<p>详情请参阅：<a href="http://pandas.pydata.org/pandas-docs/stable/groupby.html#groupby" rel="nofollow"><em>Grouping section</em></a></p>
+<div class="highlight highlight-source-python"><pre>In [<span class="pl-c1">91</span>]: df <span class="pl-k">=</span> pd.DataFrame({<span class="pl-s"><span class="pl-pds">'</span>A<span class="pl-pds">'</span></span> : [<span class="pl-s"><span class="pl-pds">'</span>foo<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>bar<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>foo<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>bar<span class="pl-pds">'</span></span>,
+   <span class="pl-c1">...</span>.:                           <span class="pl-s"><span class="pl-pds">'</span>foo<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>bar<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>foo<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>foo<span class="pl-pds">'</span></span>],
+   <span class="pl-c1">...</span>.:                    <span class="pl-s"><span class="pl-pds">'</span>B<span class="pl-pds">'</span></span> : [<span class="pl-s"><span class="pl-pds">'</span>one<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>one<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>two<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>three<span class="pl-pds">'</span></span>,
+   <span class="pl-c1">...</span>.:                           <span class="pl-s"><span class="pl-pds">'</span>two<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>two<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>one<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>three<span class="pl-pds">'</span></span>],
+   <span class="pl-c1">...</span>.:                    <span class="pl-s"><span class="pl-pds">'</span>C<span class="pl-pds">'</span></span> : np.random.randn(<span class="pl-c1">8</span>),
+   <span class="pl-c1">...</span>.:                    <span class="pl-s"><span class="pl-pds">'</span>D<span class="pl-pds">'</span></span> : np.random.randn(<span class="pl-c1">8</span>)})
+   <span class="pl-c1">...</span>.: 
+
+In [<span class="pl-c1">92</span>]: df
+Out[<span class="pl-c1">92</span>]: 
+     A      B         C         D
+<span class="pl-c1">0</span>  foo    one <span class="pl-k">-</span><span class="pl-c1">1.202872</span> <span class="pl-k">-</span><span class="pl-c1">0.055224</span>
+<span class="pl-c1">1</span>  bar    one <span class="pl-k">-</span><span class="pl-c1">1.814470</span>  <span class="pl-c1">2.395985</span>
+<span class="pl-c1">2</span>  foo    two  <span class="pl-c1">1.018601</span>  <span class="pl-c1">1.552825</span>
+<span class="pl-c1">3</span>  bar  three <span class="pl-k">-</span><span class="pl-c1">0.595447</span>  <span class="pl-c1">0.166599</span>
+<span class="pl-c1">4</span>  foo    two  <span class="pl-c1">1.395433</span>  <span class="pl-c1">0.047609</span>
+<span class="pl-c1">5</span>  bar    two <span class="pl-k">-</span><span class="pl-c1">0.392670</span> <span class="pl-k">-</span><span class="pl-c1">0.136473</span>
+<span class="pl-c1">6</span>  foo    one  <span class="pl-c1">0.007207</span> <span class="pl-k">-</span><span class="pl-c1">0.561757</span>
+<span class="pl-c1">7</span>  foo  three  <span class="pl-c1">1.928123</span> <span class="pl-k">-</span><span class="pl-c1">1.623033</span></pre></div>
+<p>1、 分组并对每个分组执行<code>sum</code>函数：</p>
+<div class="highlight highlight-source-python"><pre>In [<span class="pl-c1">93</span>]: df.groupby(<span class="pl-s"><span class="pl-pds">'</span>A<span class="pl-pds">'</span></span>).sum()
+Out[<span class="pl-c1">93</span>]: 
+            C        D
+A                     
+bar <span class="pl-k">-</span><span class="pl-c1">2.802588</span>  <span class="pl-c1">2.42611</span>
+foo  <span class="pl-c1">3.146492</span> <span class="pl-k">-</span><span class="pl-c1">0.63958</span></pre></div>
+<p>2、 通过多个列进行分组形成一个层次索引，然后执行函数：</p>
+<div class="highlight highlight-source-python"><pre>In [<span class="pl-c1">94</span>]: df.groupby([<span class="pl-s"><span class="pl-pds">'</span>A<span class="pl-pds">'</span></span>,<span class="pl-s"><span class="pl-pds">'</span>B<span class="pl-pds">'</span></span>]).sum()
+Out[<span class="pl-c1">94</span>]: 
+                  C         D
+A   B                        
+bar one   <span class="pl-k">-</span><span class="pl-c1">1.814470</span>  <span class="pl-c1">2.395985</span>
+    three <span class="pl-k">-</span><span class="pl-c1">0.595447</span>  <span class="pl-c1">0.166599</span>
+    two   <span class="pl-k">-</span><span class="pl-c1">0.392670</span> <span class="pl-k">-</span><span class="pl-c1">0.136473</span>
+foo one   <span class="pl-k">-</span><span class="pl-c1">1.195665</span> <span class="pl-k">-</span><span class="pl-c1">0.616981</span>
+    three  <span class="pl-c1">1.928123</span> <span class="pl-k">-</span><span class="pl-c1">1.623033</span>
+    two    <span class="pl-c1">2.414034</span>  <span class="pl-c1">1.600434</span></pre></div>
+<h1>八、 改变形状</h1>
+<p>详情请参阅 <a href="http://pandas.pydata.org/pandas-docs/stable/advanced.html#advanced-hierarchical" rel="nofollow">层次索引</a>&nbsp;和&nbsp;<a href="http://pandas.pydata.org/pandas-docs/stable/reshaping.html#reshaping-stacking" rel="nofollow">改变形状</a>。</p>
+<h2><code>Stack</code></h2>
+<div class="highlight highlight-source-python"><pre>In [<span class="pl-c1">95</span>]: tuples <span class="pl-k">=</span> <span class="pl-c1">list</span>(<span class="pl-c1">zip</span>(<span class="pl-k">*</span>[[<span class="pl-s"><span class="pl-pds">'</span>bar<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>bar<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>baz<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>baz<span class="pl-pds">'</span></span>,
+   <span class="pl-c1">...</span>.:                      <span class="pl-s"><span class="pl-pds">'</span>foo<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>foo<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>qux<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>qux<span class="pl-pds">'</span></span>],
+   <span class="pl-c1">...</span>.:                     [<span class="pl-s"><span class="pl-pds">'</span>one<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>two<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>one<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>two<span class="pl-pds">'</span></span>,
+   <span class="pl-c1">...</span>.:                      <span class="pl-s"><span class="pl-pds">'</span>one<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>two<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>one<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>two<span class="pl-pds">'</span></span>]]))
+   <span class="pl-c1">...</span>.: 
+
+In [<span class="pl-c1">96</span>]: index <span class="pl-k">=</span> pd.MultiIndex.from_tuples(tuples, <span class="pl-v">names</span><span class="pl-k">=</span>[<span class="pl-s"><span class="pl-pds">'</span>first<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>second<span class="pl-pds">'</span></span>])
+
+In [<span class="pl-c1">97</span>]: df <span class="pl-k">=</span> pd.DataFrame(np.random.randn(<span class="pl-c1">8</span>, <span class="pl-c1">2</span>), <span class="pl-v">index</span><span class="pl-k">=</span>index, <span class="pl-v">columns</span><span class="pl-k">=</span>[<span class="pl-s"><span class="pl-pds">'</span>A<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>B<span class="pl-pds">'</span></span>])
+
+In [<span class="pl-c1">98</span>]: df2 <span class="pl-k">=</span> df[:<span class="pl-c1">4</span>]
+
+In [<span class="pl-c1">99</span>]: df2
+Out[<span class="pl-c1">99</span>]: 
+                     A         B
+first second                    
+bar   one     <span class="pl-c1">0.029399</span> <span class="pl-k">-</span><span class="pl-c1">0.542108</span>
+      two     <span class="pl-c1">0.282696</span> <span class="pl-k">-</span><span class="pl-c1">0.087302</span>
+baz   one    <span class="pl-k">-</span><span class="pl-c1">1.575170</span>  <span class="pl-c1">1.771208</span>
+      two     <span class="pl-c1">0.816482</span>  <span class="pl-c1">1.100230</span></pre></div>
+<div class="highlight highlight-source-python"><pre>In [<span class="pl-c1">100</span>]: stacked <span class="pl-k">=</span> df2.stack()
+
+In [<span class="pl-c1">101</span>]: stacked
+Out[<span class="pl-c1">101</span>]: 
+first  second   
+bar    one     A    <span class="pl-c1">0.029399</span>
+               B   <span class="pl-k">-</span><span class="pl-c1">0.542108</span>
+       two     A    <span class="pl-c1">0.282696</span>
+               B   <span class="pl-k">-</span><span class="pl-c1">0.087302</span>
+baz    one     A   <span class="pl-k">-</span><span class="pl-c1">1.575170</span>
+               B    <span class="pl-c1">1.771208</span>
+       two     A    <span class="pl-c1">0.816482</span>
+               B    <span class="pl-c1">1.100230</span>
+dtype: float64</pre></div>
+<div class="highlight highlight-source-python"><pre>In [<span class="pl-c1">102</span>]: stacked.unstack()
+Out[<span class="pl-c1">102</span>]: 
+                     A         B
+first second                    
+bar   one     <span class="pl-c1">0.029399</span> <span class="pl-k">-</span><span class="pl-c1">0.542108</span>
+      two     <span class="pl-c1">0.282696</span> <span class="pl-k">-</span><span class="pl-c1">0.087302</span>
+baz   one    <span class="pl-k">-</span><span class="pl-c1">1.575170</span>  <span class="pl-c1">1.771208</span>
+      two     <span class="pl-c1">0.816482</span>  <span class="pl-c1">1.100230</span>
+
+In [<span class="pl-c1">103</span>]: stacked.unstack(<span class="pl-c1">1</span>)
+Out[<span class="pl-c1">103</span>]: 
+second        one       two
+first                      
+bar   A  <span class="pl-c1">0.029399</span>  <span class="pl-c1">0.282696</span>
+      B <span class="pl-k">-</span><span class="pl-c1">0.542108</span> <span class="pl-k">-</span><span class="pl-c1">0.087302</span>
+baz   A <span class="pl-k">-</span><span class="pl-c1">1.575170</span>  <span class="pl-c1">0.816482</span>
+      B  <span class="pl-c1">1.771208</span>  <span class="pl-c1">1.100230</span>
+
+In [<span class="pl-c1">104</span>]: stacked.unstack(<span class="pl-c1">0</span>)
+Out[<span class="pl-c1">104</span>]: 
+first          bar       baz
+second                      
+one    A  <span class="pl-c1">0.029399</span> <span class="pl-k">-</span><span class="pl-c1">1.575170</span>
+       B <span class="pl-k">-</span><span class="pl-c1">0.542108</span>  <span class="pl-c1">1.771208</span>
+two    A  <span class="pl-c1">0.282696</span>  <span class="pl-c1">0.816482</span>
+       B <span class="pl-k">-</span><span class="pl-c1">0.087302</span>  <span class="pl-c1">1.100230</span></pre></div>
+<h2>数据透视表</h2>
+<p>详情请参阅：<a href="http://pandas.pydata.org/pandas-docs/stable/reshaping.html#reshaping-pivot" rel="nofollow">数据透视表</a>.</p>
+<div class="highlight highlight-source-python"><pre>In [<span class="pl-c1">105</span>]: df <span class="pl-k">=</span> pd.DataFrame({<span class="pl-s"><span class="pl-pds">'</span>A<span class="pl-pds">'</span></span> : [<span class="pl-s"><span class="pl-pds">'</span>one<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>one<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>two<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>three<span class="pl-pds">'</span></span>] <span class="pl-k">*</span> <span class="pl-c1">3</span>,
+   <span class="pl-c1">...</span>..:                    <span class="pl-s"><span class="pl-pds">'</span>B<span class="pl-pds">'</span></span> : [<span class="pl-s"><span class="pl-pds">'</span>A<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>B<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>C<span class="pl-pds">'</span></span>] <span class="pl-k">*</span> <span class="pl-c1">4</span>,
+   <span class="pl-c1">...</span>..:                    <span class="pl-s"><span class="pl-pds">'</span>C<span class="pl-pds">'</span></span> : [<span class="pl-s"><span class="pl-pds">'</span>foo<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>foo<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>foo<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>bar<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>bar<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>bar<span class="pl-pds">'</span></span>] <span class="pl-k">*</span> <span class="pl-c1">2</span>,
+   <span class="pl-c1">...</span>..:                    <span class="pl-s"><span class="pl-pds">'</span>D<span class="pl-pds">'</span></span> : np.random.randn(<span class="pl-c1">12</span>),
+   <span class="pl-c1">...</span>..:                    <span class="pl-s"><span class="pl-pds">'</span>E<span class="pl-pds">'</span></span> : np.random.randn(<span class="pl-c1">12</span>)})
+   <span class="pl-c1">...</span>..: 
+
+In [<span class="pl-c1">106</span>]: df
+Out[<span class="pl-c1">106</span>]: 
+        A  B    C         D         E
+<span class="pl-c1">0</span>     one  A  foo  <span class="pl-c1">1.418757</span> <span class="pl-k">-</span><span class="pl-c1">0.179666</span>
+<span class="pl-c1">1</span>     one  B  foo <span class="pl-k">-</span><span class="pl-c1">1.879024</span>  <span class="pl-c1">1.291836</span>
+<span class="pl-c1">2</span>     two  C  foo  <span class="pl-c1">0.536826</span> <span class="pl-k">-</span><span class="pl-c1">0.009614</span>
+<span class="pl-c1">3</span>   three  A  bar  <span class="pl-c1">1.006160</span>  <span class="pl-c1">0.392149</span>
+<span class="pl-c1">4</span>     one  B  bar <span class="pl-k">-</span><span class="pl-c1">0.029716</span>  <span class="pl-c1">0.264599</span>
+<span class="pl-c1">5</span>     one  C  bar <span class="pl-k">-</span><span class="pl-c1">1.146178</span> <span class="pl-k">-</span><span class="pl-c1">0.057409</span>
+<span class="pl-c1">6</span>     two  A  foo  <span class="pl-c1">0.100900</span> <span class="pl-k">-</span><span class="pl-c1">1.425638</span>
+<span class="pl-c1">7</span>   three  B  foo <span class="pl-k">-</span><span class="pl-c1">1.035018</span>  <span class="pl-c1">1.024098</span>
+<span class="pl-c1">8</span>     one  C  foo  <span class="pl-c1">0.314665</span> <span class="pl-k">-</span><span class="pl-c1">0.106062</span>
+<span class="pl-c1">9</span>     one  A  bar <span class="pl-k">-</span><span class="pl-c1">0.773723</span>  <span class="pl-c1">1.824375</span>
+<span class="pl-c1">10</span>    two  B  bar <span class="pl-k">-</span><span class="pl-c1">1.170653</span>  <span class="pl-c1">0.595974</span>
+<span class="pl-c1">11</span>  three  C  bar  <span class="pl-c1">0.648740</span>  <span class="pl-c1">1.167115</span></pre></div>
+<p>可以从这个数据中轻松的生成数据透视表：</p>
+<div class="highlight highlight-source-python"><pre>In [<span class="pl-c1">107</span>]: pd.pivot_table(df, <span class="pl-v">values</span><span class="pl-k">=</span><span class="pl-s"><span class="pl-pds">'</span>D<span class="pl-pds">'</span></span>, <span class="pl-v">index</span><span class="pl-k">=</span>[<span class="pl-s"><span class="pl-pds">'</span>A<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>B<span class="pl-pds">'</span></span>], <span class="pl-v">columns</span><span class="pl-k">=</span>[<span class="pl-s"><span class="pl-pds">'</span>C<span class="pl-pds">'</span></span>])
+Out[<span class="pl-c1">107</span>]: 
+C             bar       foo
+A     B                    
+one   A <span class="pl-k">-</span><span class="pl-c1">0.773723</span>  <span class="pl-c1">1.418757</span>
+      B <span class="pl-k">-</span><span class="pl-c1">0.029716</span> <span class="pl-k">-</span><span class="pl-c1">1.879024</span>
+      C <span class="pl-k">-</span><span class="pl-c1">1.146178</span>  <span class="pl-c1">0.314665</span>
+three A  <span class="pl-c1">1.006160</span>       NaN
+      B       NaN <span class="pl-k">-</span><span class="pl-c1">1.035018</span>
+      C  <span class="pl-c1">0.648740</span>       NaN
+two   A       NaN  <span class="pl-c1">0.100900</span>
+      B <span class="pl-k">-</span><span class="pl-c1">1.170653</span>       NaN
+      C       NaN  <span class="pl-c1">0.536826</span></pre></div>
+<h1>九、 时间序列</h1>
+<p>Pandas 在对频率转换进行重新采样时拥有简单、强大且高效的功能（如将按秒采样的数据转换为按5分钟为单位进行采样的数据）。这种操作在金融领域非常常见。具体参考：<a href="http://pandas.pydata.org/pandas-docs/stable/timeseries.html#timeseries" rel="nofollow">时间序列</a>。</p>
+<div class="highlight highlight-source-python"><pre>In [<span class="pl-c1">108</span>]: rng <span class="pl-k">=</span> pd.date_range(<span class="pl-s"><span class="pl-pds">'</span>1/1/2012<span class="pl-pds">'</span></span>, <span class="pl-v">periods</span><span class="pl-k">=</span><span class="pl-c1">100</span>, <span class="pl-v">freq</span><span class="pl-k">=</span><span class="pl-s"><span class="pl-pds">'</span>S<span class="pl-pds">'</span></span>)
+
+In [<span class="pl-c1">109</span>]: ts <span class="pl-k">=</span> pd.Series(np.random.randint(<span class="pl-c1">0</span>, <span class="pl-c1">500</span>, <span class="pl-c1">len</span>(rng)), <span class="pl-v">index</span><span class="pl-k">=</span>rng)
+
+In [<span class="pl-c1">110</span>]: ts.resample(<span class="pl-s"><span class="pl-pds">'</span>5Min<span class="pl-pds">'</span></span>).sum()
+Out[<span class="pl-c1">110</span>]: 
+<span class="pl-c1">2012</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span>    <span class="pl-c1">25083</span>
+Freq: <span class="pl-ii">5T</span>, dtype: int64</pre></div>
+<p>1、 时区表示：</p>
+<div class="highlight highlight-source-python"><pre>In [<span class="pl-c1">111</span>]: rng <span class="pl-k">=</span> pd.date_range(<span class="pl-s"><span class="pl-pds">'</span>3/6/2012 00:00<span class="pl-pds">'</span></span>, <span class="pl-v">periods</span><span class="pl-k">=</span><span class="pl-c1">5</span>, <span class="pl-v">freq</span><span class="pl-k">=</span><span class="pl-s"><span class="pl-pds">'</span>D<span class="pl-pds">'</span></span>)
+
+In [<span class="pl-c1">112</span>]: ts <span class="pl-k">=</span> pd.Series(np.random.randn(<span class="pl-c1">len</span>(rng)), rng)
+
+In [<span class="pl-c1">113</span>]: ts
+Out[<span class="pl-c1">113</span>]: 
+<span class="pl-c1">2012</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">3</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">6</span></span>    <span class="pl-c1">0.464000</span>
+<span class="pl-c1">2012</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">3</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">7</span></span>    <span class="pl-c1">0.227371</span>
+<span class="pl-c1">2012</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">3</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">8</span></span>   <span class="pl-k">-</span><span class="pl-c1">0.496922</span>
+<span class="pl-c1">2012</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">3</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">9</span></span>    <span class="pl-c1">0.306389</span>
+<span class="pl-c1">2012</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">3</span></span><span class="pl-k">-</span><span class="pl-c1">10</span>   <span class="pl-k">-</span><span class="pl-c1">2.290613</span>
+Freq: D, dtype: float64
+
+In [<span class="pl-c1">114</span>]: ts_utc <span class="pl-k">=</span> ts.tz_localize(<span class="pl-s"><span class="pl-pds">'</span>UTC<span class="pl-pds">'</span></span>)
+
+In [<span class="pl-c1">115</span>]: ts_utc
+Out[<span class="pl-c1">115</span>]: 
+<span class="pl-c1">2012</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">3</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">6</span></span> <span class="pl-c1">00</span>:<span class="pl-c1">00</span>:<span class="pl-c1">00</span><span class="pl-k">+</span><span class="pl-c1">00</span>:<span class="pl-c1">00</span>    <span class="pl-c1">0.464000</span>
+<span class="pl-c1">2012</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">3</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">7</span></span> <span class="pl-c1">00</span>:<span class="pl-c1">00</span>:<span class="pl-c1">00</span><span class="pl-k">+</span><span class="pl-c1">00</span>:<span class="pl-c1">00</span>    <span class="pl-c1">0.227371</span>
+<span class="pl-c1">2012</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">3</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">8</span></span> <span class="pl-c1">00</span>:<span class="pl-c1">00</span>:<span class="pl-c1">00</span><span class="pl-k">+</span><span class="pl-c1">00</span>:<span class="pl-c1">00</span>   <span class="pl-k">-</span><span class="pl-c1">0.496922</span>
+<span class="pl-c1">2012</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">3</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">9</span></span> <span class="pl-c1">00</span>:<span class="pl-c1">00</span>:<span class="pl-c1">00</span><span class="pl-k">+</span><span class="pl-c1">00</span>:<span class="pl-c1">00</span>    <span class="pl-c1">0.306389</span>
+<span class="pl-c1">2012</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">3</span></span><span class="pl-k">-</span><span class="pl-c1">10</span> <span class="pl-c1">00</span>:<span class="pl-c1">00</span>:<span class="pl-c1">00</span><span class="pl-k">+</span><span class="pl-c1">00</span>:<span class="pl-c1">00</span>   <span class="pl-k">-</span><span class="pl-c1">2.290613</span>
+Freq: D, dtype: float64</pre></div>
+<p>2、 时区转换：</p>
+<div class="highlight highlight-source-python"><pre>In [<span class="pl-c1">116</span>]: ts_utc.tz_convert(<span class="pl-s"><span class="pl-pds">'</span>US/Eastern<span class="pl-pds">'</span></span>)
+Out[<span class="pl-c1">116</span>]: 
+<span class="pl-c1">2012</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">3</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">5</span></span> <span class="pl-c1">19</span>:<span class="pl-c1">00</span>:<span class="pl-c1">00</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">5</span></span>:<span class="pl-c1">00</span>    <span class="pl-c1">0.464000</span>
+<span class="pl-c1">2012</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">3</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">6</span></span> <span class="pl-c1">19</span>:<span class="pl-c1">00</span>:<span class="pl-c1">00</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">5</span></span>:<span class="pl-c1">00</span>    <span class="pl-c1">0.227371</span>
+<span class="pl-c1">2012</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">3</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">7</span></span> <span class="pl-c1">19</span>:<span class="pl-c1">00</span>:<span class="pl-c1">00</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">5</span></span>:<span class="pl-c1">00</span>   <span class="pl-k">-</span><span class="pl-c1">0.496922</span>
+<span class="pl-c1">2012</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">3</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">8</span></span> <span class="pl-c1">19</span>:<span class="pl-c1">00</span>:<span class="pl-c1">00</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">5</span></span>:<span class="pl-c1">00</span>    <span class="pl-c1">0.306389</span>
+<span class="pl-c1">2012</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">3</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">9</span></span> <span class="pl-c1">19</span>:<span class="pl-c1">00</span>:<span class="pl-c1">00</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">5</span></span>:<span class="pl-c1">00</span>   <span class="pl-k">-</span><span class="pl-c1">2.290613</span>
+Freq: D, dtype: float64</pre></div>
+<p>3、 时间跨度转换：</p>
+<div class="highlight highlight-source-python"><pre>In [<span class="pl-c1">117</span>]: rng <span class="pl-k">=</span> pd.date_range(<span class="pl-s"><span class="pl-pds">'</span>1/1/2012<span class="pl-pds">'</span></span>, <span class="pl-v">periods</span><span class="pl-k">=</span><span class="pl-c1">5</span>, <span class="pl-v">freq</span><span class="pl-k">=</span><span class="pl-s"><span class="pl-pds">'</span>M<span class="pl-pds">'</span></span>)
+
+In [<span class="pl-c1">118</span>]: ts <span class="pl-k">=</span> pd.Series(np.random.randn(<span class="pl-c1">len</span>(rng)), <span class="pl-v">index</span><span class="pl-k">=</span>rng)
+
+In [<span class="pl-c1">119</span>]: ts
+Out[<span class="pl-c1">119</span>]: 
+<span class="pl-c1">2012</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">31</span>   <span class="pl-k">-</span><span class="pl-c1">1.134623</span>
+<span class="pl-c1">2012</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">2</span></span><span class="pl-k">-</span><span class="pl-c1">29</span>   <span class="pl-k">-</span><span class="pl-c1">1.561819</span>
+<span class="pl-c1">2012</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">3</span></span><span class="pl-k">-</span><span class="pl-c1">31</span>   <span class="pl-k">-</span><span class="pl-c1">0.260838</span>
+<span class="pl-c1">2012</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">4</span></span><span class="pl-k">-</span><span class="pl-c1">30</span>    <span class="pl-c1">0.281957</span>
+<span class="pl-c1">2012</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">5</span></span><span class="pl-k">-</span><span class="pl-c1">31</span>    <span class="pl-c1">1.523962</span>
+Freq: M, dtype: float64
+
+In [<span class="pl-c1">120</span>]: ps <span class="pl-k">=</span> ts.to_period()
+
+In [<span class="pl-c1">121</span>]: ps
+Out[<span class="pl-c1">121</span>]: 
+<span class="pl-c1">2012</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span>   <span class="pl-k">-</span><span class="pl-c1">1.134623</span>
+<span class="pl-c1">2012</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">2</span></span>   <span class="pl-k">-</span><span class="pl-c1">1.561819</span>
+<span class="pl-c1">2012</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">3</span></span>   <span class="pl-k">-</span><span class="pl-c1">0.260838</span>
+<span class="pl-c1">2012</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">4</span></span>    <span class="pl-c1">0.281957</span>
+<span class="pl-c1">2012</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">5</span></span>    <span class="pl-c1">1.523962</span>
+Freq: M, dtype: float64
+
+In [<span class="pl-c1">122</span>]: ps.to_timestamp()
+Out[<span class="pl-c1">122</span>]: 
+<span class="pl-c1">2012</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span>   <span class="pl-k">-</span><span class="pl-c1">1.134623</span>
+<span class="pl-c1">2012</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">2</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span>   <span class="pl-k">-</span><span class="pl-c1">1.561819</span>
+<span class="pl-c1">2012</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">3</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span>   <span class="pl-k">-</span><span class="pl-c1">0.260838</span>
+<span class="pl-c1">2012</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">4</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span>    <span class="pl-c1">0.281957</span>
+<span class="pl-c1">2012</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">5</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span>    <span class="pl-c1">1.523962</span>
+Freq: <span class="pl-c1">MS</span>, dtype: float64</pre></div>
+<p>4、 时期和时间戳之间的转换使得可以使用一些方便的算术函数。</p>
+<div class="highlight highlight-source-python"><pre>In [<span class="pl-c1">123</span>]: prng <span class="pl-k">=</span> pd.period_range(<span class="pl-s"><span class="pl-pds">'</span>1990Q1<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>2000Q4<span class="pl-pds">'</span></span>, <span class="pl-v">freq</span><span class="pl-k">=</span><span class="pl-s"><span class="pl-pds">'</span>Q-NOV<span class="pl-pds">'</span></span>)
+
+In [<span class="pl-c1">124</span>]: ts <span class="pl-k">=</span> pd.Series(np.random.randn(<span class="pl-c1">len</span>(prng)), prng)
+
+In [<span class="pl-c1">125</span>]: ts.index <span class="pl-k">=</span> (prng.asfreq(<span class="pl-s"><span class="pl-pds">'</span>M<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>e<span class="pl-pds">'</span></span>) <span class="pl-k">+</span> <span class="pl-c1">1</span>).asfreq(<span class="pl-s"><span class="pl-pds">'</span>H<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>s<span class="pl-pds">'</span></span>) <span class="pl-k">+</span> <span class="pl-c1">9</span>
+
+In [<span class="pl-c1">126</span>]: ts.head()
+Out[<span class="pl-c1">126</span>]: 
+<span class="pl-c1">1990</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">3</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span> <span class="pl-c1">0<span class="pl-ii">9</span></span>:<span class="pl-c1">00</span>   <span class="pl-k">-</span><span class="pl-c1">0.902937</span>
+<span class="pl-c1">1990</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">6</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span> <span class="pl-c1">0<span class="pl-ii">9</span></span>:<span class="pl-c1">00</span>    <span class="pl-c1">0.068159</span>
+<span class="pl-c1">1990</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">9</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span> <span class="pl-c1">0<span class="pl-ii">9</span></span>:<span class="pl-c1">00</span>   <span class="pl-k">-</span><span class="pl-c1">0.057873</span>
+<span class="pl-c1">1990</span><span class="pl-k">-</span><span class="pl-c1">12</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span> <span class="pl-c1">0<span class="pl-ii">9</span></span>:<span class="pl-c1">00</span>   <span class="pl-k">-</span><span class="pl-c1">0.368204</span>
+<span class="pl-c1">1991</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">3</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span> <span class="pl-c1">0<span class="pl-ii">9</span></span>:<span class="pl-c1">00</span>   <span class="pl-k">-</span><span class="pl-c1">1.144073</span>
+Freq: H, dtype: float64</pre></div>
+<h1>十、 Categorical</h1>
+<p>从 0.15 版本开始，pandas 可以在<code>DataFrame</code>中支持 Categorical 类型的数据，详细 介绍参看：<a href="http://pandas.pydata.org/pandas-docs/stable/categorical.html#categorical" rel="nofollow">Categorical 简介</a>和<a href="http://pandas.pydata.org/pandas-docs/stable/api.html#api-categorical" rel="nofollow"><em>API documentation</em></a>。</p>
+<div class="highlight highlight-source-python"><pre>In [<span class="pl-c1">127</span>]: df <span class="pl-k">=</span> pd.DataFrame({<span class="pl-s"><span class="pl-pds">"</span>id<span class="pl-pds">"</span></span>:[<span class="pl-c1">1</span>,<span class="pl-c1">2</span>,<span class="pl-c1">3</span>,<span class="pl-c1">4</span>,<span class="pl-c1">5</span>,<span class="pl-c1">6</span>], <span class="pl-s"><span class="pl-pds">"</span>raw_grade<span class="pl-pds">"</span></span>:[<span class="pl-s"><span class="pl-pds">'</span>a<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>b<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>b<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>a<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>a<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>e<span class="pl-pds">'</span></span>]})</pre></div>
+<p>1、 将原始的<code>grade</code>转换为 Categorical 数据类型：</p>
+<div class="highlight highlight-source-python"><pre>In [<span class="pl-c1">128</span>]: df[<span class="pl-s"><span class="pl-pds">"</span>grade<span class="pl-pds">"</span></span>] <span class="pl-k">=</span> df[<span class="pl-s"><span class="pl-pds">"</span>raw_grade<span class="pl-pds">"</span></span>].astype(<span class="pl-s"><span class="pl-pds">"</span>category<span class="pl-pds">"</span></span>)
+
+In [<span class="pl-c1">129</span>]: df[<span class="pl-s"><span class="pl-pds">"</span>grade<span class="pl-pds">"</span></span>]
+Out[<span class="pl-c1">129</span>]: 
+<span class="pl-c1">0</span>    a
+<span class="pl-c1">1</span>    b
+<span class="pl-c1">2</span>    b
+<span class="pl-c1">3</span>    a
+<span class="pl-c1">4</span>    a
+<span class="pl-c1">5</span>    e
+Name: grade, dtype: category
+Categories (<span class="pl-c1">3</span>, <span class="pl-c1">object</span>): [a, b, e]</pre></div>
+<p>2、 将 Categorical 类型数据重命名为更有意义的名称：</p>
+<div class="highlight highlight-source-python"><pre>In [<span class="pl-c1">130</span>]: df[<span class="pl-s"><span class="pl-pds">"</span>grade<span class="pl-pds">"</span></span>].cat.categories <span class="pl-k">=</span> [<span class="pl-s"><span class="pl-pds">"</span>very good<span class="pl-pds">"</span></span>, <span class="pl-s"><span class="pl-pds">"</span>good<span class="pl-pds">"</span></span>, <span class="pl-s"><span class="pl-pds">"</span>very bad<span class="pl-pds">"</span></span>]</pre></div>
+<p>3、 对类别进行重新排序，增加缺失的类别：</p>
+<div class="highlight highlight-source-python"><pre>In [<span class="pl-c1">131</span>]: df[<span class="pl-s"><span class="pl-pds">"</span>grade<span class="pl-pds">"</span></span>] <span class="pl-k">=</span> df[<span class="pl-s"><span class="pl-pds">"</span>grade<span class="pl-pds">"</span></span>].cat.set_categories([<span class="pl-s"><span class="pl-pds">"</span>very bad<span class="pl-pds">"</span></span>, <span class="pl-s"><span class="pl-pds">"</span>bad<span class="pl-pds">"</span></span>, <span class="pl-s"><span class="pl-pds">"</span>medium<span class="pl-pds">"</span></span>, <span class="pl-s"><span class="pl-pds">"</span>good<span class="pl-pds">"</span></span>, <span class="pl-s"><span class="pl-pds">"</span>very good<span class="pl-pds">"</span></span>])
+
+In [<span class="pl-c1">132</span>]: df[<span class="pl-s"><span class="pl-pds">"</span>grade<span class="pl-pds">"</span></span>]
+Out[<span class="pl-c1">132</span>]: 
+<span class="pl-c1">0</span>    very good
+<span class="pl-c1">1</span>         good
+<span class="pl-c1">2</span>         good
+<span class="pl-c1">3</span>    very good
+<span class="pl-c1">4</span>    very good
+<span class="pl-c1">5</span>     very bad
+Name: grade, dtype: category
+Categories (<span class="pl-c1">5</span>, <span class="pl-c1">object</span>): [very bad, bad, medium, good, very good]</pre></div>
+<p>4、 排序是按照 Categorical 的顺序进行的而不是按照字典顺序进行：</p>
+<div class="highlight highlight-source-python"><pre>In [<span class="pl-c1">133</span>]: df.sort_values(<span class="pl-v">by</span><span class="pl-k">=</span><span class="pl-s"><span class="pl-pds">"</span>grade<span class="pl-pds">"</span></span>)
+Out[<span class="pl-c1">133</span>]: 
+   <span class="pl-c1">id</span> raw_grade      grade
+<span class="pl-c1">5</span>   <span class="pl-c1">6</span>         e   very bad
+<span class="pl-c1">1</span>   <span class="pl-c1">2</span>         b       good
+<span class="pl-c1">2</span>   <span class="pl-c1">3</span>         b       good
+<span class="pl-c1">0</span>   <span class="pl-c1">1</span>         a  very good
+<span class="pl-c1">3</span>   <span class="pl-c1">4</span>         a  very good
+<span class="pl-c1">4</span>   <span class="pl-c1">5</span>         a  very good</pre></div>
+<p>5、 对 Categorical 列进行排序时存在空的类别：</p>
+<div class="highlight highlight-source-python"><pre>In [<span class="pl-c1">134</span>]: df.groupby(<span class="pl-s"><span class="pl-pds">"</span>grade<span class="pl-pds">"</span></span>).size()
+Out[<span class="pl-c1">134</span>]: 
+grade
+very bad     <span class="pl-c1">1</span>
+bad          <span class="pl-c1">0</span>
+medium       <span class="pl-c1">0</span>
+good         <span class="pl-c1">2</span>
+very good    <span class="pl-c1">3</span>
+dtype: int64</pre></div>
+<h1>十一、 画图</h1>
+<p>具体文档参看：<a href="http://pandas.pydata.org/pandas-docs/stable/visualization.html#visualization" rel="nofollow">绘图</a>文档。</p>
+<div class="highlight highlight-source-python"><pre>In [<span class="pl-c1">135</span>]: ts <span class="pl-k">=</span> pd.Series(np.random.randn(<span class="pl-c1">1000</span>), <span class="pl-v">index</span><span class="pl-k">=</span>pd.date_range(<span class="pl-s"><span class="pl-pds">'</span>1/1/2000<span class="pl-pds">'</span></span>, <span class="pl-v">periods</span><span class="pl-k">=</span><span class="pl-c1">1000</span>))
+
+In [<span class="pl-c1">136</span>]: ts <span class="pl-k">=</span> ts.cumsum()
+
+In [<span class="pl-c1">137</span>]: ts.plot()
+Out[<span class="pl-c1">137</span>]: <span class="pl-k">&lt;</span>matplotlib.axes._subplots.AxesSubplot at <span class="pl-c1"><span class="pl-k">0x</span>7ff2ab2af550</span><span class="pl-k">&gt;</span></pre></div>
+<p><a href="https://camo.githubusercontent.com/5cb54847c6c4bfe86192deed38660984d387500f/687474703a2f2f70616e6461732e7079646174612e6f72672f70616e6461732d646f63732f737461626c652f5f696d616765732f7365726965735f706c6f745f62617369632e706e67" target="_blank"><img src="https://camo.githubusercontent.com/5cb54847c6c4bfe86192deed38660984d387500f/687474703a2f2f70616e6461732e7079646174612e6f72672f70616e6461732d646f63732f737461626c652f5f696d616765732f7365726965735f706c6f745f62617369632e706e67" alt="" data-canonical-src="http://pandas.pydata.org/pandas-docs/stable/_images/series_plot_basic.png" style="max-width:100%;"></a></p>
+<p>对于<code>DataFrame</code>来说，<code>plot</code>是一种将所有列及其标签进行绘制的简便方法：</p>
+<div class="highlight highlight-source-python"><pre>In [<span class="pl-c1">138</span>]: df <span class="pl-k">=</span> pd.DataFrame(np.random.randn(<span class="pl-c1">1000</span>, <span class="pl-c1">4</span>), <span class="pl-v">index</span><span class="pl-k">=</span>ts.index,
+   <span class="pl-c1">...</span>..:                   <span class="pl-v">columns</span><span class="pl-k">=</span>[<span class="pl-s"><span class="pl-pds">'</span>A<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>B<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>C<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>D<span class="pl-pds">'</span></span>])
+   <span class="pl-c1">...</span>..: 
+
+In [<span class="pl-c1">139</span>]: df <span class="pl-k">=</span> df.cumsum()
+
+In [<span class="pl-c1">140</span>]: plt.figure(); df.plot(); plt.legend(<span class="pl-v">loc</span><span class="pl-k">=</span><span class="pl-s"><span class="pl-pds">'</span>best<span class="pl-pds">'</span></span>)
+Out[<span class="pl-c1">140</span>]: <span class="pl-k">&lt;</span>matplotlib.legend.Legend at <span class="pl-c1"><span class="pl-k">0x</span>7ff29c8163d0</span><span class="pl-k">&gt;</span></pre></div>
+<p><a href="https://camo.githubusercontent.com/5185a50572882b99063347837e4f962286ef4d02/687474703a2f2f70616e6461732e7079646174612e6f72672f70616e6461732d646f63732f737461626c652f5f696d616765732f6672616d655f706c6f745f62617369632e706e67" target="_blank"><img src="https://camo.githubusercontent.com/5185a50572882b99063347837e4f962286ef4d02/687474703a2f2f70616e6461732e7079646174612e6f72672f70616e6461732d646f63732f737461626c652f5f696d616765732f6672616d655f706c6f745f62617369632e706e67" alt="" data-canonical-src="http://pandas.pydata.org/pandas-docs/stable/_images/frame_plot_basic.png" style="max-width:100%;"></a></p>
+<h1>十二、 导入和保存数据</h1>
+<h2>CSV</h2>
+<p>参考：<a href="http://pandas.pydata.org/pandas-docs/stable/io.html#io-store-in-csv" rel="nofollow">写入 CSV 文件</a>。</p>
+<p>1、 写入 csv 文件：</p>
+<div class="highlight highlight-source-python"><pre>In [<span class="pl-c1">141</span>]: df.to_csv(<span class="pl-s"><span class="pl-pds">'</span>foo.csv<span class="pl-pds">'</span></span>)</pre></div>
+<p>2、 从 csv 文件中读取：</p>
+<div class="highlight highlight-source-python"><pre>In [<span class="pl-c1">142</span>]: pd.read_csv(<span class="pl-s"><span class="pl-pds">'</span>foo.csv<span class="pl-pds">'</span></span>)
+Out[<span class="pl-c1">142</span>]: 
+     Unnamed: <span class="pl-c1">0</span>          A          B         C          D
+<span class="pl-c1">0</span>    <span class="pl-c1">2000</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span>   <span class="pl-c1">0.266457</span>  <span class="pl-k">-</span><span class="pl-c1">0.399641</span> <span class="pl-k">-</span><span class="pl-c1">0.219582</span>   <span class="pl-c1">1.186860</span>
+<span class="pl-c1">1</span>    <span class="pl-c1">2000</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">2</span></span>  <span class="pl-k">-</span><span class="pl-c1">1.170732</span>  <span class="pl-k">-</span><span class="pl-c1">0.345873</span>  <span class="pl-c1">1.653061</span>  <span class="pl-k">-</span><span class="pl-c1">0.282953</span>
+<span class="pl-c1">2</span>    <span class="pl-c1">2000</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">3</span></span>  <span class="pl-k">-</span><span class="pl-c1">1.734933</span>   <span class="pl-c1">0.530468</span>  <span class="pl-c1">2.060811</span>  <span class="pl-k">-</span><span class="pl-c1">0.515536</span>
+<span class="pl-c1">3</span>    <span class="pl-c1">2000</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">4</span></span>  <span class="pl-k">-</span><span class="pl-c1">1.555121</span>   <span class="pl-c1">1.452620</span>  <span class="pl-c1">0.239859</span>  <span class="pl-k">-</span><span class="pl-c1">1.156896</span>
+<span class="pl-c1">4</span>    <span class="pl-c1">2000</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">5</span></span>   <span class="pl-c1">0.578117</span>   <span class="pl-c1">0.511371</span>  <span class="pl-c1">0.103552</span>  <span class="pl-k">-</span><span class="pl-c1">2.428202</span>
+<span class="pl-c1">5</span>    <span class="pl-c1">2000</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">6</span></span>   <span class="pl-c1">0.478344</span>   <span class="pl-c1">0.449933</span> <span class="pl-k">-</span><span class="pl-c1">0.741620</span>  <span class="pl-k">-</span><span class="pl-c1">1.962409</span>
+<span class="pl-c1">6</span>    <span class="pl-c1">2000</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">7</span></span>   <span class="pl-c1">1.235339</span>  <span class="pl-k">-</span><span class="pl-c1">0.091757</span> <span class="pl-k">-</span><span class="pl-c1">1.543861</span>  <span class="pl-k">-</span><span class="pl-c1">1.084753</span>
+..          <span class="pl-c1">...</span>        <span class="pl-c1">...</span>        <span class="pl-c1">...</span>       <span class="pl-c1">...</span>        <span class="pl-c1">...</span>
+<span class="pl-c1">993</span>  <span class="pl-c1">2002</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">9</span></span><span class="pl-k">-</span><span class="pl-c1">20</span> <span class="pl-k">-</span><span class="pl-c1">10.628548</span>  <span class="pl-k">-</span><span class="pl-c1">9.153563</span> <span class="pl-k">-</span><span class="pl-c1">7.883146</span>  <span class="pl-c1">28.313940</span>
+<span class="pl-c1">994</span>  <span class="pl-c1">2002</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">9</span></span><span class="pl-k">-</span><span class="pl-c1">21</span> <span class="pl-k">-</span><span class="pl-c1">10.390377</span>  <span class="pl-k">-</span><span class="pl-c1">8.727491</span> <span class="pl-k">-</span><span class="pl-c1">6.399645</span>  <span class="pl-c1">30.914107</span>
+<span class="pl-c1">995</span>  <span class="pl-c1">2002</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">9</span></span><span class="pl-k">-</span><span class="pl-c1">22</span>  <span class="pl-k">-</span><span class="pl-c1">8.985362</span>  <span class="pl-k">-</span><span class="pl-c1">8.485624</span> <span class="pl-k">-</span><span class="pl-c1">4.669462</span>  <span class="pl-c1">31.367740</span>
+<span class="pl-c1">996</span>  <span class="pl-c1">2002</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">9</span></span><span class="pl-k">-</span><span class="pl-c1">23</span>  <span class="pl-k">-</span><span class="pl-c1">9.558560</span>  <span class="pl-k">-</span><span class="pl-c1">8.781216</span> <span class="pl-k">-</span><span class="pl-c1">4.499815</span>  <span class="pl-c1">30.518439</span>
+<span class="pl-c1">997</span>  <span class="pl-c1">2002</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">9</span></span><span class="pl-k">-</span><span class="pl-c1">24</span>  <span class="pl-k">-</span><span class="pl-c1">9.902058</span>  <span class="pl-k">-</span><span class="pl-c1">9.340490</span> <span class="pl-k">-</span><span class="pl-c1">4.386639</span>  <span class="pl-c1">30.105593</span>
+<span class="pl-c1">998</span>  <span class="pl-c1">2002</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">9</span></span><span class="pl-k">-</span><span class="pl-c1">25</span> <span class="pl-k">-</span><span class="pl-c1">10.216020</span>  <span class="pl-k">-</span><span class="pl-c1">9.480682</span> <span class="pl-k">-</span><span class="pl-c1">3.933802</span>  <span class="pl-c1">29.758560</span>
+<span class="pl-c1">999</span>  <span class="pl-c1">2002</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">9</span></span><span class="pl-k">-</span><span class="pl-c1">26</span> <span class="pl-k">-</span><span class="pl-c1">11.856774</span> <span class="pl-k">-</span><span class="pl-c1">10.671012</span> <span class="pl-k">-</span><span class="pl-c1">3.216025</span>  <span class="pl-c1">29.369368</span>
+
+[<span class="pl-c1">1000</span> rows x <span class="pl-c1">5</span> columns]</pre></div>
+<h2>HDF5</h2>
+<p>参考：<a href="http://pandas.pydata.org/pandas-docs/stable/io.html#io-hdf5" rel="nofollow">HDF5 存储</a></p>
+<p>1、 写入 HDF5 存储：</p>
+<div class="highlight highlight-source-python"><pre>In [<span class="pl-c1">143</span>]: df.to_hdf(<span class="pl-s"><span class="pl-pds">'</span>foo.h5<span class="pl-pds">'</span></span>,<span class="pl-s"><span class="pl-pds">'</span>df<span class="pl-pds">'</span></span>)</pre></div>
+<p>2、 从 HDF5 存储中读取：</p>
+<div class="highlight highlight-source-python"><pre>In [<span class="pl-c1">144</span>]: pd.read_hdf(<span class="pl-s"><span class="pl-pds">'</span>foo.h5<span class="pl-pds">'</span></span>,<span class="pl-s"><span class="pl-pds">'</span>df<span class="pl-pds">'</span></span>)
+Out[<span class="pl-c1">144</span>]: 
+                    A          B         C          D
+<span class="pl-c1">2000</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span>   <span class="pl-c1">0.266457</span>  <span class="pl-k">-</span><span class="pl-c1">0.399641</span> <span class="pl-k">-</span><span class="pl-c1">0.219582</span>   <span class="pl-c1">1.186860</span>
+<span class="pl-c1">2000</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">2</span></span>  <span class="pl-k">-</span><span class="pl-c1">1.170732</span>  <span class="pl-k">-</span><span class="pl-c1">0.345873</span>  <span class="pl-c1">1.653061</span>  <span class="pl-k">-</span><span class="pl-c1">0.282953</span>
+<span class="pl-c1">2000</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">3</span></span>  <span class="pl-k">-</span><span class="pl-c1">1.734933</span>   <span class="pl-c1">0.530468</span>  <span class="pl-c1">2.060811</span>  <span class="pl-k">-</span><span class="pl-c1">0.515536</span>
+<span class="pl-c1">2000</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">4</span></span>  <span class="pl-k">-</span><span class="pl-c1">1.555121</span>   <span class="pl-c1">1.452620</span>  <span class="pl-c1">0.239859</span>  <span class="pl-k">-</span><span class="pl-c1">1.156896</span>
+<span class="pl-c1">2000</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">5</span></span>   <span class="pl-c1">0.578117</span>   <span class="pl-c1">0.511371</span>  <span class="pl-c1">0.103552</span>  <span class="pl-k">-</span><span class="pl-c1">2.428202</span>
+<span class="pl-c1">2000</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">6</span></span>   <span class="pl-c1">0.478344</span>   <span class="pl-c1">0.449933</span> <span class="pl-k">-</span><span class="pl-c1">0.741620</span>  <span class="pl-k">-</span><span class="pl-c1">1.962409</span>
+<span class="pl-c1">2000</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">7</span></span>   <span class="pl-c1">1.235339</span>  <span class="pl-k">-</span><span class="pl-c1">0.091757</span> <span class="pl-k">-</span><span class="pl-c1">1.543861</span>  <span class="pl-k">-</span><span class="pl-c1">1.084753</span>
+<span class="pl-c1">...</span>               <span class="pl-c1">...</span>        <span class="pl-c1">...</span>       <span class="pl-c1">...</span>        <span class="pl-c1">...</span>
+<span class="pl-c1">2002</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">9</span></span><span class="pl-k">-</span><span class="pl-c1">20</span> <span class="pl-k">-</span><span class="pl-c1">10.628548</span>  <span class="pl-k">-</span><span class="pl-c1">9.153563</span> <span class="pl-k">-</span><span class="pl-c1">7.883146</span>  <span class="pl-c1">28.313940</span>
+<span class="pl-c1">2002</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">9</span></span><span class="pl-k">-</span><span class="pl-c1">21</span> <span class="pl-k">-</span><span class="pl-c1">10.390377</span>  <span class="pl-k">-</span><span class="pl-c1">8.727491</span> <span class="pl-k">-</span><span class="pl-c1">6.399645</span>  <span class="pl-c1">30.914107</span>
+<span class="pl-c1">2002</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">9</span></span><span class="pl-k">-</span><span class="pl-c1">22</span>  <span class="pl-k">-</span><span class="pl-c1">8.985362</span>  <span class="pl-k">-</span><span class="pl-c1">8.485624</span> <span class="pl-k">-</span><span class="pl-c1">4.669462</span>  <span class="pl-c1">31.367740</span>
+<span class="pl-c1">2002</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">9</span></span><span class="pl-k">-</span><span class="pl-c1">23</span>  <span class="pl-k">-</span><span class="pl-c1">9.558560</span>  <span class="pl-k">-</span><span class="pl-c1">8.781216</span> <span class="pl-k">-</span><span class="pl-c1">4.499815</span>  <span class="pl-c1">30.518439</span>
+<span class="pl-c1">2002</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">9</span></span><span class="pl-k">-</span><span class="pl-c1">24</span>  <span class="pl-k">-</span><span class="pl-c1">9.902058</span>  <span class="pl-k">-</span><span class="pl-c1">9.340490</span> <span class="pl-k">-</span><span class="pl-c1">4.386639</span>  <span class="pl-c1">30.105593</span>
+<span class="pl-c1">2002</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">9</span></span><span class="pl-k">-</span><span class="pl-c1">25</span> <span class="pl-k">-</span><span class="pl-c1">10.216020</span>  <span class="pl-k">-</span><span class="pl-c1">9.480682</span> <span class="pl-k">-</span><span class="pl-c1">3.933802</span>  <span class="pl-c1">29.758560</span>
+<span class="pl-c1">2002</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">9</span></span><span class="pl-k">-</span><span class="pl-c1">26</span> <span class="pl-k">-</span><span class="pl-c1">11.856774</span> <span class="pl-k">-</span><span class="pl-c1">10.671012</span> <span class="pl-k">-</span><span class="pl-c1">3.216025</span>  <span class="pl-c1">29.369368</span>
+
+[<span class="pl-c1">1000</span> rows x <span class="pl-c1">4</span> columns]</pre></div>
+<h2>Excel</h2>
+<p>参考：<a href="http://pandas.pydata.org/pandas-docs/stable/io.html#io-excel" rel="nofollow"><em>MS Excel</em></a></p>
+<p>1、 写入excel文件：</p>
+<div class="highlight highlight-source-python"><pre>In [<span class="pl-c1">145</span>]: df.to_excel(<span class="pl-s"><span class="pl-pds">'</span>foo.xlsx<span class="pl-pds">'</span></span>, <span class="pl-v">sheet_name</span><span class="pl-k">=</span><span class="pl-s"><span class="pl-pds">'</span>Sheet1<span class="pl-pds">'</span></span>)</pre></div>
+<p>2、 从excel文件中读取：</p>
+<div class="highlight highlight-source-python"><pre>In [<span class="pl-c1">146</span>]: pd.read_excel(<span class="pl-s"><span class="pl-pds">'</span>foo.xlsx<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>Sheet1<span class="pl-pds">'</span></span>, <span class="pl-v">index_col</span><span class="pl-k">=</span><span class="pl-c1">None</span>, <span class="pl-v">na_values</span><span class="pl-k">=</span>[<span class="pl-s"><span class="pl-pds">'</span>NA<span class="pl-pds">'</span></span>])
+Out[<span class="pl-c1">146</span>]: 
+                    A          B         C          D
+<span class="pl-c1">2000</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span>   <span class="pl-c1">0.266457</span>  <span class="pl-k">-</span><span class="pl-c1">0.399641</span> <span class="pl-k">-</span><span class="pl-c1">0.219582</span>   <span class="pl-c1">1.186860</span>
+<span class="pl-c1">2000</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">2</span></span>  <span class="pl-k">-</span><span class="pl-c1">1.170732</span>  <span class="pl-k">-</span><span class="pl-c1">0.345873</span>  <span class="pl-c1">1.653061</span>  <span class="pl-k">-</span><span class="pl-c1">0.282953</span>
+<span class="pl-c1">2000</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">3</span></span>  <span class="pl-k">-</span><span class="pl-c1">1.734933</span>   <span class="pl-c1">0.530468</span>  <span class="pl-c1">2.060811</span>  <span class="pl-k">-</span><span class="pl-c1">0.515536</span>
+<span class="pl-c1">2000</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">4</span></span>  <span class="pl-k">-</span><span class="pl-c1">1.555121</span>   <span class="pl-c1">1.452620</span>  <span class="pl-c1">0.239859</span>  <span class="pl-k">-</span><span class="pl-c1">1.156896</span>
+<span class="pl-c1">2000</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">5</span></span>   <span class="pl-c1">0.578117</span>   <span class="pl-c1">0.511371</span>  <span class="pl-c1">0.103552</span>  <span class="pl-k">-</span><span class="pl-c1">2.428202</span>
+<span class="pl-c1">2000</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">6</span></span>   <span class="pl-c1">0.478344</span>   <span class="pl-c1">0.449933</span> <span class="pl-k">-</span><span class="pl-c1">0.741620</span>  <span class="pl-k">-</span><span class="pl-c1">1.962409</span>
+<span class="pl-c1">2000</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">1</span></span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">7</span></span>   <span class="pl-c1">1.235339</span>  <span class="pl-k">-</span><span class="pl-c1">0.091757</span> <span class="pl-k">-</span><span class="pl-c1">1.543861</span>  <span class="pl-k">-</span><span class="pl-c1">1.084753</span>
+<span class="pl-c1">...</span>               <span class="pl-c1">...</span>        <span class="pl-c1">...</span>       <span class="pl-c1">...</span>        <span class="pl-c1">...</span>
+<span class="pl-c1">2002</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">9</span></span><span class="pl-k">-</span><span class="pl-c1">20</span> <span class="pl-k">-</span><span class="pl-c1">10.628548</span>  <span class="pl-k">-</span><span class="pl-c1">9.153563</span> <span class="pl-k">-</span><span class="pl-c1">7.883146</span>  <span class="pl-c1">28.313940</span>
+<span class="pl-c1">2002</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">9</span></span><span class="pl-k">-</span><span class="pl-c1">21</span> <span class="pl-k">-</span><span class="pl-c1">10.390377</span>  <span class="pl-k">-</span><span class="pl-c1">8.727491</span> <span class="pl-k">-</span><span class="pl-c1">6.399645</span>  <span class="pl-c1">30.914107</span>
+<span class="pl-c1">2002</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">9</span></span><span class="pl-k">-</span><span class="pl-c1">22</span>  <span class="pl-k">-</span><span class="pl-c1">8.985362</span>  <span class="pl-k">-</span><span class="pl-c1">8.485624</span> <span class="pl-k">-</span><span class="pl-c1">4.669462</span>  <span class="pl-c1">31.367740</span>
+<span class="pl-c1">2002</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">9</span></span><span class="pl-k">-</span><span class="pl-c1">23</span>  <span class="pl-k">-</span><span class="pl-c1">9.558560</span>  <span class="pl-k">-</span><span class="pl-c1">8.781216</span> <span class="pl-k">-</span><span class="pl-c1">4.499815</span>  <span class="pl-c1">30.518439</span>
+<span class="pl-c1">2002</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">9</span></span><span class="pl-k">-</span><span class="pl-c1">24</span>  <span class="pl-k">-</span><span class="pl-c1">9.902058</span>  <span class="pl-k">-</span><span class="pl-c1">9.340490</span> <span class="pl-k">-</span><span class="pl-c1">4.386639</span>  <span class="pl-c1">30.105593</span>
+<span class="pl-c1">2002</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">9</span></span><span class="pl-k">-</span><span class="pl-c1">25</span> <span class="pl-k">-</span><span class="pl-c1">10.216020</span>  <span class="pl-k">-</span><span class="pl-c1">9.480682</span> <span class="pl-k">-</span><span class="pl-c1">3.933802</span>  <span class="pl-c1">29.758560</span>
+<span class="pl-c1">2002</span><span class="pl-k">-</span><span class="pl-c1">0<span class="pl-ii">9</span></span><span class="pl-k">-</span><span class="pl-c1">26</span> <span class="pl-k">-</span><span class="pl-c1">11.856774</span> <span class="pl-k">-</span><span class="pl-c1">10.671012</span> <span class="pl-k">-</span><span class="pl-c1">3.216025</span>  <span class="pl-c1">29.369368</span>
+
+[<span class="pl-c1">1000</span> rows x <span class="pl-c1">4</span> columns]</pre></div>
+<h1>十三、陷阱</h1>
+<p>如果你尝试某个操作并且看到如下异常：</p>
+<div class="highlight highlight-source-python"><pre><span class="pl-k">&gt;&gt;</span><span class="pl-k">&gt;</span> <span class="pl-k">if</span> pd.Series([<span class="pl-c1">False</span>, <span class="pl-c1">True</span>, <span class="pl-c1">False</span>]):
+    <span class="pl-c1">print</span>(<span class="pl-s"><span class="pl-pds">"</span>I was true<span class="pl-pds">"</span></span>)
+Traceback
+    <span class="pl-c1">...</span>
+<span class="pl-c1">ValueError</span>: The truth value of an array <span class="pl-k">is</span> ambiguous. Use a.empty, a.any() <span class="pl-k">or</span> a.all().</pre></div>
+<p>解释及处理方式请见<a href="http://pandas.pydata.org/pandas-docs/stable/basics.html#basics-compare" rel="nofollow">比较</a>。</p>
+<p>同时请见<a href="http://pandas.pydata.org/pandas-docs/stable/gotchas.html#gotchas" rel="nofollow">陷阱</a>。</p>

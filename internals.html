@@ -1,0 +1,233 @@
+
+<span id="id1"></span><h1><span class="yiyi-st" id="yiyi-52">Internals</span></h1>
+        <blockquote>
+        <p>原文：<a href="http://pandas.pydata.org/pandas-docs/stable/internals.html">http://pandas.pydata.org/pandas-docs/stable/internals.html</a></p>
+        <p>译者：<a href="https://github.com/wizardforcel">飞龙</a> <a href="http://usyiyi.cn/">UsyiyiCN</a></p>
+        <p>校对：（虚位以待）</p>
+        </blockquote>
+    
+<p><span class="yiyi-st" id="yiyi-53">本节将介绍一些大熊猫内部。</span></p>
+<div class="section" id="indexing">
+<h2><span class="yiyi-st" id="yiyi-54">Indexing</span></h2>
+<p><span class="yiyi-st" id="yiyi-55">在大熊猫中有一些实现的对象可以作为轴标签的有效容器：</span></p>
+<ul class="simple">
+<li><span class="yiyi-st" id="yiyi-56"><code class="docutils literal"><span class="pre">Index</span></code>：通用的“有序集合”对象，对象类型的ndarray，不考虑其内容。</span><span class="yiyi-st" id="yiyi-57">标签必须是可哈希的（并且可能是不可变的）和唯一的。</span><span class="yiyi-st" id="yiyi-58">在Cython中填充标签的位置以执行<code class="docutils literal"><span class="pre">O(1)</span></code>查找。</span></li>
+<li><span class="yiyi-st" id="yiyi-59"><code class="docutils literal"><span class="pre">Int64Index</span></code>：针对64位整数数据（例如时间戳）高度优化的<code class="docutils literal"><span class="pre">Index</span></code>版本</span></li>
+<li><span class="yiyi-st" id="yiyi-60"><code class="docutils literal"><span class="pre">Float64Index</span></code>：针对64位浮点数据进行高度优化的<code class="docutils literal"><span class="pre">Index</span></code>版本</span></li>
+<li><span class="yiyi-st" id="yiyi-61"><code class="docutils literal"><span class="pre">MultiIndex</span></code>：标准层次索引对象</span></li>
+<li><span class="yiyi-st" id="yiyi-62"><code class="docutils literal"><span class="pre">DatetimeIndex</span></code>：带有<code class="docutils literal"><span class="pre">Timestamp</span></code>框元素的索引对象（impl是int64值）</span></li>
+<li><span class="yiyi-st" id="yiyi-63"><code class="docutils literal"><span class="pre">TimedeltaIndex</span></code>：具有<code class="docutils literal"><span class="pre">Timedelta</span></code>框元素的索引对象（impl是in64值）</span></li>
+<li><span class="yiyi-st" id="yiyi-64"><code class="docutils literal"><span class="pre">PeriodIndex</span></code>：包含Period元素的索引对象</span></li>
+</ul>
+<p><span class="yiyi-st" id="yiyi-65">有一些功能使得创建常规索引变得容易：</span></p>
+<ul class="simple">
+<li><span class="yiyi-st" id="yiyi-66"><code class="docutils literal"><span class="pre">date_range</span></code>：从时间规则或DateOffset生成的固定频率日期范围。</span><span class="yiyi-st" id="yiyi-67">Python datetime对象的ndarray</span></li>
+<li><span class="yiyi-st" id="yiyi-68"><code class="docutils literal"><span class="pre">period_range</span></code>：从时间规则或DateOffset生成的固定频率日期范围。</span><span class="yiyi-st" id="yiyi-69"><code class="docutils literal"><span class="pre">Period</span></code>对象的数组，表示时间段</span></li>
+</ul>
+<p><span class="yiyi-st" id="yiyi-70">首先具有<code class="docutils literal"><span class="pre">Index</span></code>类的动机是启用不同的索引实现。</span><span class="yiyi-st" id="yiyi-71">这意味着，用户可以实现一个自定义<code class="docutils literal"><span class="pre">Index</span></code>子类，它可能更适合于特定应用程序，而不是在pandas中提供的。</span></p>
+<p><span class="yiyi-st" id="yiyi-72">从内部实现的角度来看，<code class="docutils literal"><span class="pre">Index</span></code>必须定义的相关方法是以下一个或多个（取决于新对象内部与<code class="docutils literal"><span class="pre">Index</span></code>功能）：</span></p>
+<ul class="simple">
+<li><span class="yiyi-st" id="yiyi-73"><code class="docutils literal"><span class="pre">get_loc</span></code>：为标签返回“indexer”（整数，或在某些情况下为slice对象）</span></li>
+<li><span class="yiyi-st" id="yiyi-74"><code class="docutils literal"><span class="pre">slice_locs</span></code>：返回“范围”到两个标签之间的切片</span></li>
+<li><span class="yiyi-st" id="yiyi-75"><code class="docutils literal"><span class="pre">get_indexer</span></code>：计算用于重建索引/数据对齐目的的索引向量。</span><span class="yiyi-st" id="yiyi-76">有关更多信息，请参阅source / docstrings</span></li>
+<li><span class="yiyi-st" id="yiyi-77"><code class="docutils literal"><span class="pre">get_indexer_non_unique</span></code>：当索引非唯一时，计算索引向量以进行重建索引/数据对齐。</span><span class="yiyi-st" id="yiyi-78">有关更多信息，请参阅source / docstrings</span></li>
+<li><span class="yiyi-st" id="yiyi-79"><code class="docutils literal"><span class="pre">reindex</span></code>：输入索引的任何预转换然后调用<code class="docutils literal"><span class="pre">get_indexer</span></code></span></li>
+<li><span class="yiyi-st" id="yiyi-80"><code class="docutils literal"><span class="pre">union</span></code>，<code class="docutils literal"><span class="pre">intersection</span></code>：计算两个Index对象的并集或交集</span></li>
+<li><span class="yiyi-st" id="yiyi-81"><code class="docutils literal"><span class="pre">insert</span></code>：在索引中插入一个新标签，产生一个新对象</span></li>
+<li><span class="yiyi-st" id="yiyi-82"><code class="docutils literal"><span class="pre">delete</span></code>：删除标签，生成一个新对象</span></li>
+<li><span class="yiyi-st" id="yiyi-83"><code class="docutils literal"><span class="pre">drop</span></code>：删除一组标签</span></li>
+<li><span class="yiyi-st" id="yiyi-84"><code class="docutils literal"><span class="pre">take</span></code>：类似于ndarray.take</span></li>
+</ul>
+<div class="section" id="multiindex">
+<h3><span class="yiyi-st" id="yiyi-85">MultiIndex</span></h3>
+<p><span class="yiyi-st" id="yiyi-86">在内部，<code class="docutils literal"><span class="pre">MultiIndex</span></code>包含以下几项内容：<strong>级别</strong>，整数<strong>标签</strong>和级别<strong>名称</strong>：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [1]: </span><span class="n">index</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">MultiIndex</span><span class="o">.</span><span class="n">from_product</span><span class="p">([</span><span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span> <span class="p">[</span><span class="s1">&apos;one&apos;</span><span class="p">,</span> <span class="s1">&apos;two&apos;</span><span class="p">]],</span> <span class="n">names</span><span class="o">=</span><span class="p">[</span><span class="s1">&apos;first&apos;</span><span class="p">,</span> <span class="s1">&apos;second&apos;</span><span class="p">])</span>
+
+<span class="gp">In [2]: </span><span class="n">index</span>
+<span class="gr">Out[2]: </span>
+<span class="go">MultiIndex(levels=[[0, 1, 2], [u&apos;one&apos;, u&apos;two&apos;]],</span>
+<span class="go">           labels=[[0, 0, 1, 1, 2, 2], [0, 1, 0, 1, 0, 1]],</span>
+<span class="go">           names=[u&apos;first&apos;, u&apos;second&apos;])</span>
+
+<span class="gp">In [3]: </span><span class="n">index</span><span class="o">.</span><span class="n">levels</span>
+<span class="gr">Out[3]: </span><span class="n">FrozenList</span><span class="p">([[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="s1">u&apos;one&apos;</span><span class="p">,</span> <span class="s1">u&apos;two&apos;</span><span class="p">]])</span>
+
+<span class="gp">In [4]: </span><span class="n">index</span><span class="o">.</span><span class="n">labels</span>
+<span class="gr">Out[4]: </span><span class="n">FrozenList</span><span class="p">([[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]])</span>
+
+<span class="gp">In [5]: </span><span class="n">index</span><span class="o">.</span><span class="n">names</span>
+<span class="gr">Out[5]: </span><span class="n">FrozenList</span><span class="p">([</span><span class="s1">u&apos;first&apos;</span><span class="p">,</span> <span class="s1">u&apos;second&apos;</span><span class="p">])</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-87">您可能猜测标签确定在索引的每个层上用该位置标识哪个唯一元素。</span><span class="yiyi-st" id="yiyi-88">It’s important to note that sortedness is determined <strong>solely</strong> from the integer labels and does not check (or care) whether the levels themselves are sorted. </span><span class="yiyi-st" id="yiyi-89">幸运的是，构造函数<code class="docutils literal"><span class="pre">from_tuples</span></code>和<code class="docutils literal"><span class="pre">from_arrays</span></code>确保这是真的，但如果你自己计算级别和标签，请小心。</span></p>
+</div>
+</div>
+<div class="section" id="subclassing-pandas-data-structures">
+<span id="ref-subclassing-pandas"></span><h2><span class="yiyi-st" id="yiyi-90">Subclassing pandas Data Structures</span></h2>
+<div class="admonition warning">
+<p class="first admonition-title"><span class="yiyi-st" id="yiyi-91">警告</span></p>
+<p><span class="yiyi-st" id="yiyi-92">在考虑子类化<code class="docutils literal"><span class="pre">pandas</span></code>数据结构之前，有一些更简单的替代方法。</span></p>
+<ol class="last arabic simple">
+<li><span class="yiyi-st" id="yiyi-93">具有<a class="reference internal" href="basics.html#basics-pipe"><span class="std std-ref">pipe</span></a></span></li>
+<li><span class="yiyi-st" id="yiyi-94">使用<em>组合</em>。</span><span class="yiyi-st" id="yiyi-95">请参阅<a class="reference external" href="http://en.wikipedia.org/wiki/Composition_over_inheritance">此处</a>。</span></li>
+</ol>
+</div>
+<p><span class="yiyi-st" id="yiyi-96">本节介绍如何子类化<code class="docutils literal"><span class="pre">pandas</span></code>数据结构以满足更具体的需求。</span><span class="yiyi-st" id="yiyi-97">有2分需要注意：</span></p>
+<ol class="arabic simple">
+<li><span class="yiyi-st" id="yiyi-98">覆盖构造函数属性。</span></li>
+<li><span class="yiyi-st" id="yiyi-99">定义原始属性</span></li>
+</ol>
+<div class="admonition note">
+<p class="first admonition-title"><span class="yiyi-st" id="yiyi-100">注意</span></p>
+<p class="last"><span class="yiyi-st" id="yiyi-101">你可以在<a class="reference external" href="https://github.com/geopandas/geopandas">geopandas</a>项目中找到一个很好的例子。</span></p>
+</div>
+<div class="section" id="override-constructor-properties">
+<h3><span class="yiyi-st" id="yiyi-102">Override Constructor Properties</span></h3>
+<p><span class="yiyi-st" id="yiyi-103">每个数据结构都具有指定数据构造函数的构造函数属性。</span><span class="yiyi-st" id="yiyi-104">通过覆盖这些属性，您可以通过<code class="docutils literal"><span class="pre">pandas</span></code>数据操作来保留定义类。</span></p>
+<p><span class="yiyi-st" id="yiyi-105">有3个构造函数要定义：</span></p>
+<ul class="simple">
+<li><span class="yiyi-st" id="yiyi-106"><code class="docutils literal"><span class="pre">_constructor</span></code>：当操作结果与原始操作结果具有相同的缩放时使用。</span></li>
+<li><span class="yiyi-st" id="yiyi-107"><code class="docutils literal"><span class="pre">_constructor_sliced</span></code>：当操作结果具有一个较低维度作为原始值时使用，例如<code class="docutils literal"><span class="pre">DataFrame</span></code>单列切片。</span></li>
+<li><span class="yiyi-st" id="yiyi-108"><code class="docutils literal"><span class="pre">_constructor_expanddim</span></code>：当操作结果具有一个较高维度作为原始值时使用，例如<code class="docutils literal"><span class="pre">Series.to_frame()</span></code>和<code class="docutils literal"><span class="pre">DataFrame.to_panel()</span></code>。</span></li>
+</ul>
+<p><span class="yiyi-st" id="yiyi-109">下表显示了默认情况下<code class="docutils literal"><span class="pre">pandas</span></code>数据结构如何定义构造函数属性。</span></p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="29%">
+<col width="25%">
+<col width="21%">
+<col width="25%">
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head"><span class="yiyi-st" id="yiyi-110">属性属性</span></th>
+<th class="head"><span class="yiyi-st" id="yiyi-111"><code class="docutils literal"><span class="pre">Series</span></code></span></th>
+<th class="head"><span class="yiyi-st" id="yiyi-112"><code class="docutils literal"><span class="pre">DataFrame</span></code></span></th>
+<th class="head"><span class="yiyi-st" id="yiyi-113"><code class="docutils literal"><span class="pre">Panel</span></code></span></th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><span class="yiyi-st" id="yiyi-114"><code class="docutils literal"><span class="pre">_constructor</span></code></span></td>
+<td><span class="yiyi-st" id="yiyi-115"><code class="docutils literal"><span class="pre">Series</span></code></span></td>
+<td><span class="yiyi-st" id="yiyi-116"><code class="docutils literal"><span class="pre">DataFrame</span></code></span></td>
+<td><span class="yiyi-st" id="yiyi-117"><code class="docutils literal"><span class="pre">Panel</span></code></span></td>
+</tr>
+<tr class="row-odd"><td><span class="yiyi-st" id="yiyi-118"><code class="docutils literal"><span class="pre">_constructor_sliced</span></code></span></td>
+<td><span class="yiyi-st" id="yiyi-119"><code class="docutils literal"><span class="pre">NotImplementedError</span></code></span></td>
+<td><span class="yiyi-st" id="yiyi-120"><code class="docutils literal"><span class="pre">Series</span></code></span></td>
+<td><span class="yiyi-st" id="yiyi-121"><code class="docutils literal"><span class="pre">DataFrame</span></code></span></td>
+</tr>
+<tr class="row-even"><td><span class="yiyi-st" id="yiyi-122"><code class="docutils literal"><span class="pre">_constructor_expanddim</span></code></span></td>
+<td><span class="yiyi-st" id="yiyi-123"><code class="docutils literal"><span class="pre">DataFrame</span></code></span></td>
+<td><span class="yiyi-st" id="yiyi-124"><code class="docutils literal"><span class="pre">Panel</span></code></span></td>
+<td><span class="yiyi-st" id="yiyi-125"><code class="docutils literal"><span class="pre">NotImplementedError</span></code></span></td>
+</tr>
+</tbody>
+</table>
+<p><span class="yiyi-st" id="yiyi-126">下面的示例显示如何定义<code class="docutils literal"><span class="pre">SubclassedSeries</span></code>和<code class="docutils literal"><span class="pre">SubclassedDataFrame</span></code>覆盖构造函数属性。</span></p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">SubclassedSeries</span><span class="p">(</span><span class="n">Series</span><span class="p">):</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_constructor</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">SubclassedSeries</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_constructor_expanddim</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">SubclassedDataFrame</span>
+
+<span class="k">class</span> <span class="nc">SubclassedDataFrame</span><span class="p">(</span><span class="n">DataFrame</span><span class="p">):</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_constructor</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">SubclassedDataFrame</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_constructor_sliced</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">SubclassedSeries</span>
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">SubclassedSeries</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">type</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+<span class="go">&lt;class &apos;__main__.SubclassedSeries&apos;&gt;</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">to_framed</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">to_frame</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">type</span><span class="p">(</span><span class="n">to_framed</span><span class="p">)</span>
+<span class="go">&lt;class &apos;__main__.SubclassedDataFrame&apos;&gt;</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">df</span> <span class="o">=</span> <span class="n">SubclassedDataFrame</span><span class="p">({</span><span class="s1">&apos;A&apos;</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="s1">&apos;B&apos;</span><span class="p">:</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">],</span> <span class="s1">&apos;C&apos;</span><span class="p">:</span> <span class="p">[</span><span class="mi">7</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">9</span><span class="p">]})</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">df</span>
+<span class="go">   A  B  C</span>
+<span class="go">0  1  4  7</span>
+<span class="go">1  2  5  8</span>
+<span class="go">2  3  6  9</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">type</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+<span class="go">&lt;class &apos;__main__.SubclassedDataFrame&apos;&gt;</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sliced1</span> <span class="o">=</span> <span class="n">df</span><span class="p">[[</span><span class="s1">&apos;A&apos;</span><span class="p">,</span> <span class="s1">&apos;B&apos;</span><span class="p">]]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sliced1</span>
+<span class="go">   A  B</span>
+<span class="go">0  1  4</span>
+<span class="go">1  2  5</span>
+<span class="go">2  3  6</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">type</span><span class="p">(</span><span class="n">sliced1</span><span class="p">)</span>
+<span class="go">&lt;class &apos;__main__.SubclassedDataFrame&apos;&gt;</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sliced2</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s1">&apos;A&apos;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sliced2</span>
+<span class="go">0    1</span>
+<span class="go">1    2</span>
+<span class="go">2    3</span>
+<span class="go">Name: A, dtype: int64</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">type</span><span class="p">(</span><span class="n">sliced2</span><span class="p">)</span>
+<span class="go">&lt;class &apos;__main__.SubclassedSeries&apos;&gt;</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="define-original-properties">
+<h3><span class="yiyi-st" id="yiyi-127">Define Original Properties</span></h3>
+<p><span class="yiyi-st" id="yiyi-128">要让原始数据结构具有其他属性，您应该让<code class="docutils literal"><span class="pre">pandas</span></code>知道添加了什么属性。</span><span class="yiyi-st" id="yiyi-129"><code class="docutils literal"><span class="pre">pandas</span></code>将未知属性映射到覆盖<code class="docutils literal"><span class="pre">__getattribute__</span></code>的数据名称。</span><span class="yiyi-st" id="yiyi-130">定义原始属性可以通过以下两种方式之一完成：</span></p>
+<ol class="arabic simple">
+<li><span class="yiyi-st" id="yiyi-131">为不会传递到操作结果的临时属性定义<code class="docutils literal"><span class="pre">_internal_names</span></code>和<code class="docutils literal"><span class="pre">_internal_names_set</span></code>。</span></li>
+<li><span class="yiyi-st" id="yiyi-132">为将传递到操作结果的正常属性定义<code class="docutils literal"><span class="pre">_metadata</span></code>。</span></li>
+</ol>
+<p><span class="yiyi-st" id="yiyi-133">下面是一个定义2个原始属性的示例，“internal_cache”作为临时属性，“added_property”作为正常属性</span></p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">SubclassedDataFrame2</span><span class="p">(</span><span class="n">DataFrame</span><span class="p">):</span>
+
+    <span class="c1"># temporary properties</span>
+    <span class="n">_internal_names</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">_internal_names</span> <span class="o">+</span> <span class="p">[</span><span class="s1">&apos;internal_cache&apos;</span><span class="p">]</span>
+    <span class="n">_internal_names_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">_internal_names</span><span class="p">)</span>
+
+    <span class="c1"># normal properties</span>
+    <span class="n">_metadata</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&apos;added_property&apos;</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_constructor</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">SubclassedDataFrame2</span>
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">df</span> <span class="o">=</span> <span class="n">SubclassedDataFrame2</span><span class="p">({</span><span class="s1">&apos;A&apos;</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="s1">&apos;B&apos;</span><span class="p">:</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">],</span> <span class="s1">&apos;C&apos;</span><span class="p">:</span> <span class="p">[</span><span class="mi">7</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">9</span><span class="p">]})</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">df</span>
+<span class="go">   A  B  C</span>
+<span class="go">0  1  4  7</span>
+<span class="go">1  2  5  8</span>
+<span class="go">2  3  6  9</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">df</span><span class="o">.</span><span class="n">internal_cache</span> <span class="o">=</span> <span class="s1">&apos;cached&apos;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">df</span><span class="o">.</span><span class="n">added_property</span> <span class="o">=</span> <span class="s1">&apos;property&apos;</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">df</span><span class="o">.</span><span class="n">internal_cache</span>
+<span class="go">cached</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">df</span><span class="o">.</span><span class="n">added_property</span>
+<span class="go">property</span>
+
+<span class="go"># properties defined in _internal_names is reset after manipulation</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">df</span><span class="p">[[</span><span class="s1">&apos;A&apos;</span><span class="p">,</span> <span class="s1">&apos;B&apos;</span><span class="p">]]</span><span class="o">.</span><span class="n">internal_cache</span>
+<span class="go">AttributeError: &apos;SubclassedDataFrame2&apos; object has no attribute &apos;internal_cache&apos;</span>
+
+<span class="go"># properties defined in _metadata are retained</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">df</span><span class="p">[[</span><span class="s1">&apos;A&apos;</span><span class="p">,</span> <span class="s1">&apos;B&apos;</span><span class="p">]]</span><span class="o">.</span><span class="n">added_property</span>
+<span class="go">property</span>
+</pre></div>
+</div>
+</div>
+</div>

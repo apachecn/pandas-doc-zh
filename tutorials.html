@@ -1,0 +1,86 @@
+
+<span id="id1"></span><h1><span class="yiyi-st" id="yiyi-54">教程</span></h1>
+        <blockquote>
+        <p>原文：<a href="http://pandas.pydata.org/pandas-docs/stable/tutorials.html">http://pandas.pydata.org/pandas-docs/stable/tutorials.html</a></p>
+        <p>译者：<a href="https://github.com/wizardforcel">飞龙</a> <a href="http://usyiyi.cn/">UsyiyiCN</a></p>
+        <p>校对：（虚位以待）</p>
+        </blockquote>
+    
+<p><span class="yiyi-st" id="yiyi-55">这是一份很多pandas教程的指南，主要面向pandas的新用户</span></p>
+<div class="section" id="internal-guides">
+<h2><span class="yiyi-st" id="yiyi-56">内部指南</span></h2>
+<p><span class="yiyi-st" id="yiyi-57">pandas<a class="reference internal" href="10min.html#min"><span class="std std-ref">10分钟了解pandas</span></a></span></p>
+<p><span class="yiyi-st" id="yiyi-58">更复杂的运用在<a class="reference internal" href="cookbook.html#cookbook"><span class="std std-ref">Cookbook</span></a>中</span></p>
+</div>
+<div class="section" id="pandas-cookbook">
+<h2><span class="yiyi-st" id="yiyi-59">pandas Cookbook</span></h2>
+<p><span class="yiyi-st" id="yiyi-60">这本书的目标（由<a class="reference external" href="http://jvns.ca">Julia Evans</a>）是通过给你一些具体的例子来开始使用pandas。</span><span class="yiyi-st" id="yiyi-61">这些是真实数据的例子，以及所有的错误和引起异常。</span></p>
+<p><span class="yiyi-st" id="yiyi-62">这里是v0.1版本的链接。</span><span class="yiyi-st" id="yiyi-63">有关最新的目录，请参阅<a class="reference external" href="http://github.com/jvns/pandas-cookbook">pandas-cookbook GitHub存储库</a>。</span><span class="yiyi-st" id="yiyi-64">要运行本教程中的示例，您需要克隆GitHub存储库并使IPython Notebook运行。</span><span class="yiyi-st" id="yiyi-65">请参阅<a class="reference external" href="https://github.com/jvns/pandas-cookbook#how-to-use-this-cookbook">如何使用本CookBook</a>。</span></p>
+<ul class="simple">
+<li><span class="yiyi-st" id="yiyi-66"><a class="reference external" href="http://nbviewer.ipython.org/github/jvns/pandas-cookbook/blob/v0.1/cookbook/A%20quick%20tour%20of%20IPython%20Notebook.ipynb">IPython Notebook的快速浏览：</a>显示IPython的自动补全和魔法函数。</span></li>
+<li><span class="yiyi-st" id="yiyi-67"><a class="reference external" href="http://nbviewer.ipython.org/github/jvns/pandas-cookbook/blob/v0.1/cookbook/Chapter%201%20-%20Reading%20from%20a%20CSV.ipynb">第1章：</a>将数据读入pandas是最简单的事情。</span><span class="yiyi-st" id="yiyi-68">即使编码错误！</span></li>
+<li><span class="yiyi-st" id="yiyi-69"><a class="reference external" href="http://nbviewer.ipython.org/github/jvns/pandas-cookbook/blob/v0.1/cookbook/Chapter%202%20-%20Selecting%20data%20&amp;%20finding%20the%20most%20common%20complaint%20type.ipynb">第2章：</a>如何从一个pandas数据框中选择数据并不十分明显。</span><span class="yiyi-st" id="yiyi-70">这里我们解释一些基础知识（如何获取切片和获取列）</span></li>
+<li><span class="yiyi-st" id="yiyi-71"><a class="reference external" href="http://nbviewer.ipython.org/github/jvns/pandas-cookbook/blob/v0.1/cookbook/Chapter%203%20-%20Which%20borough%20has%20the%20most%20noise%20complaints%3F%20%28or%2C%20more%20selecting%20data%29.ipynb">第3章：</a>在这里，我们进入严格的切片和切片，学习如何以复杂的方式快速的过滤数据帧。</span></li>
+<li><span class="yiyi-st" id="yiyi-72"><a class="reference external" href="http://nbviewer.ipython.org/github/jvns/pandas-cookbook/blob/v0.1/cookbook/Chapter%204%20-%20Find%20out%20on%20which%20weekday%20people%20bike%20the%20most%20with%20groupby%20and%20aggregate.ipynb">第4章：</a> 如何运用Groupby/aggregate处理pandas数据，</span><span class="yiyi-st" id="yiyi-73">你应该读这个。</span></li>
+<li><span class="yiyi-st" id="yiyi-74"><a class="reference external" href="http://nbviewer.ipython.org/github/jvns/pandas-cookbook/blob/v0.1/cookbook/Chapter%205%20-%20Combining%20dataframes%20and%20scraping%20Canadian%20weather%20data.ipynb">第5章：</a>在这里你可以知道蒙特利尔的冬天是否寒冷（剧透：是）。</span><span class="yiyi-st" id="yiyi-75">如何使用pandas抓取网络数据！</span><span class="yiyi-st" id="yiyi-76">如何组合数据。</span></li>
+<li><span class="yiyi-st" id="yiyi-77"><a class="reference external" href="http://nbviewer.ipython.org/github/jvns/pandas-cookbook/blob/v0.1/cookbook/Chapter%206%20-%20String%20operations%21%20Which%20month%20was%20the%20snowiest%3F.ipynb">第6章：</a>pandas文本处理十分方便。</span><span class="yiyi-st" id="yiyi-78">它有所有这些向量化的字符串操作，他们是最好的。</span><span class="yiyi-st" id="yiyi-79">我们将把一堆包含“Snow”的字符串转换成trice中的数字向量。</span></li>
+<li><span class="yiyi-st" id="yiyi-80"><a class="reference external" href="http://nbviewer.ipython.org/github/jvns/pandas-cookbook/blob/v0.1/cookbook/Chapter%207%20-%20Cleaning%20up%20messy%20data.ipynb">第7章：</a>如何使用pandas清理缺失数据。</span></li>
+<li><span class="yiyi-st" id="yiyi-81"><a class="reference external" href="http://nbviewer.ipython.org/github/jvns/pandas-cookbook/blob/v0.1/cookbook/Chapter%208%20-%20How%20to%20deal%20with%20timestamps.ipynb">第8章：</a>使用pandas解析Unix时间轴。</span></li>
+</ul>
+</div>
+<div class="section" id="lessons-for-new-pandas-users">
+<h2><span class="yiyi-st" id="yiyi-82">Lessons for New pandas Users</span></h2>
+<p><span class="yiyi-st" id="yiyi-83">有关更多资源，请访问主要的<a class="reference external" href="https://bitbucket.org/hrojas/learn-pandas">存储库</a>。</span></p>
+<ul class="simple">
+<li><span class="yiyi-st" id="yiyi-84"><a class="reference external" href="http://nbviewer.ipython.org/urls/bitbucket.org/hrojas/learn-pandas/raw/master/lessons/01%20-%20Lesson.ipynb">01  -  Lesson：</a>  - 导入库 - 创建数据集 - 创建数据框 - 从CSV读取 - 导出到CSV  - 查找最大值 - 绘制数据</span></li>
+<li><span class="yiyi-st" id="yiyi-85"><a class="reference external" href="http://nbviewer.ipython.org/urls/bitbucket.org/hrojas/learn-pandas/raw/master/lessons/02%20-%20Lesson.ipynb">02  -  Lesson：</a>  - 从TXT读取 - 导出到TXT  - 选择顶部/底部记录 - 描述性统计 - 对数据进行分组/排序</span></li>
+<li><span class="yiyi-st" id="yiyi-86"><a class="reference external" href="http://nbviewer.ipython.org/urls/bitbucket.org/hrojas/learn-pandas/raw/master/lessons/03%20-%20Lesson.ipynb">03  -  Lesson：</a>  - 创建函数 - 从EXCEL读取 - 导出到EXCEL  - 离群值 -  Lambda函数 - 切片和骰子数据</span></li>
+<li><span class="yiyi-st" id="yiyi-87"><a class="reference external" href="http://nbviewer.ipython.org/urls/bitbucket.org/hrojas/learn-pandas/raw/master/lessons/04%20-%20Lesson.ipynb">04  -  Lesson：</a>  - 添加/删除列 - 索引操作</span></li>
+<li><span class="yiyi-st" id="yiyi-88"><a class="reference external" href="http://nbviewer.ipython.org/urls/bitbucket.org/hrojas/learn-pandas/raw/master/lessons/05%20-%20Lesson.ipynb">05  -  Lesson：</a>  -  Stack / Unstack / Transpose函数</span></li>
+<li><span class="yiyi-st" id="yiyi-89"><a class="reference external" href="http://nbviewer.ipython.org/urls/bitbucket.org/hrojas/learn-pandas/raw/master/lessons/06%20-%20Lesson.ipynb">06  -  Lesson：</a>  -  GroupBy函数</span></li>
+<li><span class="yiyi-st" id="yiyi-90"><a class="reference external" href="http://nbviewer.ipython.org/urls/bitbucket.org/hrojas/learn-pandas/raw/master/lessons/07%20-%20Lesson.ipynb">07  -  Lesson：</a>  - 计算异常值的方法</span></li>
+<li><span class="yiyi-st" id="yiyi-91"><a class="reference external" href="http://nbviewer.ipython.org/urls/bitbucket.org/hrojas/learn-pandas/raw/master/lessons/08%20-%20Lesson.ipynb">08  -  Lesson：</a>  - 从Microsoft SQL数据库读取</span></li>
+<li><span class="yiyi-st" id="yiyi-92"><a class="reference external" href="http://nbviewer.ipython.org/urls/bitbucket.org/hrojas/learn-pandas/raw/master/lessons/09%20-%20Lesson.ipynb">09  -  Lesson：</a>  - 导出到CSV / EXCEL / TXT</span></li>
+<li><span class="yiyi-st" id="yiyi-93"><a class="reference external" href="http://nbviewer.ipython.org/urls/bitbucket.org/hrojas/learn-pandas/raw/master/lessons/10%20-%20Lesson.ipynb">10  -  Lesson：</a>  - 读取/写入Excel/Json格式数据</span></li>
+<li><span class="yiyi-st" id="yiyi-94"><a class="reference external" href="http://nbviewer.ipython.org/urls/bitbucket.org/hrojas/learn-pandas/raw/master/lessons/11%20-%20Lesson.ipynb">11  -  Lesson：</a>  - 合并来自各种来源的数据</span></li>
+</ul>
+</div>
+<div class="section" id="practical-data-analysis-with-python">
+<h2><span class="yiyi-st" id="yiyi-95">Practical data analysis with Python</span></h2>
+<p><span class="yiyi-st" id="yiyi-96">此<a class="reference external" href="http://wavedatalab.github.io/datawithpython">指南</a>是使用Python数据生态系统和一个有趣的开放数据集的数据分析过程的全面介绍。</span><span class="yiyi-st" id="yiyi-97">有四个部分涵盖所选主题如下：</span></p>
+<ul class="simple">
+<li><span class="yiyi-st" id="yiyi-98"><a class="reference external" href="http://wavedatalab.github.io/datawithpython/munge.html">Munging数据</a></span></li>
+<li><span class="yiyi-st" id="yiyi-99"><a class="reference external" href="http://wavedatalab.github.io/datawithpython/aggregate.html">汇总数据</a></span></li>
+<li><span class="yiyi-st" id="yiyi-100"><a class="reference external" href="http://wavedatalab.github.io/datawithpython/visualize.html">可视化数据</a></span></li>
+<li><span class="yiyi-st" id="yiyi-101"><a class="reference external" href="http://wavedatalab.github.io/datawithpython/timeseries.html">时间序列</a></span></li>
+</ul>
+</div>
+<div class="section" id="modern-pandas">
+<span id="tutorial-modern"></span><h2><span class="yiyi-st" id="yiyi-102">Modern Pandas</span></h2>
+<ul class="simple">
+<li><span class="yiyi-st" id="yiyi-103"><a class="reference external" href="http://tomaugspurger.github.io/modern-1.html">现代pandas</a></span></li>
+<li><span class="yiyi-st" id="yiyi-104"><a class="reference external" href="http://tomaugspurger.github.io/method-chaining.html">方法链接</a></span></li>
+<li><span class="yiyi-st" id="yiyi-105"><a class="reference external" href="http://tomaugspurger.github.io/modern-3-indexes.html">索引</a></span></li>
+<li><span class="yiyi-st" id="yiyi-106"><a class="reference external" href="http://tomaugspurger.github.io/modern-4-performance.html">效果</a></span></li>
+<li><span class="yiyi-st" id="yiyi-107"><a class="reference external" href="http://tomaugspurger.github.io/modern-5-tidy.html">整理数据</a></span></li>
+<li><span class="yiyi-st" id="yiyi-108"><a class="reference external" href="http://tomaugspurger.github.io/modern-6-visualization.html">可视化</a></span></li>
+</ul>
+</div>
+<div class="section" id="excel-charts-with-pandas-vincent-and-xlsxwriter">
+<h2><span class="yiyi-st" id="yiyi-109">Excel charts with pandas, vincent and xlsxwriter</span></h2>
+<ul class="simple">
+<li><span class="yiyi-st" id="yiyi-110"><a class="reference external" href="https://pandas-xlsxwriter-charts.readthedocs.io/">使用Pandas和XlsxWriter创建Excel图表</a></span></li>
+</ul>
+</div>
+<div class="section" id="various-tutorials">
+<h2><span class="yiyi-st" id="yiyi-111">Various Tutorials</span></h2>
+<ul class="simple">
+<li><span class="yiyi-st" id="yiyi-112"><a class="reference external" href="http://blog.wesmckinney.com/">Wes McKinney&apos;s（pandas BDFL）blog</a></span></li>
+<li><span class="yiyi-st" id="yiyi-113"><a class="reference external" href="http://www.randalolson.com/2012/08/06/statistical-analysis-made-easy-in-python/">使用SciPy和pandas DataFrames在Python中进行统计分析，由Randal Olson</a></span></li>
+<li><span class="yiyi-st" id="yiyi-114"><a class="reference external" href="http://conference.scipy.org/scipy2013/tutorial_detail.php?id=109">Python中的统计数据分析，教程视频，来自SciPy 2013的Christopher Fonnesbeck</a></span></li>
+<li><span class="yiyi-st" id="yiyi-115"><a class="reference external" href="http://nbviewer.ipython.org/github/twiecki/financial-analysis-python-tutorial/blob/master/1.%20Pandas%20Basics.ipynb">Python中的财务分析，Thomas Wiecki</a></span></li>
+<li><span class="yiyi-st" id="yiyi-116"><a class="reference external" href="http://www.gregreda.com/2013/10/26/intro-to-pandas-data-structures/">Pandas数据结构简介，作者：Greg Reda</a></span></li>
+<li><span class="yiyi-st" id="yiyi-117"><a class="reference external" href="http://manishamde.github.io/blog/2013/03/07/pandas-and-python-top-10/">Pandas和Python：前10名，由Manish Amde</a></span></li>
+<li><span class="yiyi-st" id="yiyi-118"><a class="reference external" href="http://www.bearrelroll.com/2013/05/python-pandas-tutorial">Pandas Tutorial，由Mikhail Semeniuk</a></span></li>
+</ul>
+</div>

@@ -1,0 +1,98 @@
+
+<h1><span class="yiyi-st" id="yiyi-46">pandas:强大的Python数据分析工具包</span></h1>
+        <blockquote>
+        <p>原文：<a href="http://pandas.pydata.org/pandas-docs/stable/index.html">http://pandas.pydata.org/pandas-docs/stable/index.html</a></p>
+        <p>译者：<a href="https://github.com/wizardforcel">飞龙</a> <a href="http://usyiyi.cn/">UsyiyiCN</a></p>
+        <p>校对：（虚位以待）</p>
+        </blockquote>
+    
+<p><span class="yiyi-st" id="yiyi-47"><a class="reference external" href="pandas.pdf">PDF版本</a></span></p>
+<p><span class="yiyi-st" id="yiyi-48"><a class="reference external" href="pandas.zip">已压缩的HTML</a></span></p>
+<span class="target" id="module-pandas"></span><p><span class="yiyi-st" id="yiyi-49"><strong>日期</strong>：2016年12月24日<strong>版本</strong>：0.19.2</span></p>
+<p><span class="yiyi-st" id="yiyi-50"><strong>二进制安装：</strong> <a class="reference external" href="http://pypi.python.org/pypi/pandas">http://pypi.python.org/pypi/pandas</a></span></p>
+<p><span class="yiyi-st" id="yiyi-51"><strong>源代码仓库：</strong> <a class="reference external" href="http://github.com/pydata/pandas">http://github.com/pydata/pandas</a></span></p>
+<p><span class="yiyi-st" id="yiyi-52"><strong>问题&amp;想法：</strong> <a class="reference external" href="https://github.com/pydata/pandas/issues">https://github.com/pydata/pandas/issues</a></span></p>
+<p><span class="yiyi-st" id="yiyi-53"><strong>Q&amp;A支持：</strong> <a class="reference external" href="http://stackoverflow.com/questions/tagged/pandas">http://stackoverflow.com/questions/tagged/pandas</a></span></p>
+<p><span class="yiyi-st" id="yiyi-54"><strong>开发人员邮件列表：</strong> <a class="reference external" href="http://groups.google.com/group/pydata">http://groups.google.com/group/pydata</a></span></p>
+<p><span class="yiyi-st" id="yiyi-55"><strong>pandas</strong>是一个提供快速，灵活和表达性数据结构的<a class="reference external" href="http://www.python.org">Python</a>包，旨在使“关系”或“标记”数据变得简单直观。</span><span class="yiyi-st" id="yiyi-56">它旨在成为在Python中进行实用的<strong>真实世界</strong>数据分析的基本高级构建块。</span><span class="yiyi-st" id="yiyi-57">此外，它的更广泛的目标是成为<strong>最强大和最灵活的任何语言</strong>的开源数据分析/操作工具。</span><span class="yiyi-st" id="yiyi-58">它已经很好地朝着这个目标前进了。</span></p>
+<p><span class="yiyi-st" id="yiyi-59">pandas非常适合许多不同类型的数据：</span></p>
+<blockquote>
+<div><ul class="simple">
+<li><span class="yiyi-st" id="yiyi-60">具有非均匀类型列的表格数据，如在SQL表或Excel电子表格中</span></li>
+<li><span class="yiyi-st" id="yiyi-61">有序和无序（不一定是固定频率）时间序列数据。</span></li>
+<li><span class="yiyi-st" id="yiyi-62">带有行和列标签的任意矩阵数据（均匀类型或异质）</span></li>
+<li><span class="yiyi-st" id="yiyi-63">任何其他形式的观测/统计数据集。</span><span class="yiyi-st" id="yiyi-64">数据实际上不需要被标记就可以被放置到Pandas的数据结构中</span></li>
+</ul>
+</div></blockquote>
+<p><span class="yiyi-st" id="yiyi-65">pandas的两个主要数据结构<a class="reference internal" href="generated/pandas.Series.html#pandas.Series" title="pandas.Series"><code class="xref py py-class docutils literal"><span class="pre">Series</span></code></a>（一维）和<a class="reference internal" href="generated/pandas.DataFrame.html#pandas.DataFrame" title="pandas.DataFrame"><code class="xref py py-class docutils literal"><span class="pre">DataFrame</span></code></a>（二维）处理了金融，统计，社会中的绝大多数典型用例科学，以及许多工程领域。</span><span class="yiyi-st" id="yiyi-66">对于R用户，<a class="reference internal" href="generated/pandas.DataFrame.html#pandas.DataFrame" title="pandas.DataFrame"><code class="xref py py-class docutils literal"><span class="pre">DataFrame</span></code></a>提供R的<code class="docutils literal"><span class="pre">data.frame</span></code>所有功能及其他功能。</span><span class="yiyi-st" id="yiyi-67">pandas建立在<a class="reference external" href="http://www.numpy.org">NumPy</a>之上，旨在包含更多其他第三方库并与之集成为优秀的科学计算环境。</span></p>
+<p><span class="yiyi-st" id="yiyi-68">这里只是几个pandas做得很好的事情：</span></p>
+<blockquote>
+<div><ul class="simple">
+<li><span class="yiyi-st" id="yiyi-69">轻松处理浮点数据中的<strong>缺失数据</strong>（表示为NaN）以及非浮点数据</span></li>
+<li><span class="yiyi-st" id="yiyi-70">大小可变性：列可以从DataFrame和更高维度的对象中<strong>插入和删除</strong></span></li>
+<li><span class="yiyi-st" id="yiyi-71">自动和显式<strong>数据对齐</strong>：对象可以显式地对齐到一组标签，或者用户可以简单地忽略标签，让<cite>Series</cite>，<cite>DataFrame </cite>等</span><span class="yiyi-st" id="yiyi-72">在计算中为您自动对齐数据</span></li>
+<li><span class="yiyi-st" id="yiyi-73">功能强大，灵活的<strong>分组</strong>功能对数据集执行拆分应用组合操作，以聚合和转换数据</span></li>
+<li><span class="yiyi-st" id="yiyi-74">使<strong>易于将其他Python和NumPy数据结构中的</strong>粗糙，不同索引的数据转换为DataFrame对象</span></li>
+<li><span class="yiyi-st" id="yiyi-75">基于智能标签的<strong>切片</strong>，<strong>花式索引</strong>和<strong>子集化</strong>大数据集</span></li>
+<li><span class="yiyi-st" id="yiyi-76">直观的<strong>合并</strong>和<strong>连接</strong>数据集</span></li>
+<li><span class="yiyi-st" id="yiyi-77">灵活的<strong>重塑</strong>和数据集的旋转</span></li>
+<li><span class="yiyi-st" id="yiyi-78"><strong>轴的分层</strong>标签（每个标记可能有多个标签）</span></li>
+<li><span class="yiyi-st" id="yiyi-79">用于从<strong>平面文件</strong>（CSV和定界），Excel文件，数据库加载数据并保存/加载超快速<strong>HDF5格式的数据的强大IO工具</strong></span></li>
+<li><span class="yiyi-st" id="yiyi-80"><strong>时间序列</strong>  - 特定功能：日期范围生成和频率转换，移动窗口统计，移动窗口线性回归，日期移动和滞后等。</span></li>
+</ul>
+</div></blockquote>
+<p><span class="yiyi-st" id="yiyi-81">许多此处原则是为了解决在使用其他语言/科学研究环境时常常所遇到的不足。</span><span class="yiyi-st" id="yiyi-82">对于数据科学家，处理数据通常分为多个阶段：清理和清理数据，分析/建模，然后将分析的结果组织成适合于绘图或表格显示的形式。</span><span class="yiyi-st" id="yiyi-83">pandas是处理所有这些任务的理想工具。</span></p>
+<p><span class="yiyi-st" id="yiyi-84">其他一些注释</span></p>
+<blockquote>
+<div><ul class="simple">
+<li><span class="yiyi-st" id="yiyi-85">pandas是<strong>快速的</strong>。</span><span class="yiyi-st" id="yiyi-86">许多低级算法位已在<a class="reference external" href="http://cython.org">Cython</a>代码中广泛调整。</span><span class="yiyi-st" id="yiyi-87">然而，通用化的代价是牺牲性能，这是一种普遍现象。</span><span class="yiyi-st" id="yiyi-88">因此，如果您专注于应用程序的一个功能，您可以创建一个更快的专业工具。</span></li>
+<li><span class="yiyi-st" id="yiyi-89">pandas是<a class="reference external" href="http://www.statsmodels.org/stable/index.html">statsmodels</a>的依赖项，使其成为Python中统计计算生态系统的重要组成部分。</span></li>
+<li><span class="yiyi-st" id="yiyi-90">pandas已广泛用于金融应用的产品。</span></li>
+</ul>
+</div></blockquote>
+<div class="admonition note">
+<p class="first admonition-title"><span class="yiyi-st" id="yiyi-91">注意</span></p>
+<p class="last"><span class="yiyi-st" id="yiyi-92">本文档假定你熟悉NumPy。</span><span class="yiyi-st" id="yiyi-93">如果你还没有熟练使用NumPy或者根本没用过numpy，请先花一些时间学习<a class="reference external" href="http://docs.scipy.org">NumPy</a>。</span></p>
+</div>
+<p><span class="yiyi-st" id="yiyi-94">有关库中的内容的更多详细信息，请参阅软件包概述。</span></p>
+<div class="toctree-wrapper compound">
+    <ul>
+    <li class="toctree-l1"><span class="yiyi-st" id="yiyi-7"><a class="reference internal" href="whatsnew.html">新功能</a></span></li>
+    <li class="toctree-l1"><span class="yiyi-st" id="yiyi-8"><a class="reference internal" href="install.html">安装</a></span></li>
+    <li class="toctree-l1"><span class="yiyi-st" id="yiyi-9"><a class="reference internal" href="contributing.html">为pandas贡献</a></span></li>
+    <li class="toctree-l1"><span class="yiyi-st" id="yiyi-10"><a class="reference internal" href="faq.html">常见问题（FAQ）</a></span></li>
+    <li class="toctree-l1"><span class="yiyi-st" id="yiyi-11"><a class="reference internal" href="overview.html">套装概述</a></span></li>
+    <li class="toctree-l1"><span class="yiyi-st" id="yiyi-12" style=""><a class="reference internal" href="10min.html">10分钟入门pandas</a></span></li>
+    <li class="toctree-l1"><span class="yiyi-st" id="yiyi-13" style=""><a class="reference internal" href="tutorials.html">教程</a></span></li>
+    <li class="toctree-l1"><span class="yiyi-st" id="yiyi-14" style=""><a class="reference internal" href="cookbook.html">食谱</a></span></li>
+    <li class="toctree-l1"><span class="yiyi-st" id="yiyi-15" style=""><a class="reference internal" href="dsintro.html">数据结构简介</a></span></li>
+    <li class="toctree-l1"><span class="yiyi-st" id="yiyi-16"><a class="reference internal" href="basics.html">基本基本功能</a></span></li>
+    <li class="toctree-l1"><span class="yiyi-st" id="yiyi-17"><a class="reference internal" href="text.html">使用文本数据</a></span></li>
+    <li class="toctree-l1"><span class="yiyi-st" id="yiyi-18"><a class="reference internal" href="options.html">选项和设置</a></span></li>
+    <li class="toctree-l1"><span class="yiyi-st" id="yiyi-19"><a class="reference internal" href="indexing.html">索引和选择数据</a></span></li>
+    <li class="toctree-l1"><span class="yiyi-st" id="yiyi-20"><a class="reference internal" href="advanced.html">MultiIndex /高级索引</a></span></li>
+    <li class="toctree-l1"><span class="yiyi-st" id="yiyi-21"><a class="reference internal" href="computation.html">计算工具</a></span></li>
+    <li class="toctree-l1"><span class="yiyi-st" id="yiyi-22"><a class="reference internal" href="missing_data.html">使用缺失数据</a></span></li>
+    <li class="toctree-l1"><span class="yiyi-st" id="yiyi-23" style=""><a class="reference internal" href="groupby.html">分组：split-apply-combine</a></span></li>
+    <li class="toctree-l1"><span class="yiyi-st" id="yiyi-24" style=""><a class="reference internal" href="merging.html">合并，连接和连接</a></span></li>
+    <li class="toctree-l1"><span class="yiyi-st" id="yiyi-25" style=""><a class="reference internal" href="reshaping.html">整形和数据透视表</a></span></li>
+    <li class="toctree-l1"><span class="yiyi-st" id="yiyi-26" style=""><a class="reference internal" href="timeseries.html">时间系列/日期功能</a></span></li>
+    <li class="toctree-l1"><span class="yiyi-st" id="yiyi-27" style=""><a class="reference internal" href="timedeltas.html">时间Deltas</a></span></li>
+    <li class="toctree-l1"><span class="yiyi-st" id="yiyi-28" style=""><a class="reference internal" href="categorical.html">分类数据</a></span></li>
+    <li class="toctree-l1"><span class="yiyi-st" id="yiyi-29"><a class="reference internal" href="visualization.html">可视化</a></span></li>
+    <li class="toctree-l1"><span class="yiyi-st" id="yiyi-30" style=""><a class="reference internal" href="style.html">样式</a></span></li>
+    <li class="toctree-l1"><span class="yiyi-st" id="yiyi-31" style=""><a class="reference internal" href="io.html">IO工具（文本，CSV，HDF5，...）</a></span></li>
+    <li class="toctree-l1"><span class="yiyi-st" id="yiyi-32"><a class="reference internal" href="remote_data.html">远程数据访问</a></span></li>
+    <li class="toctree-l1"><span class="yiyi-st" id="yiyi-33"><a class="reference internal" href="enhancingperf.html">增强性能</a></span></li>
+    <li class="toctree-l1"><span class="yiyi-st" id="yiyi-34"><a class="reference internal" href="sparse.html">稀疏数据结构</a></span></li>
+    <li class="toctree-l1"><span class="yiyi-st" id="yiyi-35"><a class="reference internal" href="gotchas.html">告诫和诀窍</a></span></li>
+    <li class="toctree-l1"><span class="yiyi-st" id="yiyi-36" style=""><a class="reference internal" href="r_interface.html">rpy2 / R interface</a></span></li>
+    <li class="toctree-l1"><span class="yiyi-st" id="yiyi-37" style=""><a class="reference internal" href="ecosystem.html">pandas生态系统</a></span></li>
+    <li class="toctree-l1"><span class="yiyi-st" id="yiyi-38" style=""><a class="reference internal" href="comparison_with_r.html">与R / R库比较</a></span></li>
+    <li class="toctree-l1"><span class="yiyi-st" id="yiyi-39" style=""><a class="reference internal" href="comparison_with_sql.html">与SQL比较</a></span></li>
+    <li class="toctree-l1"><span class="yiyi-st" id="yiyi-40" style=""><a class="reference internal" href="comparison_with_sas.html">与SAS</a>的比较</span></li>
+    <li class="toctree-l1"><span class="yiyi-st" id="yiyi-41" style=""><a class="reference internal" href="api.html">API参考</a></span></li>
+    <li class="toctree-l1"><span class="yiyi-st" id="yiyi-42" style=""><a class="reference internal" href="internals.html">内部</a></span></li>
+    <li class="toctree-l1"><span class="yiyi-st" id="yiyi-43" style=""><a class="reference internal" href="release.html">发行说明</a></span></li>
+    </ul>
+</div>

@@ -1,0 +1,127 @@
+
+<span id="rpy"></span><h1><span class="yiyi-st" id="yiyi-53">rpy2 / R interface</span></h1>
+        <blockquote>
+        <p>原文：<a href="http://pandas.pydata.org/pandas-docs/stable/r_interface.html">http://pandas.pydata.org/pandas-docs/stable/r_interface.html</a></p>
+        <p>译者：<a href="https://github.com/wizardforcel">飞龙</a> <a href="http://usyiyi.cn/">UsyiyiCN</a></p>
+        <p>校对：（虚位以待）</p>
+        </blockquote>
+    
+<div class="admonition warning">
+<p class="first admonition-title"><span class="yiyi-st" id="yiyi-54">警告</span></p>
+<p class="last"><span class="yiyi-st" id="yiyi-55">在v0.16.0中，<code class="docutils literal"><span class="pre">pandas.rpy</span></code>接口已弃用<strong>，将在未来版本</strong>中删除。</span><span class="yiyi-st" id="yiyi-56">类似的功能可以通过<a class="reference external" href="https://rpy2.readthedocs.io/">rpy2</a>项目访问。</span><span class="yiyi-st" id="yiyi-57">有关将代码从<code class="docutils literal"><span class="pre">pandas.rpy</span></code>移至<code class="docutils literal"><span class="pre">rpy2</span></code>函数的指南，请参阅<a class="reference internal" href="#rpy-updating"><span class="std std-ref">updating</span></a>部分。</span></p>
+</div>
+<div class="section" id="updating-your-code-to-use-rpy2-functions">
+<span id="rpy-updating"></span><h2><span class="yiyi-st" id="yiyi-58">Updating your code to use rpy2 functions</span></h2>
+<p><span class="yiyi-st" id="yiyi-59">在v0.16.0中，<code class="docutils literal"><span class="pre">pandas.rpy</span></code>模块<strong>已弃用</strong>，用户指向<code class="docutils literal"><span class="pre">rpy2</span></code>本身）。</span></p>
+<p><span class="yiyi-st" id="yiyi-60">不要将<code class="docutils literal"><span class="pre">导入</span> <span class="pre">pandas.rpy.common</span> <span class="pre">作为</span> <span class="pre">com</span></code>导入，应该做到激活rpy2中的pandas转换支持：</span></p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">rpy2.robjects</span> <span class="k">import</span> <span class="n">pandas2ri</span>
+<span class="n">pandas2ri</span><span class="o">.</span><span class="n">activate</span><span class="p">()</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-61">在rpy2和pandas之间来回转换数据帧应该在很大程度上自动化（不需要显式转换，它将在大多数rpy2函数中即时完​​成）。</span></p>
+<p><span class="yiyi-st" id="yiyi-62">要显式转换，函数为<code class="docutils literal"><span class="pre">pandas2ri.py2ri()</span></code>和<code class="docutils literal"><span class="pre">pandas2ri.ri2py()</span></code>。</span><span class="yiyi-st" id="yiyi-63">所以这些函数可以用来替换pandas中的现有函数：</span></p>
+<ul class="simple">
+<li><span class="yiyi-st" id="yiyi-64"><code class="docutils literal"><span class="pre">com.convert_to_r_dataframe(df)</span></code>应替换为<code class="docutils literal"><span class="pre">pandas2ri.py2ri(df)</span></code></span></li>
+<li><span class="yiyi-st" id="yiyi-65"><code class="docutils literal"><span class="pre">com.convert_robj(rdf)</span></code>应替换为<code class="docutils literal"><span class="pre">pandas2ri.ri2py(rdf)</span></code></span></li>
+</ul>
+<p><span class="yiyi-st" id="yiyi-66">注意：这些函数用于最新版本（rpy2 2.5.x），之前称为<code class="docutils literal"><span class="pre">pandas2ri.pandas2ri()</span></code>和<code class="docutils literal"><span class="pre">pandas2ri.ri2pandas()</span></code>。</span></p>
+<p><span class="yiyi-st" id="yiyi-67"><cite>pandas.rpy</cite>中的一些其他功能也可以轻松替换。</span><span class="yiyi-st" id="yiyi-68">例如，使用<code class="docutils literal"><span class="pre">load_data</span></code>函数加载R数据，当前方法：</span></p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">df_iris</span> <span class="o">=</span> <span class="n">com</span><span class="o">.</span><span class="n">load_data</span><span class="p">(</span><span class="s1">&apos;iris&apos;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-69">可替换为：</span></p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">rpy2.robjects</span> <span class="k">import</span> <span class="n">r</span>
+<span class="n">r</span><span class="o">.</span><span class="n">data</span><span class="p">(</span><span class="s1">&apos;iris&apos;</span><span class="p">)</span>
+<span class="n">df_iris</span> <span class="o">=</span> <span class="n">pandas2ri</span><span class="o">.</span><span class="n">ri2py</span><span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="n">name</span><span class="p">])</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-70"><code class="docutils literal"><span class="pre">convert_to_r_matrix</span></code>函数可以替换为正常的<code class="docutils literal"><span class="pre">pandas2ri.py2ri</span></code>以转换数据帧，随后调用R <code class="docutils literal"><span class="pre">as.matrix</span></code>函数。</span></p>
+<div class="admonition warning">
+<p class="first admonition-title"><span class="yiyi-st" id="yiyi-71">警告</span></p>
+<p class="last"><span class="yiyi-st" id="yiyi-72">并不是rpy2中的所有转换函数都与pandas中的当前方法完全相同。</span><span class="yiyi-st" id="yiyi-73">如果您遇到与大熊猫相比的问题或限制，请在<a class="reference external" href="https://github.com/pandas-dev/pandas/issues">问题跟踪器</a>上报告此问题。</span></p>
+</div>
+<p><span class="yiyi-st" id="yiyi-74">另请参见<a class="reference external" href="http://rpy2.bitbucket.org/">rpy2</a>项目的文档。</span></p>
+</div>
+<div class="section" id="r-interface-with-rpy2">
+<h2><span class="yiyi-st" id="yiyi-75">R interface with rpy2</span></h2>
+<p><span class="yiyi-st" id="yiyi-76">如果您的计算机安装了R和rpy2（&gt; 2.2）（将留给读者），您将能够利用以下功能。</span><span class="yiyi-st" id="yiyi-77">在Windows上，这样做是相当痛苦的，但在类Unix系统上的用户应该很容易。</span><span class="yiyi-st" id="yiyi-78">rpy2在时间上演变，目前达到2.3版本，而当前接口是为2.2.x系列设计的。</span><span class="yiyi-st" id="yiyi-79">我们建议使用2.2.x比其他系列，除非你准备修复部分代码，但rpy2-2.3.0引入了改进，如更好的R-Python桥内存管理层，因此它可能是一个好主意子弹和提交修补程序的一些小的差异，需要修复。</span></p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># if installing for the first time</span>
+<span class="n">hg</span> <span class="n">clone</span> <span class="n">http</span><span class="p">:</span><span class="o">//</span><span class="n">bitbucket</span><span class="o">.</span><span class="n">org</span><span class="o">/</span><span class="n">lgautier</span><span class="o">/</span><span class="n">rpy2</span>
+
+<span class="n">cd</span> <span class="n">rpy2</span>
+<span class="n">hg</span> <span class="n">pull</span>
+<span class="n">hg</span> <span class="n">update</span> <span class="n">version_2</span><span class="o">.</span><span class="mf">2.</span><span class="n">x</span>
+<span class="n">sudo</span> <span class="n">python</span> <span class="n">setup</span><span class="o">.</span><span class="n">py</span> <span class="n">install</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title"><span class="yiyi-st" id="yiyi-80">注意</span></p>
+<p class="last"><span class="yiyi-st" id="yiyi-81">要通过此接口使用R程序包，您需要自己在R中安装它们。</span><span class="yiyi-st" id="yiyi-82">目前它无法为您安装它们。</span></p>
+</div>
+<p><span class="yiyi-st" id="yiyi-83">安装完R和rpy2后，您应该可以轻松导入<code class="docutils literal"><span class="pre">pandas.rpy.common</span></code>。</span></p>
+</div>
+<div class="section" id="transferring-r-data-sets-into-python">
+<h2><span class="yiyi-st" id="yiyi-84">Transferring R data sets into Python</span></h2>
+<p><span class="yiyi-st" id="yiyi-85"><strong>load_data</strong>函数检索R数据集并将其转换为适当的pandas对象（很可能是DataFrame）：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [1]: </span><span class="kn">import</span> <span class="nn">pandas.rpy.common</span> <span class="kn">as</span> <span class="nn">com</span>
+
+<span class="gp">In [2]: </span><span class="n">infert</span> <span class="o">=</span> <span class="n">com</span><span class="o">.</span><span class="n">load_data</span><span class="p">(</span><span class="s1">&apos;infert&apos;</span><span class="p">)</span>
+
+<span class="gp">In [3]: </span><span class="n">infert</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
+<span class="gr">Out[3]: </span>
+<span class="go">  education   age  parity  induced  case  spontaneous  stratum  pooled.stratum</span>
+<span class="go">1    0-5yrs  26.0     6.0      1.0   1.0          2.0        1             3.0</span>
+<span class="go">2    0-5yrs  42.0     1.0      1.0   1.0          0.0        2             1.0</span>
+<span class="go">3    0-5yrs  39.0     6.0      2.0   1.0          0.0        3             4.0</span>
+<span class="go">4    0-5yrs  34.0     4.0      2.0   1.0          0.0        4             2.0</span>
+<span class="go">5   6-11yrs  35.0     3.0      1.0   1.0          1.0        5            32.0</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="converting-dataframes-into-r-objects">
+<h2><span class="yiyi-st" id="yiyi-86">Converting DataFrames into R objects</span></h2>
+<div class="versionadded">
+<p><span class="yiyi-st" id="yiyi-87"><span class="versionmodified">版本0.8中的新功能。</span></span></p>
+</div>
+<p><span class="yiyi-st" id="yiyi-88">从pandas 0.8开始，有<strong>实验</strong>支持将DataFrames转换为等效的R对象（即<strong>data.frame</strong>）：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [4]: </span><span class="kn">import</span> <span class="nn">pandas.rpy.common</span> <span class="kn">as</span> <span class="nn">com</span>
+
+<span class="gp">In [5]: </span><span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s1">&apos;A&apos;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="s1">&apos;B&apos;</span><span class="p">:</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">],</span> <span class="s1">&apos;C&apos;</span><span class="p">:[</span><span class="mi">7</span><span class="p">,</span><span class="mi">8</span><span class="p">,</span><span class="mi">9</span><span class="p">]},</span>
+<span class="gp">   ...:</span>                   <span class="n">index</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;one&quot;</span><span class="p">,</span> <span class="s2">&quot;two&quot;</span><span class="p">,</span> <span class="s2">&quot;three&quot;</span><span class="p">])</span>
+<span class="gp">   ...:</span> 
+
+<span class="gp">In [6]: </span><span class="n">r_dataframe</span> <span class="o">=</span> <span class="n">com</span><span class="o">.</span><span class="n">convert_to_r_dataframe</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+
+<span class="gp">In [7]: </span><span class="k">print</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">r_dataframe</span><span class="p">))</span>
+<span class="go">&lt;class &apos;rpy2.robjects.vectors.DataFrame&apos;&gt;</span>
+
+<span class="gp">In [8]: </span><span class="k">print</span><span class="p">(</span><span class="n">r_dataframe</span><span class="p">)</span>
+<span class="go">      A B C</span>
+<span class="go">one   1 4 7</span>
+<span class="go">two   2 5 8</span>
+<span class="go">three 3 6 9</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-89">DataFrame的索引存储为data.frame实例的<code class="docutils literal"><span class="pre">rownames</span></code>属性。</span></p>
+<p><span class="yiyi-st" id="yiyi-90">您还可以使用<strong>convert_to_r_matrix</strong>获取<code class="docutils literal"><span class="pre">Matrix</span></code>实例，但是请记住，它只适用于均匀类型的DataFrames（因为R矩阵不包含数据类型的信息）：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [9]: </span><span class="kn">import</span> <span class="nn">pandas.rpy.common</span> <span class="kn">as</span> <span class="nn">com</span>
+
+<span class="gp">In [10]: </span><span class="n">r_matrix</span> <span class="o">=</span> <span class="n">com</span><span class="o">.</span><span class="n">convert_to_r_matrix</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+
+<span class="gp">In [11]: </span><span class="k">print</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">r_matrix</span><span class="p">))</span>
+<span class="go">&lt;class &apos;rpy2.robjects.vectors.Matrix&apos;&gt;</span>
+
+<span class="gp">In [12]: </span><span class="k">print</span><span class="p">(</span><span class="n">r_matrix</span><span class="p">)</span>
+<span class="go">      A B C</span>
+<span class="go">one   1 4 7</span>
+<span class="go">two   2 5 8</span>
+<span class="go">three 3 6 9</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="calling-r-functions-with-pandas-objects">
+<h2><span class="yiyi-st" id="yiyi-91">使用pandas对象调用R函数</span></h2>
+</div>
+<div class="section" id="high-level-interface-to-r-estimators">
+<h2><span class="yiyi-st" id="yiyi-92">到R估计器的高级接口</span></h2>
+</div>

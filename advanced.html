@@ -1,0 +1,1416 @@
+
+<span id="advanced"></span><h1><span class="yiyi-st" id="yiyi-64">MultiIndex / Advanced Indexing</span></h1>
+        <blockquote>
+        <p>原文：<a href="http://pandas.pydata.org/pandas-docs/stable/advanced.html">http://pandas.pydata.org/pandas-docs/stable/advanced.html</a></p>
+        <p>译者：<a href="https://github.com/wizardforcel">飞龙</a> <a href="http://usyiyi.cn/">UsyiyiCN</a></p>
+        <p>校对：（虚位以待）</p>
+        </blockquote>
+    
+<p><span class="yiyi-st" id="yiyi-65">本节介绍使用<code class="docutils literal"><span class="pre">MultiIndex</span></code>和更高级的索引功能建立索引。</span></p>
+<p><span class="yiyi-st" id="yiyi-66">有关一般索引文档，请参见<a class="reference internal" href="indexing.html#indexing"><span class="std std-ref">Indexing and Selecting Data</span></a>。</span></p>
+<div class="admonition warning">
+<p class="first admonition-title"><span class="yiyi-st" id="yiyi-67">警告</span></p>
+<p class="last"><span class="yiyi-st" id="yiyi-68">是否为设置操作返回副本或引用可以取决于上下文。</span><span class="yiyi-st" id="yiyi-69">这有时被称为<code class="docutils literal"><span class="pre">链接</span> <span class="pre">分配</span></code>，应该避免。</span><span class="yiyi-st" id="yiyi-70">请参见<a class="reference internal" href="indexing.html#indexing-view-versus-copy"><span class="std std-ref">Returning a View versus Copy</span></a></span></p>
+</div>
+<div class="admonition warning">
+<p class="first admonition-title"><span class="yiyi-st" id="yiyi-71">警告</span></p>
+<p class="last"><span class="yiyi-st" id="yiyi-72">在0.15.0 <code class="docutils literal"><span class="pre">Index</span></code>内部被重构为不再子类<code class="docutils literal"><span class="pre">ndarray</span></code>，而是子类化<code class="docutils literal"><span class="pre">PandasObject</span></code>，类似于其余的pandas对象。</span><span class="yiyi-st" id="yiyi-73">这应该是一个透明的变化，只有非常有限的API影响（参见<a class="reference internal" href="whatsnew.html#whatsnew-0150-refactoring"><span class="std std-ref">Internal Refactoring</span></a>）</span></p>
+</div>
+<p><span class="yiyi-st" id="yiyi-74">有关某些高级策略，请参阅<a class="reference internal" href="cookbook.html#cookbook-selection"><span class="std std-ref">cookbook</span></a></span></p>
+<div class="section" id="hierarchical-indexing-multiindex">
+<span id="advanced-hierarchical"></span><h2><span class="yiyi-st" id="yiyi-75">Hierarchical indexing (MultiIndex)</span></h2>
+<p><span class="yiyi-st" id="yiyi-76">分层/多级索引是非常令人兴奋的，因为它打开了一些非常复杂的数据分析和操作的门，尤其是对于更高维数据的处理。</span><span class="yiyi-st" id="yiyi-77">实质上，它使您能够在诸如Series（1d）和DataFrame（2d）的低维数据结构中存储和操作具有任意数量维度的数据。</span></p>
+<p><span class="yiyi-st" id="yiyi-78">在本节中，我们将展示“层次化”索引的确切含义，以及它如何与上述和前面章节中描述的所有Pandas索引功能集成。</span><span class="yiyi-st" id="yiyi-79">稍后，当讨论<a class="reference internal" href="groupby.html#groupby"><span class="std std-ref">group by</span></a>和<a class="reference internal" href="reshaping.html#reshaping"><span class="std std-ref">pivoting and reshaping data</span></a>时，我们将展示非平凡的应用程序，以说明它如何帮助构建分析数据。</span></p>
+<p><span class="yiyi-st" id="yiyi-80">有关某些高级策略，请参阅<a class="reference internal" href="cookbook.html#cookbook-multi-index"><span class="std std-ref">cookbook</span></a></span></p>
+<div class="section" id="creating-a-multiindex-hierarchical-index-object">
+<h3><span class="yiyi-st" id="yiyi-81">Creating a MultiIndex (hierarchical index) object</span></h3>
+<p><span class="yiyi-st" id="yiyi-82"><code class="docutils literal"><span class="pre">MultiIndex</span></code>对象是标准<code class="docutils literal"><span class="pre">Index</span></code>对象的分层模拟，通常将对象标签存储在pandas对象中。</span><span class="yiyi-st" id="yiyi-83">您可以将<code class="docutils literal"><span class="pre">MultiIndex</span></code>视为一个元组数组，其中每个元组都是唯一的。</span><span class="yiyi-st" id="yiyi-84">可以从数组列表（使用<code class="docutils literal"><span class="pre">MultiIndex.from_arrays</span></code>），元组数组（使用<code class="docutils literal"><span class="pre">MultiIndex.from_tuples</span></code>）创建<code class="docutils literal"><span class="pre">MultiIndex</span></code>一组交叉的迭代（使用<code class="docutils literal"><span class="pre">MultiIndex.from_product</span></code>）。</span><span class="yiyi-st" id="yiyi-85">当传递元组列表时，<code class="docutils literal"><span class="pre">Index</span></code>构造函数将尝试返回<code class="docutils literal"><span class="pre">MultiIndex</span></code>。</span><span class="yiyi-st" id="yiyi-86">以下示例演示了初始化MultiIndexes的不同方法。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [1]: </span><span class="n">arrays</span> <span class="o">=</span> <span class="p">[[</span><span class="s1">&apos;bar&apos;</span><span class="p">,</span> <span class="s1">&apos;bar&apos;</span><span class="p">,</span> <span class="s1">&apos;baz&apos;</span><span class="p">,</span> <span class="s1">&apos;baz&apos;</span><span class="p">,</span> <span class="s1">&apos;foo&apos;</span><span class="p">,</span> <span class="s1">&apos;foo&apos;</span><span class="p">,</span> <span class="s1">&apos;qux&apos;</span><span class="p">,</span> <span class="s1">&apos;qux&apos;</span><span class="p">],</span>
+<span class="gp">   ...:</span>           <span class="p">[</span><span class="s1">&apos;one&apos;</span><span class="p">,</span> <span class="s1">&apos;two&apos;</span><span class="p">,</span> <span class="s1">&apos;one&apos;</span><span class="p">,</span> <span class="s1">&apos;two&apos;</span><span class="p">,</span> <span class="s1">&apos;one&apos;</span><span class="p">,</span> <span class="s1">&apos;two&apos;</span><span class="p">,</span> <span class="s1">&apos;one&apos;</span><span class="p">,</span> <span class="s1">&apos;two&apos;</span><span class="p">]]</span>
+<span class="gp">   ...:</span> 
+
+<span class="gp">In [2]: </span><span class="n">tuples</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">arrays</span><span class="p">))</span>
+
+<span class="gp">In [3]: </span><span class="n">tuples</span>
+<span class="gr">Out[3]: </span>
+<span class="go">[(&apos;bar&apos;, &apos;one&apos;),</span>
+<span class="go"> (&apos;bar&apos;, &apos;two&apos;),</span>
+<span class="go"> (&apos;baz&apos;, &apos;one&apos;),</span>
+<span class="go"> (&apos;baz&apos;, &apos;two&apos;),</span>
+<span class="go"> (&apos;foo&apos;, &apos;one&apos;),</span>
+<span class="go"> (&apos;foo&apos;, &apos;two&apos;),</span>
+<span class="go"> (&apos;qux&apos;, &apos;one&apos;),</span>
+<span class="go"> (&apos;qux&apos;, &apos;two&apos;)]</span>
+
+<span class="gp">In [4]: </span><span class="n">index</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">MultiIndex</span><span class="o">.</span><span class="n">from_tuples</span><span class="p">(</span><span class="n">tuples</span><span class="p">,</span> <span class="n">names</span><span class="o">=</span><span class="p">[</span><span class="s1">&apos;first&apos;</span><span class="p">,</span> <span class="s1">&apos;second&apos;</span><span class="p">])</span>
+
+<span class="gp">In [5]: </span><span class="n">index</span>
+<span class="gr">Out[5]: </span>
+<span class="go">MultiIndex(levels=[[u&apos;bar&apos;, u&apos;baz&apos;, u&apos;foo&apos;, u&apos;qux&apos;], [u&apos;one&apos;, u&apos;two&apos;]],</span>
+<span class="go">           labels=[[0, 0, 1, 1, 2, 2, 3, 3], [0, 1, 0, 1, 0, 1, 0, 1]],</span>
+<span class="go">           names=[u&apos;first&apos;, u&apos;second&apos;])</span>
+
+<span class="gp">In [6]: </span><span class="n">s</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">8</span><span class="p">),</span> <span class="n">index</span><span class="o">=</span><span class="n">index</span><span class="p">)</span>
+
+<span class="gp">In [7]: </span><span class="n">s</span>
+<span class="gr">Out[7]: </span>
+<span class="go">first  second</span>
+<span class="go">bar    one       0.469112</span>
+<span class="go">       two      -0.282863</span>
+<span class="go">baz    one      -1.509059</span>
+<span class="go">       two      -1.135632</span>
+<span class="go">foo    one       1.212112</span>
+<span class="go">       two      -0.173215</span>
+<span class="go">qux    one       0.119209</span>
+<span class="go">       two      -1.044236</span>
+<span class="go">dtype: float64</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-87">当您希望在两个迭代中的每个元素配对时，使用<code class="docutils literal"><span class="pre">MultiIndex.from_product</span></code>函数可以更容易：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [8]: </span><span class="n">iterables</span> <span class="o">=</span> <span class="p">[[</span><span class="s1">&apos;bar&apos;</span><span class="p">,</span> <span class="s1">&apos;baz&apos;</span><span class="p">,</span> <span class="s1">&apos;foo&apos;</span><span class="p">,</span> <span class="s1">&apos;qux&apos;</span><span class="p">],</span> <span class="p">[</span><span class="s1">&apos;one&apos;</span><span class="p">,</span> <span class="s1">&apos;two&apos;</span><span class="p">]]</span>
+
+<span class="gp">In [9]: </span><span class="n">pd</span><span class="o">.</span><span class="n">MultiIndex</span><span class="o">.</span><span class="n">from_product</span><span class="p">(</span><span class="n">iterables</span><span class="p">,</span> <span class="n">names</span><span class="o">=</span><span class="p">[</span><span class="s1">&apos;first&apos;</span><span class="p">,</span> <span class="s1">&apos;second&apos;</span><span class="p">])</span>
+<span class="gr">Out[9]: </span>
+<span class="go">MultiIndex(levels=[[u&apos;bar&apos;, u&apos;baz&apos;, u&apos;foo&apos;, u&apos;qux&apos;], [u&apos;one&apos;, u&apos;two&apos;]],</span>
+<span class="go">           labels=[[0, 0, 1, 1, 2, 2, 3, 3], [0, 1, 0, 1, 0, 1, 0, 1]],</span>
+<span class="go">           names=[u&apos;first&apos;, u&apos;second&apos;])</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-88">为了方便，可以将数组列表直接传递到Series或DataFrame，以自动构建MultiIndex：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [10]: </span><span class="n">arrays</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="s1">&apos;bar&apos;</span><span class="p">,</span> <span class="s1">&apos;bar&apos;</span><span class="p">,</span> <span class="s1">&apos;baz&apos;</span><span class="p">,</span> <span class="s1">&apos;baz&apos;</span><span class="p">,</span> <span class="s1">&apos;foo&apos;</span><span class="p">,</span> <span class="s1">&apos;foo&apos;</span><span class="p">,</span> <span class="s1">&apos;qux&apos;</span><span class="p">,</span> <span class="s1">&apos;qux&apos;</span><span class="p">]),</span>
+<span class="gp">   ....:</span>           <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="s1">&apos;one&apos;</span><span class="p">,</span> <span class="s1">&apos;two&apos;</span><span class="p">,</span> <span class="s1">&apos;one&apos;</span><span class="p">,</span> <span class="s1">&apos;two&apos;</span><span class="p">,</span> <span class="s1">&apos;one&apos;</span><span class="p">,</span> <span class="s1">&apos;two&apos;</span><span class="p">,</span> <span class="s1">&apos;one&apos;</span><span class="p">,</span> <span class="s1">&apos;two&apos;</span><span class="p">])]</span>
+<span class="gp">   ....:</span> 
+
+<span class="gp">In [11]: </span><span class="n">s</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">8</span><span class="p">),</span> <span class="n">index</span><span class="o">=</span><span class="n">arrays</span><span class="p">)</span>
+
+<span class="gp">In [12]: </span><span class="n">s</span>
+<span class="gr">Out[12]: </span>
+<span class="go">bar  one   -0.861849</span>
+<span class="go">     two   -2.104569</span>
+<span class="go">baz  one   -0.494929</span>
+<span class="go">     two    1.071804</span>
+<span class="go">foo  one    0.721555</span>
+<span class="go">     two   -0.706771</span>
+<span class="go">qux  one   -1.039575</span>
+<span class="go">     two    0.271860</span>
+<span class="go">dtype: float64</span>
+
+<span class="gp">In [13]: </span><span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="n">index</span><span class="o">=</span><span class="n">arrays</span><span class="p">)</span>
+
+<span class="gp">In [14]: </span><span class="n">df</span>
+<span class="gr">Out[14]: </span>
+<span class="go">                0         1         2         3</span>
+<span class="go">bar one -0.424972  0.567020  0.276232 -1.087401</span>
+<span class="go">    two -0.673690  0.113648 -1.478427  0.524988</span>
+<span class="go">baz one  0.404705  0.577046 -1.715002 -1.039268</span>
+<span class="go">    two -0.370647 -1.157892 -1.344312  0.844885</span>
+<span class="go">foo one  1.075770 -0.109050  1.643563 -1.469388</span>
+<span class="go">    two  0.357021 -0.674600 -1.776904 -0.968914</span>
+<span class="go">qux one -1.294524  0.413738  0.276662 -0.472035</span>
+<span class="go">    two -0.013960 -0.362543 -0.006154 -0.923061</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-89">所有<code class="docutils literal"><span class="pre">MultiIndex</span></code>构造函数都接受一个<code class="docutils literal"><span class="pre">names</span></code>参数，该参数存储级别本身的字符串名称。</span><span class="yiyi-st" id="yiyi-90">如果没有提供名称，将分配<code class="docutils literal"><span class="pre">None</span></code>：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [15]: </span><span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">names</span>
+<span class="gr">Out[15]: </span><span class="n">FrozenList</span><span class="p">([</span><span class="bp">None</span><span class="p">,</span> <span class="bp">None</span><span class="p">])</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-91">此索引可以返回一个pandas对象的任何轴，并且索引的<strong>级别数量</strong>取决于您：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [16]: </span><span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">8</span><span class="p">),</span> <span class="n">index</span><span class="o">=</span><span class="p">[</span><span class="s1">&apos;A&apos;</span><span class="p">,</span> <span class="s1">&apos;B&apos;</span><span class="p">,</span> <span class="s1">&apos;C&apos;</span><span class="p">],</span> <span class="n">columns</span><span class="o">=</span><span class="n">index</span><span class="p">)</span>
+
+<span class="gp">In [17]: </span><span class="n">df</span>
+<span class="gr">Out[17]: </span>
+<span class="go">first        bar                 baz                 foo                 qux  \</span>
+<span class="go">second       one       two       one       two       one       two       one   </span>
+<span class="go">A       0.895717  0.805244 -1.206412  2.565646  1.431256  1.340309 -1.170299   </span>
+<span class="go">B       0.410835  0.813850  0.132003 -0.827317 -0.076467 -1.187678  1.130127   </span>
+<span class="go">C      -1.413681  1.607920  1.024180  0.569605  0.875906 -2.211372  0.974466   </span>
+
+<span class="go">first             </span>
+<span class="go">second       two  </span>
+<span class="go">A      -0.226169  </span>
+<span class="go">B      -1.436737  </span>
+<span class="go">C      -2.006747  </span>
+
+<span class="gp">In [18]: </span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="mi">6</span><span class="p">),</span> <span class="n">index</span><span class="o">=</span><span class="n">index</span><span class="p">[:</span><span class="mi">6</span><span class="p">],</span> <span class="n">columns</span><span class="o">=</span><span class="n">index</span><span class="p">[:</span><span class="mi">6</span><span class="p">])</span>
+<span class="gr">Out[18]: </span>
+<span class="go">first              bar                 baz                 foo          </span>
+<span class="go">second             one       two       one       two       one       two</span>
+<span class="go">first second                                                            </span>
+<span class="go">bar   one    -0.410001 -0.078638  0.545952 -1.219217 -1.226825  0.769804</span>
+<span class="go">      two    -1.281247 -0.727707 -0.121306 -0.097883  0.695775  0.341734</span>
+<span class="go">baz   one     0.959726 -1.110336 -0.619976  0.149748 -0.732339  0.687738</span>
+<span class="go">      two     0.176444  0.403310 -0.154951  0.301624 -2.179861 -1.369849</span>
+<span class="go">foo   one    -0.954208  1.462696 -1.743161 -0.826591 -0.345352  1.314232</span>
+<span class="go">      two     0.690579  0.995761  2.396780  0.014871  3.357427 -0.317441</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-92">我们已经“稀化”了高阶索引，使控制台输出更易检视。</span></p>
+<p><span class="yiyi-st" id="yiyi-93">值得注意的是，没有什么阻止你使用元组作为轴上的原子标签：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [19]: </span><span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">8</span><span class="p">),</span> <span class="n">index</span><span class="o">=</span><span class="n">tuples</span><span class="p">)</span>
+<span class="gr">Out[19]: </span>
+<span class="go">(bar, one)   -1.236269</span>
+<span class="go">(bar, two)    0.896171</span>
+<span class="go">(baz, one)   -0.487602</span>
+<span class="go">(baz, two)   -0.082240</span>
+<span class="go">(foo, one)   -2.182937</span>
+<span class="go">(foo, two)    0.380396</span>
+<span class="go">(qux, one)    0.084844</span>
+<span class="go">(qux, two)    0.432390</span>
+<span class="go">dtype: float64</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-94"><code class="docutils literal"><span class="pre">MultiIndex</span></code>的原因是它可以允许您进行分组，选择和重塑操作，我们将在下面和文档的后续部分中进行介绍。</span><span class="yiyi-st" id="yiyi-95">正如您将在后面几节中看到的，您可以发现自己使用分层索引的数据，而不必自己创建<code class="docutils literal"><span class="pre">MultiIndex</span></code>。</span><span class="yiyi-st" id="yiyi-96">但是，从文件加载数据时，您可能希望在准备数据集时生成自己的<code class="docutils literal"><span class="pre">MultiIndex</span></code>。</span></p>
+<p><span class="yiyi-st" id="yiyi-97">请注意，通过使用<code class="docutils literal"><span class="pre">pandas.set_printoptions</span></code>中的<code class="docutils literal"><span class="pre">multi_sparse</span></code>选项来控制索引的显示方式：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [20]: </span><span class="n">pd</span><span class="o">.</span><span class="n">set_option</span><span class="p">(</span><span class="s1">&apos;display.multi_sparse&apos;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
+
+<span class="gp">In [21]: </span><span class="n">df</span>
+<span class="gr">Out[21]: </span>
+<span class="go">first        bar       bar       baz       baz       foo       foo       qux  \</span>
+<span class="go">second       one       two       one       two       one       two       one   </span>
+<span class="go">A       0.895717  0.805244 -1.206412  2.565646  1.431256  1.340309 -1.170299   </span>
+<span class="go">B       0.410835  0.813850  0.132003 -0.827317 -0.076467 -1.187678  1.130127   </span>
+<span class="go">C      -1.413681  1.607920  1.024180  0.569605  0.875906 -2.211372  0.974466   </span>
+
+<span class="go">first        qux  </span>
+<span class="go">second       two  </span>
+<span class="go">A      -0.226169  </span>
+<span class="go">B      -1.436737  </span>
+<span class="go">C      -2.006747  </span>
+
+<span class="gp">In [22]: </span><span class="n">pd</span><span class="o">.</span><span class="n">set_option</span><span class="p">(</span><span class="s1">&apos;display.multi_sparse&apos;</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="reconstructing-the-level-labels">
+<span id="advanced-get-level-values"></span><h3><span class="yiyi-st" id="yiyi-98">Reconstructing the level labels</span></h3>
+<p><span class="yiyi-st" id="yiyi-99">方法<code class="docutils literal"><span class="pre">get_level_values</span></code>将返回特定级别每个位置的标签向量：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [23]: </span><span class="n">index</span><span class="o">.</span><span class="n">get_level_values</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="gr">Out[23]: </span><span class="n">Index</span><span class="p">([</span><span class="s1">u&apos;bar&apos;</span><span class="p">,</span> <span class="s1">u&apos;bar&apos;</span><span class="p">,</span> <span class="s1">u&apos;baz&apos;</span><span class="p">,</span> <span class="s1">u&apos;baz&apos;</span><span class="p">,</span> <span class="s1">u&apos;foo&apos;</span><span class="p">,</span> <span class="s1">u&apos;foo&apos;</span><span class="p">,</span> <span class="s1">u&apos;qux&apos;</span><span class="p">,</span> <span class="s1">u&apos;qux&apos;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&apos;object&apos;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">u&apos;first&apos;</span><span class="p">)</span>
+
+<span class="gp">In [24]: </span><span class="n">index</span><span class="o">.</span><span class="n">get_level_values</span><span class="p">(</span><span class="s1">&apos;second&apos;</span><span class="p">)</span>
+<span class="gr">Out[24]: </span><span class="n">Index</span><span class="p">([</span><span class="s1">u&apos;one&apos;</span><span class="p">,</span> <span class="s1">u&apos;two&apos;</span><span class="p">,</span> <span class="s1">u&apos;one&apos;</span><span class="p">,</span> <span class="s1">u&apos;two&apos;</span><span class="p">,</span> <span class="s1">u&apos;one&apos;</span><span class="p">,</span> <span class="s1">u&apos;two&apos;</span><span class="p">,</span> <span class="s1">u&apos;one&apos;</span><span class="p">,</span> <span class="s1">u&apos;two&apos;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&apos;object&apos;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">u&apos;second&apos;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="basic-indexing-on-axis-with-multiindex">
+<h3><span class="yiyi-st" id="yiyi-100">Basic indexing on axis with MultiIndex</span></h3>
+<p><span class="yiyi-st" id="yiyi-101">分层索引的一个重要特征是，您可以通过标识数据中的子组的“部分”标签来选择数据。</span><span class="yiyi-st" id="yiyi-102"><strong>部分</strong>选择以类似于在常规DataFrame中选择列的方式选择“降低”分层索引的级别：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [25]: </span><span class="n">df</span><span class="p">[</span><span class="s1">&apos;bar&apos;</span><span class="p">]</span>
+<span class="gr">Out[25]: </span>
+<span class="go">second       one       two</span>
+<span class="go">A       0.895717  0.805244</span>
+<span class="go">B       0.410835  0.813850</span>
+<span class="go">C      -1.413681  1.607920</span>
+
+<span class="gp">In [26]: </span><span class="n">df</span><span class="p">[</span><span class="s1">&apos;bar&apos;</span><span class="p">,</span> <span class="s1">&apos;one&apos;</span><span class="p">]</span>
+<span class="gr">Out[26]: </span>
+<span class="go">A    0.895717</span>
+<span class="go">B    0.410835</span>
+<span class="go">C   -1.413681</span>
+<span class="go">Name: (bar, one), dtype: float64</span>
+
+<span class="gp">In [27]: </span><span class="n">df</span><span class="p">[</span><span class="s1">&apos;bar&apos;</span><span class="p">][</span><span class="s1">&apos;one&apos;</span><span class="p">]</span>
+<span class="gr">Out[27]: </span>
+<span class="go">A    0.895717</span>
+<span class="go">B    0.410835</span>
+<span class="go">C   -1.413681</span>
+<span class="go">Name: one, dtype: float64</span>
+
+<span class="gp">In [28]: </span><span class="n">s</span><span class="p">[</span><span class="s1">&apos;qux&apos;</span><span class="p">]</span>
+<span class="gr">Out[28]: </span>
+<span class="go">one   -1.039575</span>
+<span class="go">two    0.271860</span>
+<span class="go">dtype: float64</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-103">有关如何在较深层次上进行选择，请参阅<a class="reference internal" href="#advanced-xs"><span class="std std-ref">Cross-section with hierarchical index</span></a>。</span></p>
+<div class="admonition note">
+<p class="first admonition-title"><span class="yiyi-st" id="yiyi-104">注意</span></p>
+<p><span class="yiyi-st" id="yiyi-105"><code class="docutils literal"><span class="pre">MultiIndex</span></code>的repr显示所有定义的索引级别，即使它们没有被实际使用。</span><span class="yiyi-st" id="yiyi-106">当切片索引时，您可能会注意到这一点。</span><span class="yiyi-st" id="yiyi-107">例如：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="c"># original multi-index</span>
+<span class="gp">In [29]: </span><span class="n">df</span><span class="o">.</span><span class="n">columns</span>
+<span class="gr">Out[29]: </span>
+<span class="go">MultiIndex(levels=[[u&apos;bar&apos;, u&apos;baz&apos;, u&apos;foo&apos;, u&apos;qux&apos;], [u&apos;one&apos;, u&apos;two&apos;]],</span>
+<span class="go">           labels=[[0, 0, 1, 1, 2, 2, 3, 3], [0, 1, 0, 1, 0, 1, 0, 1]],</span>
+<span class="go">           names=[u&apos;first&apos;, u&apos;second&apos;])</span>
+
+<span class="c"># sliced</span>
+<span class="gp">In [30]: </span><span class="n">df</span><span class="p">[[</span><span class="s1">&apos;foo&apos;</span><span class="p">,</span><span class="s1">&apos;qux&apos;</span><span class="p">]]</span><span class="o">.</span><span class="n">columns</span>
+<span class="gr">Out[30]: </span>
+<span class="go">MultiIndex(levels=[[u&apos;bar&apos;, u&apos;baz&apos;, u&apos;foo&apos;, u&apos;qux&apos;], [u&apos;one&apos;, u&apos;two&apos;]],</span>
+<span class="go">           labels=[[2, 2, 3, 3], [0, 1, 0, 1]],</span>
+<span class="go">           names=[u&apos;first&apos;, u&apos;second&apos;])</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-108">这样做是为了避免重新计算水平以便使切片具有高性能。</span><span class="yiyi-st" id="yiyi-109">如果你想看到实际使用的水平。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [31]: </span><span class="n">df</span><span class="p">[[</span><span class="s1">&apos;foo&apos;</span><span class="p">,</span><span class="s1">&apos;qux&apos;</span><span class="p">]]</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">values</span>
+<span class="gr">Out[31]: </span><span class="n">array</span><span class="p">([(</span><span class="s1">&apos;foo&apos;</span><span class="p">,</span> <span class="s1">&apos;one&apos;</span><span class="p">),</span> <span class="p">(</span><span class="s1">&apos;foo&apos;</span><span class="p">,</span> <span class="s1">&apos;two&apos;</span><span class="p">),</span> <span class="p">(</span><span class="s1">&apos;qux&apos;</span><span class="p">,</span> <span class="s1">&apos;one&apos;</span><span class="p">),</span> <span class="p">(</span><span class="s1">&apos;qux&apos;</span><span class="p">,</span> <span class="s1">&apos;two&apos;</span><span class="p">)],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">object</span><span class="p">)</span>
+
+<span class="c"># for a specific level</span>
+<span class="gp">In [32]: </span><span class="n">df</span><span class="p">[[</span><span class="s1">&apos;foo&apos;</span><span class="p">,</span><span class="s1">&apos;qux&apos;</span><span class="p">]]</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">get_level_values</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="gr">Out[32]: </span><span class="n">Index</span><span class="p">([</span><span class="s1">u&apos;foo&apos;</span><span class="p">,</span> <span class="s1">u&apos;foo&apos;</span><span class="p">,</span> <span class="s1">u&apos;qux&apos;</span><span class="p">,</span> <span class="s1">u&apos;qux&apos;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&apos;object&apos;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">u&apos;first&apos;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-110">仅使用已使用的级别重建多索引</span></p>
+<div class="last highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [33]: </span><span class="n">pd</span><span class="o">.</span><span class="n">MultiIndex</span><span class="o">.</span><span class="n">from_tuples</span><span class="p">(</span><span class="n">df</span><span class="p">[[</span><span class="s1">&apos;foo&apos;</span><span class="p">,</span><span class="s1">&apos;qux&apos;</span><span class="p">]]</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+<span class="gr">Out[33]: </span>
+<span class="go">MultiIndex(levels=[[u&apos;foo&apos;, u&apos;qux&apos;], [u&apos;one&apos;, u&apos;two&apos;]],</span>
+<span class="go">           labels=[[0, 0, 1, 1], [0, 1, 0, 1]])</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="data-alignment-and-using-reindex">
+<h3><span class="yiyi-st" id="yiyi-111">Data alignment and using <code class="docutils literal"><span class="pre">reindex</span></code></span></h3>
+<p><span class="yiyi-st" id="yiyi-112">在轴上具有<code class="docutils literal"><span class="pre">MultiIndex</span></code>的不同索引对象之间的操作将如您所期望的那样工作；数据对齐将与元组的索引相同：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [34]: </span><span class="n">s</span> <span class="o">+</span> <span class="n">s</span><span class="p">[:</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span>
+<span class="gr">Out[34]: </span>
+<span class="go">bar  one   -1.723698</span>
+<span class="go">     two   -4.209138</span>
+<span class="go">baz  one   -0.989859</span>
+<span class="go">     two    2.143608</span>
+<span class="go">foo  one    1.443110</span>
+<span class="go">     two   -1.413542</span>
+<span class="go">qux  one         NaN</span>
+<span class="go">     two         NaN</span>
+<span class="go">dtype: float64</span>
+
+<span class="gp">In [35]: </span><span class="n">s</span> <span class="o">+</span> <span class="n">s</span><span class="p">[::</span><span class="mi">2</span><span class="p">]</span>
+<span class="gr">Out[35]: </span>
+<span class="go">bar  one   -1.723698</span>
+<span class="go">     two         NaN</span>
+<span class="go">baz  one   -0.989859</span>
+<span class="go">     two         NaN</span>
+<span class="go">foo  one    1.443110</span>
+<span class="go">     two         NaN</span>
+<span class="go">qux  one   -2.079150</span>
+<span class="go">     two         NaN</span>
+<span class="go">dtype: float64</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-113">可以使用另一个<code class="docutils literal"><span class="pre">MultiIndex</span></code>或甚至一个元组的列表或数组调用<code class="docutils literal"><span class="pre">reindex</span></code>：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [36]: </span><span class="n">s</span><span class="o">.</span><span class="n">reindex</span><span class="p">(</span><span class="n">index</span><span class="p">[:</span><span class="mi">3</span><span class="p">])</span>
+<span class="gr">Out[36]: </span>
+<span class="go">first  second</span>
+<span class="go">bar    one      -0.861849</span>
+<span class="go">       two      -2.104569</span>
+<span class="go">baz    one      -0.494929</span>
+<span class="go">dtype: float64</span>
+
+<span class="gp">In [37]: </span><span class="n">s</span><span class="o">.</span><span class="n">reindex</span><span class="p">([(</span><span class="s1">&apos;foo&apos;</span><span class="p">,</span> <span class="s1">&apos;two&apos;</span><span class="p">),</span> <span class="p">(</span><span class="s1">&apos;bar&apos;</span><span class="p">,</span> <span class="s1">&apos;one&apos;</span><span class="p">),</span> <span class="p">(</span><span class="s1">&apos;qux&apos;</span><span class="p">,</span> <span class="s1">&apos;one&apos;</span><span class="p">),</span> <span class="p">(</span><span class="s1">&apos;baz&apos;</span><span class="p">,</span> <span class="s1">&apos;one&apos;</span><span class="p">)])</span>
+<span class="gr">Out[37]: </span>
+<span class="go">foo  two   -0.706771</span>
+<span class="go">bar  one   -0.861849</span>
+<span class="go">qux  one   -1.039575</span>
+<span class="go">baz  one   -0.494929</span>
+<span class="go">dtype: float64</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="advanced-indexing-with-hierarchical-index">
+<span id="advanced-advanced-hierarchical"></span><h2><span class="yiyi-st" id="yiyi-114">Advanced indexing with hierarchical index</span></h2>
+<p><span class="yiyi-st" id="yiyi-115">在<code class="docutils literal"><span class="pre">.loc/.ix</span></code>中将<code class="docutils literal"><span class="pre">MultiIndex</span></code>与高级索引语法结合起来有点具有挑战性，但我们已竭尽全力。</span><span class="yiyi-st" id="yiyi-116">例如下面的工作，你会期望：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [38]: </span><span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">T</span>
+
+<span class="gp">In [39]: </span><span class="n">df</span>
+<span class="gr">Out[39]: </span>
+<span class="go">                     A         B         C</span>
+<span class="go">first second                              </span>
+<span class="go">bar   one     0.895717  0.410835 -1.413681</span>
+<span class="go">      two     0.805244  0.813850  1.607920</span>
+<span class="go">baz   one    -1.206412  0.132003  1.024180</span>
+<span class="go">      two     2.565646 -0.827317  0.569605</span>
+<span class="go">foo   one     1.431256 -0.076467  0.875906</span>
+<span class="go">      two     1.340309 -1.187678 -2.211372</span>
+<span class="go">qux   one    -1.170299  1.130127  0.974466</span>
+<span class="go">      two    -0.226169 -1.436737 -2.006747</span>
+
+<span class="gp">In [40]: </span><span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="s1">&apos;bar&apos;</span><span class="p">]</span>
+<span class="gr">Out[40]: </span>
+<span class="go">               A         B         C</span>
+<span class="go">second                              </span>
+<span class="go">one     0.895717  0.410835 -1.413681</span>
+<span class="go">two     0.805244  0.813850  1.607920</span>
+
+<span class="gp">In [41]: </span><span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="s1">&apos;bar&apos;</span><span class="p">,</span> <span class="s1">&apos;two&apos;</span><span class="p">]</span>
+<span class="gr">Out[41]: </span>
+<span class="go">A    0.805244</span>
+<span class="go">B    0.813850</span>
+<span class="go">C    1.607920</span>
+<span class="go">Name: (bar, two), dtype: float64</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-117">“部分”切片也可以很好地工作。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [42]: </span><span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="s1">&apos;baz&apos;</span><span class="p">:</span><span class="s1">&apos;foo&apos;</span><span class="p">]</span>
+<span class="gr">Out[42]: </span>
+<span class="go">                     A         B         C</span>
+<span class="go">first second                              </span>
+<span class="go">baz   one    -1.206412  0.132003  1.024180</span>
+<span class="go">      two     2.565646 -0.827317  0.569605</span>
+<span class="go">foo   one     1.431256 -0.076467  0.875906</span>
+<span class="go">      two     1.340309 -1.187678 -2.211372</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-118">你可以通过提供一个元组的切片，使用一个“范围”的值。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [43]: </span><span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[(</span><span class="s1">&apos;baz&apos;</span><span class="p">,</span> <span class="s1">&apos;two&apos;</span><span class="p">):(</span><span class="s1">&apos;qux&apos;</span><span class="p">,</span> <span class="s1">&apos;one&apos;</span><span class="p">)]</span>
+<span class="gr">Out[43]: </span>
+<span class="go">                     A         B         C</span>
+<span class="go">first second                              </span>
+<span class="go">baz   two     2.565646 -0.827317  0.569605</span>
+<span class="go">foo   one     1.431256 -0.076467  0.875906</span>
+<span class="go">      two     1.340309 -1.187678 -2.211372</span>
+<span class="go">qux   one    -1.170299  1.130127  0.974466</span>
+
+<span class="gp">In [44]: </span><span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[(</span><span class="s1">&apos;baz&apos;</span><span class="p">,</span> <span class="s1">&apos;two&apos;</span><span class="p">):</span><span class="s1">&apos;foo&apos;</span><span class="p">]</span>
+<span class="gr">Out[44]: </span>
+<span class="go">                     A         B         C</span>
+<span class="go">first second                              </span>
+<span class="go">baz   two     2.565646 -0.827317  0.569605</span>
+<span class="go">foo   one     1.431256 -0.076467  0.875906</span>
+<span class="go">      two     1.340309 -1.187678 -2.211372</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-119">传递标签或元组的列表与重建索引类似：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [45]: </span><span class="n">df</span><span class="o">.</span><span class="n">ix</span><span class="p">[[(</span><span class="s1">&apos;bar&apos;</span><span class="p">,</span> <span class="s1">&apos;two&apos;</span><span class="p">),</span> <span class="p">(</span><span class="s1">&apos;qux&apos;</span><span class="p">,</span> <span class="s1">&apos;one&apos;</span><span class="p">)]]</span>
+<span class="gr">Out[45]: </span>
+<span class="go">                     A         B         C</span>
+<span class="go">first second                              </span>
+<span class="go">bar   two     0.805244  0.813850  1.607920</span>
+<span class="go">qux   one    -1.170299  1.130127  0.974466</span>
+</pre></div>
+</div>
+<div class="section" id="using-slicers">
+<span id="advanced-mi-slicers"></span><h3><span class="yiyi-st" id="yiyi-120">Using slicers</span></h3>
+<div class="versionadded">
+<p><span class="yiyi-st" id="yiyi-121"><span class="versionmodified">版本0.14.0中的新功能。</span></span></p>
+</div>
+<p><span class="yiyi-st" id="yiyi-122">在0.14.0中，我们添加了一种新的方法来切割多索引对象。</span><span class="yiyi-st" id="yiyi-123">您可以通过提供多个索引器来分割多索引。</span></p>
+<p><span class="yiyi-st" id="yiyi-124">您可以提供任何选择器，就像按标签建立索引一样，请参阅<a class="reference internal" href="indexing.html#indexing-label"><span class="std std-ref">Selection by Label</span></a>，包括切片，标签列表，标签和布尔索引器。</span></p>
+<p><span class="yiyi-st" id="yiyi-125">You can use <code class="docutils literal"><span class="pre">slice(None)</span></code> to select all the contents of <em>that</em> level. </span><span class="yiyi-st" id="yiyi-126">您不需要指定所有<em>更深的</em>级别，它们将被暗示为<code class="docutils literal"><span class="pre">slice(None)</span></code>。</span></p>
+<p><span class="yiyi-st" id="yiyi-127">通常，包括切片器的<strong>两侧</strong>，因为这是标签索引。</span></p>
+<div class="admonition warning">
+<p class="first admonition-title"><span class="yiyi-st" id="yiyi-128">警告</span></p>
+<p><span class="yiyi-st" id="yiyi-129">您应该在<code class="docutils literal"><span class="pre">.loc</span></code>说明符中指定所有轴，这意味着<strong>索引</strong>和<strong>列</strong>的索引器。</span><span class="yiyi-st" id="yiyi-130">有一些不明确的情况，传递的索引器可能被误解释为<em>两个</em>轴的索引，而不是行的MuliIndex。</span></p>
+<p><span class="yiyi-st" id="yiyi-131">你应该做这个：</span></p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[(</span><span class="nb">slice</span><span class="p">(</span><span class="s1">&apos;A1&apos;</span><span class="p">,</span><span class="s1">&apos;A3&apos;</span><span class="p">),</span><span class="o">.....</span><span class="p">),:]</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-132">而不是这样：</span></p>
+<div class="last highlight-python"><div class="highlight"><pre><span></span><span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[(</span><span class="nb">slice</span><span class="p">(</span><span class="s1">&apos;A1&apos;</span><span class="p">,</span><span class="s1">&apos;A3&apos;</span><span class="p">),</span><span class="o">.....</span><span class="p">)]</span>
+</pre></div>
+</div>
+</div>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [46]: </span><span class="k">def</span> <span class="nf">mklbl</span><span class="p">(</span><span class="n">prefix</span><span class="p">,</span><span class="n">n</span><span class="p">):</span>
+<span class="gp">   ....:</span>     <span class="k">return</span> <span class="p">[</span><span class="s2">&quot;</span><span class="si">%s%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">prefix</span><span class="p">,</span><span class="n">i</span><span class="p">)</span>  <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">)]</span>
+<span class="gp">   ....:</span> 
+
+<span class="gp">In [47]: </span><span class="n">miindex</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">MultiIndex</span><span class="o">.</span><span class="n">from_product</span><span class="p">([</span><span class="n">mklbl</span><span class="p">(</span><span class="s1">&apos;A&apos;</span><span class="p">,</span><span class="mi">4</span><span class="p">),</span>
+<span class="gp">   ....:</span>                                       <span class="n">mklbl</span><span class="p">(</span><span class="s1">&apos;B&apos;</span><span class="p">,</span><span class="mi">2</span><span class="p">),</span>
+<span class="gp">   ....:</span>                                       <span class="n">mklbl</span><span class="p">(</span><span class="s1">&apos;C&apos;</span><span class="p">,</span><span class="mi">4</span><span class="p">),</span>
+<span class="gp">   ....:</span>                                       <span class="n">mklbl</span><span class="p">(</span><span class="s1">&apos;D&apos;</span><span class="p">,</span><span class="mi">2</span><span class="p">)])</span>
+<span class="gp">   ....:</span> 
+
+<span class="gp">In [48]: </span><span class="n">micolumns</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">MultiIndex</span><span class="o">.</span><span class="n">from_tuples</span><span class="p">([(</span><span class="s1">&apos;a&apos;</span><span class="p">,</span><span class="s1">&apos;foo&apos;</span><span class="p">),(</span><span class="s1">&apos;a&apos;</span><span class="p">,</span><span class="s1">&apos;bar&apos;</span><span class="p">),</span>
+<span class="gp">   ....:</span>                                        <span class="p">(</span><span class="s1">&apos;b&apos;</span><span class="p">,</span><span class="s1">&apos;foo&apos;</span><span class="p">),(</span><span class="s1">&apos;b&apos;</span><span class="p">,</span><span class="s1">&apos;bah&apos;</span><span class="p">)],</span>
+<span class="gp">   ....:</span>                                       <span class="n">names</span><span class="o">=</span><span class="p">[</span><span class="s1">&apos;lvl0&apos;</span><span class="p">,</span> <span class="s1">&apos;lvl1&apos;</span><span class="p">])</span>
+<span class="gp">   ....:</span> 
+
+<span class="gp">In [49]: </span><span class="n">dfmi</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">miindex</span><span class="p">)</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="n">micolumns</span><span class="p">))</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">miindex</span><span class="p">),</span><span class="nb">len</span><span class="p">(</span><span class="n">micolumns</span><span class="p">))),</span>
+<span class="gp">   ....:</span>                     <span class="n">index</span><span class="o">=</span><span class="n">miindex</span><span class="p">,</span>
+<span class="gp">   ....:</span>                     <span class="n">columns</span><span class="o">=</span><span class="n">micolumns</span><span class="p">)</span><span class="o">.</span><span class="n">sort_index</span><span class="p">()</span><span class="o">.</span><span class="n">sort_index</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="gp">   ....:</span> 
+
+<span class="gp">In [50]: </span><span class="n">dfmi</span>
+<span class="gr">Out[50]: </span>
+<span class="go">lvl0           a         b     </span>
+<span class="go">lvl1         bar  foo  bah  foo</span>
+<span class="go">A0 B0 C0 D0    1    0    3    2</span>
+<span class="go">         D1    5    4    7    6</span>
+<span class="go">      C1 D0    9    8   11   10</span>
+<span class="go">         D1   13   12   15   14</span>
+<span class="go">      C2 D0   17   16   19   18</span>
+<span class="go">         D1   21   20   23   22</span>
+<span class="go">      C3 D0   25   24   27   26</span>
+<span class="go">...          ...  ...  ...  ...</span>
+<span class="go">A3 B1 C0 D1  229  228  231  230</span>
+<span class="go">      C1 D0  233  232  235  234</span>
+<span class="go">         D1  237  236  239  238</span>
+<span class="go">      C2 D0  241  240  243  242</span>
+<span class="go">         D1  245  244  247  246</span>
+<span class="go">      C3 D0  249  248  251  250</span>
+<span class="go">         D1  253  252  255  254</span>
+
+<span class="go">[64 rows x 4 columns]</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-133">使用切片，列表和标签的基本多索引切片。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [51]: </span><span class="n">dfmi</span><span class="o">.</span><span class="n">loc</span><span class="p">[(</span><span class="nb">slice</span><span class="p">(</span><span class="s1">&apos;A1&apos;</span><span class="p">,</span><span class="s1">&apos;A3&apos;</span><span class="p">),</span><span class="nb">slice</span><span class="p">(</span><span class="bp">None</span><span class="p">),</span> <span class="p">[</span><span class="s1">&apos;C1&apos;</span><span class="p">,</span><span class="s1">&apos;C3&apos;</span><span class="p">]),:]</span>
+<span class="gr">Out[51]: </span>
+<span class="go">lvl0           a         b     </span>
+<span class="go">lvl1         bar  foo  bah  foo</span>
+<span class="go">A1 B0 C1 D0   73   72   75   74</span>
+<span class="go">         D1   77   76   79   78</span>
+<span class="go">      C3 D0   89   88   91   90</span>
+<span class="go">         D1   93   92   95   94</span>
+<span class="go">   B1 C1 D0  105  104  107  106</span>
+<span class="go">         D1  109  108  111  110</span>
+<span class="go">      C3 D0  121  120  123  122</span>
+<span class="go">...          ...  ...  ...  ...</span>
+<span class="go">A3 B0 C1 D1  205  204  207  206</span>
+<span class="go">      C3 D0  217  216  219  218</span>
+<span class="go">         D1  221  220  223  222</span>
+<span class="go">   B1 C1 D0  233  232  235  234</span>
+<span class="go">         D1  237  236  239  238</span>
+<span class="go">      C3 D0  249  248  251  250</span>
+<span class="go">         D1  253  252  255  254</span>
+
+<span class="go">[24 rows x 4 columns]</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-134">您可以使用<code class="docutils literal"><span class="pre">:</span></code>而不是使用<code class="docutils literal"><span class="pre">slice(None)</span></code>使用<code class="docutils literal"><span class="pre">pd.IndexSlice</span></code></span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [52]: </span><span class="n">idx</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">IndexSlice</span>
+
+<span class="gp">In [53]: </span><span class="n">dfmi</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">idx</span><span class="p">[:,:,[</span><span class="s1">&apos;C1&apos;</span><span class="p">,</span><span class="s1">&apos;C3&apos;</span><span class="p">]],</span><span class="n">idx</span><span class="p">[:,</span><span class="s1">&apos;foo&apos;</span><span class="p">]]</span>
+<span class="gr">Out[53]: </span>
+<span class="go">lvl0           a    b</span>
+<span class="go">lvl1         foo  foo</span>
+<span class="go">A0 B0 C1 D0    8   10</span>
+<span class="go">         D1   12   14</span>
+<span class="go">      C3 D0   24   26</span>
+<span class="go">         D1   28   30</span>
+<span class="go">   B1 C1 D0   40   42</span>
+<span class="go">         D1   44   46</span>
+<span class="go">      C3 D0   56   58</span>
+<span class="go">...          ...  ...</span>
+<span class="go">A3 B0 C1 D1  204  206</span>
+<span class="go">      C3 D0  216  218</span>
+<span class="go">         D1  220  222</span>
+<span class="go">   B1 C1 D0  232  234</span>
+<span class="go">         D1  236  238</span>
+<span class="go">      C3 D0  248  250</span>
+<span class="go">         D1  252  254</span>
+
+<span class="go">[32 rows x 2 columns]</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-135">可以在多个轴上同时使用此方法执行相当复杂的选择。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [54]: </span><span class="n">dfmi</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="s1">&apos;A1&apos;</span><span class="p">,(</span><span class="nb">slice</span><span class="p">(</span><span class="bp">None</span><span class="p">),</span><span class="s1">&apos;foo&apos;</span><span class="p">)]</span>
+<span class="gr">Out[54]: </span>
+<span class="go">lvl0        a    b</span>
+<span class="go">lvl1      foo  foo</span>
+<span class="go">B0 C0 D0   64   66</span>
+<span class="go">      D1   68   70</span>
+<span class="go">   C1 D0   72   74</span>
+<span class="go">      D1   76   78</span>
+<span class="go">   C2 D0   80   82</span>
+<span class="go">      D1   84   86</span>
+<span class="go">   C3 D0   88   90</span>
+<span class="go">...       ...  ...</span>
+<span class="go">B1 C0 D1  100  102</span>
+<span class="go">   C1 D0  104  106</span>
+<span class="go">      D1  108  110</span>
+<span class="go">   C2 D0  112  114</span>
+<span class="go">      D1  116  118</span>
+<span class="go">   C3 D0  120  122</span>
+<span class="go">      D1  124  126</span>
+
+<span class="go">[16 rows x 2 columns]</span>
+
+<span class="gp">In [55]: </span><span class="n">dfmi</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">idx</span><span class="p">[:,:,[</span><span class="s1">&apos;C1&apos;</span><span class="p">,</span><span class="s1">&apos;C3&apos;</span><span class="p">]],</span><span class="n">idx</span><span class="p">[:,</span><span class="s1">&apos;foo&apos;</span><span class="p">]]</span>
+<span class="gr">Out[55]: </span>
+<span class="go">lvl0           a    b</span>
+<span class="go">lvl1         foo  foo</span>
+<span class="go">A0 B0 C1 D0    8   10</span>
+<span class="go">         D1   12   14</span>
+<span class="go">      C3 D0   24   26</span>
+<span class="go">         D1   28   30</span>
+<span class="go">   B1 C1 D0   40   42</span>
+<span class="go">         D1   44   46</span>
+<span class="go">      C3 D0   56   58</span>
+<span class="go">...          ...  ...</span>
+<span class="go">A3 B0 C1 D1  204  206</span>
+<span class="go">      C3 D0  216  218</span>
+<span class="go">         D1  220  222</span>
+<span class="go">   B1 C1 D0  232  234</span>
+<span class="go">         D1  236  238</span>
+<span class="go">      C3 D0  248  250</span>
+<span class="go">         D1  252  254</span>
+
+<span class="go">[32 rows x 2 columns]</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-136">使用布尔索引器，您可以提供与<em>值</em>相关的选择。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [56]: </span><span class="n">mask</span> <span class="o">=</span> <span class="n">dfmi</span><span class="p">[(</span><span class="s1">&apos;a&apos;</span><span class="p">,</span><span class="s1">&apos;foo&apos;</span><span class="p">)]</span><span class="o">&gt;</span><span class="mi">200</span>
+
+<span class="gp">In [57]: </span><span class="n">dfmi</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">idx</span><span class="p">[</span><span class="n">mask</span><span class="p">,:,[</span><span class="s1">&apos;C1&apos;</span><span class="p">,</span><span class="s1">&apos;C3&apos;</span><span class="p">]],</span><span class="n">idx</span><span class="p">[:,</span><span class="s1">&apos;foo&apos;</span><span class="p">]]</span>
+<span class="gr">Out[57]: </span>
+<span class="go">lvl0           a    b</span>
+<span class="go">lvl1         foo  foo</span>
+<span class="go">A3 B0 C1 D1  204  206</span>
+<span class="go">      C3 D0  216  218</span>
+<span class="go">         D1  220  222</span>
+<span class="go">   B1 C1 D0  232  234</span>
+<span class="go">         D1  236  238</span>
+<span class="go">      C3 D0  248  250</span>
+<span class="go">         D1  252  254</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-137">您还可以为<code class="docutils literal"><span class="pre">.loc</span></code>指定<code class="docutils literal"><span class="pre">axis</span></code>参数，以解释单个轴上传递的切片。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [58]: </span><span class="n">dfmi</span><span class="o">.</span><span class="n">loc</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)[:,:,[</span><span class="s1">&apos;C1&apos;</span><span class="p">,</span><span class="s1">&apos;C3&apos;</span><span class="p">]]</span>
+<span class="gr">Out[58]: </span>
+<span class="go">lvl0           a         b     </span>
+<span class="go">lvl1         bar  foo  bah  foo</span>
+<span class="go">A0 B0 C1 D0    9    8   11   10</span>
+<span class="go">         D1   13   12   15   14</span>
+<span class="go">      C3 D0   25   24   27   26</span>
+<span class="go">         D1   29   28   31   30</span>
+<span class="go">   B1 C1 D0   41   40   43   42</span>
+<span class="go">         D1   45   44   47   46</span>
+<span class="go">      C3 D0   57   56   59   58</span>
+<span class="go">...          ...  ...  ...  ...</span>
+<span class="go">A3 B0 C1 D1  205  204  207  206</span>
+<span class="go">      C3 D0  217  216  219  218</span>
+<span class="go">         D1  221  220  223  222</span>
+<span class="go">   B1 C1 D0  233  232  235  234</span>
+<span class="go">         D1  237  236  239  238</span>
+<span class="go">      C3 D0  249  248  251  250</span>
+<span class="go">         D1  253  252  255  254</span>
+
+<span class="go">[32 rows x 4 columns]</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-138">此外，您可以使用这些方法<em>设置</em>值</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [59]: </span><span class="n">df2</span> <span class="o">=</span> <span class="n">dfmi</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+<span class="gp">In [60]: </span><span class="n">df2</span><span class="o">.</span><span class="n">loc</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)[:,:,[</span><span class="s1">&apos;C1&apos;</span><span class="p">,</span><span class="s1">&apos;C3&apos;</span><span class="p">]]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">10</span>
+
+<span class="gp">In [61]: </span><span class="n">df2</span>
+<span class="gr">Out[61]: </span>
+<span class="go">lvl0           a         b     </span>
+<span class="go">lvl1         bar  foo  bah  foo</span>
+<span class="go">A0 B0 C0 D0    1    0    3    2</span>
+<span class="go">         D1    5    4    7    6</span>
+<span class="go">      C1 D0  -10  -10  -10  -10</span>
+<span class="go">         D1  -10  -10  -10  -10</span>
+<span class="go">      C2 D0   17   16   19   18</span>
+<span class="go">         D1   21   20   23   22</span>
+<span class="go">      C3 D0  -10  -10  -10  -10</span>
+<span class="go">...          ...  ...  ...  ...</span>
+<span class="go">A3 B1 C0 D1  229  228  231  230</span>
+<span class="go">      C1 D0  -10  -10  -10  -10</span>
+<span class="go">         D1  -10  -10  -10  -10</span>
+<span class="go">      C2 D0  241  240  243  242</span>
+<span class="go">         D1  245  244  247  246</span>
+<span class="go">      C3 D0  -10  -10  -10  -10</span>
+<span class="go">         D1  -10  -10  -10  -10</span>
+
+<span class="go">[64 rows x 4 columns]</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-139">您也可以使用可对齐对象的右侧。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [62]: </span><span class="n">df2</span> <span class="o">=</span> <span class="n">dfmi</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+<span class="gp">In [63]: </span><span class="n">df2</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">idx</span><span class="p">[:,:,[</span><span class="s1">&apos;C1&apos;</span><span class="p">,</span><span class="s1">&apos;C3&apos;</span><span class="p">]],:]</span> <span class="o">=</span> <span class="n">df2</span><span class="o">*</span><span class="mi">1000</span>
+
+<span class="gp">In [64]: </span><span class="n">df2</span>
+<span class="gr">Out[64]: </span>
+<span class="go">lvl0              a               b        </span>
+<span class="go">lvl1            bar     foo     bah     foo</span>
+<span class="go">A0 B0 C0 D0       1       0       3       2</span>
+<span class="go">         D1       5       4       7       6</span>
+<span class="go">      C1 D0    9000    8000   11000   10000</span>
+<span class="go">         D1   13000   12000   15000   14000</span>
+<span class="go">      C2 D0      17      16      19      18</span>
+<span class="go">         D1      21      20      23      22</span>
+<span class="go">      C3 D0   25000   24000   27000   26000</span>
+<span class="go">...             ...     ...     ...     ...</span>
+<span class="go">A3 B1 C0 D1     229     228     231     230</span>
+<span class="go">      C1 D0  233000  232000  235000  234000</span>
+<span class="go">         D1  237000  236000  239000  238000</span>
+<span class="go">      C2 D0     241     240     243     242</span>
+<span class="go">         D1     245     244     247     246</span>
+<span class="go">      C3 D0  249000  248000  251000  250000</span>
+<span class="go">         D1  253000  252000  255000  254000</span>
+
+<span class="go">[64 rows x 4 columns]</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="cross-section">
+<span id="advanced-xs"></span><h3><span class="yiyi-st" id="yiyi-140">Cross-section</span></h3>
+<p><span class="yiyi-st" id="yiyi-141"><code class="docutils literal"><span class="pre">DataFrame</span></code>的<code class="docutils literal"><span class="pre">xs</span></code>方法还需要一个级别参数，以便更容易地选择MultiIndex的特定级别上的数据。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [65]: </span><span class="n">df</span>
+<span class="gr">Out[65]: </span>
+<span class="go">                     A         B         C</span>
+<span class="go">first second                              </span>
+<span class="go">bar   one     0.895717  0.410835 -1.413681</span>
+<span class="go">      two     0.805244  0.813850  1.607920</span>
+<span class="go">baz   one    -1.206412  0.132003  1.024180</span>
+<span class="go">      two     2.565646 -0.827317  0.569605</span>
+<span class="go">foo   one     1.431256 -0.076467  0.875906</span>
+<span class="go">      two     1.340309 -1.187678 -2.211372</span>
+<span class="go">qux   one    -1.170299  1.130127  0.974466</span>
+<span class="go">      two    -0.226169 -1.436737 -2.006747</span>
+
+<span class="gp">In [66]: </span><span class="n">df</span><span class="o">.</span><span class="n">xs</span><span class="p">(</span><span class="s1">&apos;one&apos;</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="s1">&apos;second&apos;</span><span class="p">)</span>
+<span class="gr">Out[66]: </span>
+<span class="go">              A         B         C</span>
+<span class="go">first                              </span>
+<span class="go">bar    0.895717  0.410835 -1.413681</span>
+<span class="go">baz   -1.206412  0.132003  1.024180</span>
+<span class="go">foo    1.431256 -0.076467  0.875906</span>
+<span class="go">qux   -1.170299  1.130127  0.974466</span>
+</pre></div>
+</div>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="c"># using the slicers (new in 0.14.0)</span>
+<span class="gp">In [67]: </span><span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[(</span><span class="nb">slice</span><span class="p">(</span><span class="bp">None</span><span class="p">),</span><span class="s1">&apos;one&apos;</span><span class="p">),:]</span>
+<span class="gr">Out[67]: </span>
+<span class="go">                     A         B         C</span>
+<span class="go">first second                              </span>
+<span class="go">bar   one     0.895717  0.410835 -1.413681</span>
+<span class="go">baz   one    -1.206412  0.132003  1.024180</span>
+<span class="go">foo   one     1.431256 -0.076467  0.875906</span>
+<span class="go">qux   one    -1.170299  1.130127  0.974466</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-142">您还可以通过提供轴参数在<code class="xref py py-meth docutils literal"><span class="pre">xs()</span></code>的列上选择</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [68]: </span><span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">T</span>
+
+<span class="gp">In [69]: </span><span class="n">df</span><span class="o">.</span><span class="n">xs</span><span class="p">(</span><span class="s1">&apos;one&apos;</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="s1">&apos;second&apos;</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="gr">Out[69]: </span>
+<span class="go">first       bar       baz       foo       qux</span>
+<span class="go">A      0.895717 -1.206412  1.431256 -1.170299</span>
+<span class="go">B      0.410835  0.132003 -0.076467  1.130127</span>
+<span class="go">C     -1.413681  1.024180  0.875906  0.974466</span>
+</pre></div>
+</div>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="c"># using the slicers (new in 0.14.0)</span>
+<span class="gp">In [70]: </span><span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,(</span><span class="nb">slice</span><span class="p">(</span><span class="bp">None</span><span class="p">),</span><span class="s1">&apos;one&apos;</span><span class="p">)]</span>
+<span class="gr">Out[70]: </span>
+<span class="go">first        bar       baz       foo       qux</span>
+<span class="go">second       one       one       one       one</span>
+<span class="go">A       0.895717 -1.206412  1.431256 -1.170299</span>
+<span class="go">B       0.410835  0.132003 -0.076467  1.130127</span>
+<span class="go">C      -1.413681  1.024180  0.875906  0.974466</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-143"><code class="xref py py-meth docutils literal"><span class="pre">xs()</span></code>还允许使用多个键进行选择</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [71]: </span><span class="n">df</span><span class="o">.</span><span class="n">xs</span><span class="p">((</span><span class="s1">&apos;one&apos;</span><span class="p">,</span> <span class="s1">&apos;bar&apos;</span><span class="p">),</span> <span class="n">level</span><span class="o">=</span><span class="p">(</span><span class="s1">&apos;second&apos;</span><span class="p">,</span> <span class="s1">&apos;first&apos;</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="gr">Out[71]: </span>
+<span class="go">first        bar</span>
+<span class="go">second       one</span>
+<span class="go">A       0.895717</span>
+<span class="go">B       0.410835</span>
+<span class="go">C      -1.413681</span>
+</pre></div>
+</div>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="c"># using the slicers (new in 0.14.0)</span>
+<span class="gp">In [72]: </span><span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,(</span><span class="s1">&apos;bar&apos;</span><span class="p">,</span><span class="s1">&apos;one&apos;</span><span class="p">)]</span>
+<span class="gr">Out[72]: </span>
+<span class="go">A    0.895717</span>
+<span class="go">B    0.410835</span>
+<span class="go">C   -1.413681</span>
+<span class="go">Name: (bar, one), dtype: float64</span>
+</pre></div>
+</div>
+<div class="versionadded">
+<p><span class="yiyi-st" id="yiyi-144"><span class="versionmodified">版本0.13.0中的新功能。</span></span></p>
+</div>
+<p><span class="yiyi-st" id="yiyi-145">您可以将<code class="docutils literal"><span class="pre">drop_level=False</span></code>传递给<code class="xref py py-meth docutils literal"><span class="pre">xs()</span></code>，以保留所选的级别</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [73]: </span><span class="n">df</span><span class="o">.</span><span class="n">xs</span><span class="p">(</span><span class="s1">&apos;one&apos;</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="s1">&apos;second&apos;</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">drop_level</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="gr">Out[73]: </span>
+<span class="go">first        bar       baz       foo       qux</span>
+<span class="go">second       one       one       one       one</span>
+<span class="go">A       0.895717 -1.206412  1.431256 -1.170299</span>
+<span class="go">B       0.410835  0.132003 -0.076467  1.130127</span>
+<span class="go">C      -1.413681  1.024180  0.875906  0.974466</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-146">与<code class="docutils literal"><span class="pre">drop_level=True</span></code>（默认值）的结果相比，</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [74]: </span><span class="n">df</span><span class="o">.</span><span class="n">xs</span><span class="p">(</span><span class="s1">&apos;one&apos;</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="s1">&apos;second&apos;</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">drop_level</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="gr">Out[74]: </span>
+<span class="go">first       bar       baz       foo       qux</span>
+<span class="go">A      0.895717 -1.206412  1.431256 -1.170299</span>
+<span class="go">B      0.410835  0.132003 -0.076467  1.130127</span>
+<span class="go">C     -1.413681  1.024180  0.875906  0.974466</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="advanced-reindexing-and-alignment">
+<span id="advanced-advanced-reindex"></span><h3><span class="yiyi-st" id="yiyi-147">Advanced reindexing and alignment</span></h3>
+<p><span class="yiyi-st" id="yiyi-148">参数<code class="docutils literal"><span class="pre">level</span></code>已添加到pandas对象的<code class="docutils literal"><span class="pre">reindex</span></code>和<code class="docutils literal"><span class="pre">align</span></code>方法中。</span><span class="yiyi-st" id="yiyi-149">这对于跨级别广播值很有用。</span><span class="yiyi-st" id="yiyi-150">例如：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [75]: </span><span class="n">midx</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">MultiIndex</span><span class="p">(</span><span class="n">levels</span><span class="o">=</span><span class="p">[[</span><span class="s1">&apos;zero&apos;</span><span class="p">,</span> <span class="s1">&apos;one&apos;</span><span class="p">],</span> <span class="p">[</span><span class="s1">&apos;x&apos;</span><span class="p">,</span><span class="s1">&apos;y&apos;</span><span class="p">]],</span>
+<span class="gp">   ....:</span>                      <span class="n">labels</span><span class="o">=</span><span class="p">[[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">],[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">]])</span>
+<span class="gp">   ....:</span> 
+
+<span class="gp">In [76]: </span><span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span><span class="mi">2</span><span class="p">),</span> <span class="n">index</span><span class="o">=</span><span class="n">midx</span><span class="p">)</span>
+
+<span class="gp">In [77]: </span><span class="n">df</span>
+<span class="gr">Out[77]: </span>
+<span class="go">               0         1</span>
+<span class="go">one  y  1.519970 -0.493662</span>
+<span class="go">     x  0.600178  0.274230</span>
+<span class="go">zero y  0.132885 -0.023688</span>
+<span class="go">     x  2.410179  1.450520</span>
+
+<span class="gp">In [78]: </span><span class="n">df2</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+<span class="gp">In [79]: </span><span class="n">df2</span>
+<span class="gr">Out[79]: </span>
+<span class="go">             0         1</span>
+<span class="go">zero  1.271532  0.713416</span>
+<span class="go">one   1.060074 -0.109716</span>
+
+<span class="gp">In [80]: </span><span class="n">df2</span><span class="o">.</span><span class="n">reindex</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="gr">Out[80]: </span>
+<span class="go">               0         1</span>
+<span class="go">one  y  1.060074 -0.109716</span>
+<span class="go">     x  1.060074 -0.109716</span>
+<span class="go">zero y  1.271532  0.713416</span>
+<span class="go">     x  1.271532  0.713416</span>
+
+<span class="c"># aligning</span>
+<span class="gp">In [81]: </span><span class="n">df_aligned</span><span class="p">,</span> <span class="n">df2_aligned</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">align</span><span class="p">(</span><span class="n">df2</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+<span class="gp">In [82]: </span><span class="n">df_aligned</span>
+<span class="gr">Out[82]: </span>
+<span class="go">               0         1</span>
+<span class="go">one  y  1.519970 -0.493662</span>
+<span class="go">     x  0.600178  0.274230</span>
+<span class="go">zero y  0.132885 -0.023688</span>
+<span class="go">     x  2.410179  1.450520</span>
+
+<span class="gp">In [83]: </span><span class="n">df2_aligned</span>
+<span class="gr">Out[83]: </span>
+<span class="go">               0         1</span>
+<span class="go">one  y  1.060074 -0.109716</span>
+<span class="go">     x  1.060074 -0.109716</span>
+<span class="go">zero y  1.271532  0.713416</span>
+<span class="go">     x  1.271532  0.713416</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="swapping-levels-with-swaplevel">
+<h3><span class="yiyi-st" id="yiyi-151">Swapping levels with <a class="reference internal" href="generated/pandas.MultiIndex.swaplevel.html#pandas.MultiIndex.swaplevel" title="pandas.MultiIndex.swaplevel"><code class="xref py py-meth docutils literal"><span class="pre">swaplevel()</span></code></a></span></h3>
+<p><span class="yiyi-st" id="yiyi-152"><code class="docutils literal"><span class="pre">swaplevel</span></code>函数可以切换两个级别的顺序：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [84]: </span><span class="n">df</span><span class="p">[:</span><span class="mi">5</span><span class="p">]</span>
+<span class="gr">Out[84]: </span>
+<span class="go">               0         1</span>
+<span class="go">one  y  1.519970 -0.493662</span>
+<span class="go">     x  0.600178  0.274230</span>
+<span class="go">zero y  0.132885 -0.023688</span>
+<span class="go">     x  2.410179  1.450520</span>
+
+<span class="gp">In [85]: </span><span class="n">df</span><span class="p">[:</span><span class="mi">5</span><span class="p">]</span><span class="o">.</span><span class="n">swaplevel</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="gr">Out[85]: </span>
+<span class="go">               0         1</span>
+<span class="go">y one   1.519970 -0.493662</span>
+<span class="go">x one   0.600178  0.274230</span>
+<span class="go">y zero  0.132885 -0.023688</span>
+<span class="go">x zero  2.410179  1.450520</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="reordering-levels-with-reorder-levels">
+<span id="advanced-reorderlevels"></span><h3><span class="yiyi-st" id="yiyi-153">Reordering levels with <a class="reference internal" href="generated/pandas.MultiIndex.reorder_levels.html#pandas.MultiIndex.reorder_levels" title="pandas.MultiIndex.reorder_levels"><code class="xref py py-meth docutils literal"><span class="pre">reorder_levels()</span></code></a></span></h3>
+<p><span class="yiyi-st" id="yiyi-154"><code class="docutils literal"><span class="pre">reorder_levels</span></code>函数概括了<code class="docutils literal"><span class="pre">swaplevel</span></code>函数，允许您在一个步骤中置换层次索引级别：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [86]: </span><span class="n">df</span><span class="p">[:</span><span class="mi">5</span><span class="p">]</span><span class="o">.</span><span class="n">reorder_levels</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="gr">Out[86]: </span>
+<span class="go">               0         1</span>
+<span class="go">y one   1.519970 -0.493662</span>
+<span class="go">x one   0.600178  0.274230</span>
+<span class="go">y zero  0.132885 -0.023688</span>
+<span class="go">x zero  2.410179  1.450520</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="sorting-a-multiindex">
+<h2><span class="yiyi-st" id="yiyi-155">Sorting a <a class="reference internal" href="generated/pandas.MultiIndex.html#pandas.MultiIndex" title="pandas.MultiIndex"><code class="xref py py-class docutils literal"><span class="pre">MultiIndex</span></code></a></span></h2>
+<p><span class="yiyi-st" id="yiyi-156">要有效地对多索引对象进行索引和分片，需要对它们进行排序。</span><span class="yiyi-st" id="yiyi-157">与任何索引一样，您可以使用<code class="docutils literal"><span class="pre">sort_index</span></code>。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [87]: </span><span class="kn">import</span> <span class="nn">random</span><span class="p">;</span> <span class="n">random</span><span class="o">.</span><span class="n">shuffle</span><span class="p">(</span><span class="n">tuples</span><span class="p">)</span>
+
+<span class="gp">In [88]: </span><span class="n">s</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">8</span><span class="p">),</span> <span class="n">index</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">MultiIndex</span><span class="o">.</span><span class="n">from_tuples</span><span class="p">(</span><span class="n">tuples</span><span class="p">))</span>
+
+<span class="gp">In [89]: </span><span class="n">s</span>
+<span class="gr">Out[89]: </span>
+<span class="go">baz  two    0.206053</span>
+<span class="go">qux  one   -0.251905</span>
+<span class="go">bar  two   -2.213588</span>
+<span class="go">     one    1.063327</span>
+<span class="go">baz  one    1.266143</span>
+<span class="go">qux  two    0.299368</span>
+<span class="go">foo  one   -0.863838</span>
+<span class="go">     two    0.408204</span>
+<span class="go">dtype: float64</span>
+
+<span class="gp">In [90]: </span><span class="n">s</span><span class="o">.</span><span class="n">sort_index</span><span class="p">()</span>
+<span class="gr">Out[90]: </span>
+<span class="go">bar  one    1.063327</span>
+<span class="go">     two   -2.213588</span>
+<span class="go">baz  one    1.266143</span>
+<span class="go">     two    0.206053</span>
+<span class="go">foo  one   -0.863838</span>
+<span class="go">     two    0.408204</span>
+<span class="go">qux  one   -0.251905</span>
+<span class="go">     two    0.299368</span>
+<span class="go">dtype: float64</span>
+
+<span class="gp">In [91]: </span><span class="n">s</span><span class="o">.</span><span class="n">sort_index</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="gr">Out[91]: </span>
+<span class="go">bar  one    1.063327</span>
+<span class="go">     two   -2.213588</span>
+<span class="go">baz  one    1.266143</span>
+<span class="go">     two    0.206053</span>
+<span class="go">foo  one   -0.863838</span>
+<span class="go">     two    0.408204</span>
+<span class="go">qux  one   -0.251905</span>
+<span class="go">     two    0.299368</span>
+<span class="go">dtype: float64</span>
+
+<span class="gp">In [92]: </span><span class="n">s</span><span class="o">.</span><span class="n">sort_index</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="gr">Out[92]: </span>
+<span class="go">bar  one    1.063327</span>
+<span class="go">baz  one    1.266143</span>
+<span class="go">foo  one   -0.863838</span>
+<span class="go">qux  one   -0.251905</span>
+<span class="go">bar  two   -2.213588</span>
+<span class="go">baz  two    0.206053</span>
+<span class="go">foo  two    0.408204</span>
+<span class="go">qux  two    0.299368</span>
+<span class="go">dtype: float64</span>
+</pre></div>
+</div>
+<p id="advanced-sortlevel-byname"><span class="yiyi-st" id="yiyi-158">如果MultiIndex级别命名，您也可以将级别名称传递给<code class="docutils literal"><span class="pre">sort_index</span></code>。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [93]: </span><span class="n">s</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">set_names</span><span class="p">([</span><span class="s1">&apos;L1&apos;</span><span class="p">,</span> <span class="s1">&apos;L2&apos;</span><span class="p">],</span> <span class="n">inplace</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+<span class="gp">In [94]: </span><span class="n">s</span><span class="o">.</span><span class="n">sort_index</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="s1">&apos;L1&apos;</span><span class="p">)</span>
+<span class="gr">Out[94]: </span>
+<span class="go">L1   L2 </span>
+<span class="go">bar  one    1.063327</span>
+<span class="go">     two   -2.213588</span>
+<span class="go">baz  one    1.266143</span>
+<span class="go">     two    0.206053</span>
+<span class="go">foo  one   -0.863838</span>
+<span class="go">     two    0.408204</span>
+<span class="go">qux  one   -0.251905</span>
+<span class="go">     two    0.299368</span>
+<span class="go">dtype: float64</span>
+
+<span class="gp">In [95]: </span><span class="n">s</span><span class="o">.</span><span class="n">sort_index</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="s1">&apos;L2&apos;</span><span class="p">)</span>
+<span class="gr">Out[95]: </span>
+<span class="go">L1   L2 </span>
+<span class="go">bar  one    1.063327</span>
+<span class="go">baz  one    1.266143</span>
+<span class="go">foo  one   -0.863838</span>
+<span class="go">qux  one   -0.251905</span>
+<span class="go">bar  two   -2.213588</span>
+<span class="go">baz  two    0.206053</span>
+<span class="go">foo  two    0.408204</span>
+<span class="go">qux  two    0.299368</span>
+<span class="go">dtype: float64</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-159">对于较高维度的对象，如果具有MultiIndex，您可以按级别对任何其他轴进行排序：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [96]: </span><span class="n">df</span><span class="o">.</span><span class="n">T</span><span class="o">.</span><span class="n">sort_index</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="gr">Out[96]: </span>
+<span class="go">       zero       one      zero       one</span>
+<span class="go">          x         x         y         y</span>
+<span class="go">0  2.410179  0.600178  0.132885  1.519970</span>
+<span class="go">1  1.450520  0.274230 -0.023688 -0.493662</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-160">即使数据没有排序，索引也会起作用，但是效率相当低（并显示<code class="docutils literal"><span class="pre">PerformanceWarning</span></code>）。</span><span class="yiyi-st" id="yiyi-161">它还将返回数据的副本，而不是视图：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [97]: </span><span class="n">dfm</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s1">&apos;jim&apos;</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span>
+<span class="gp">   ....:</span>                     <span class="s1">&apos;joe&apos;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&apos;x&apos;</span><span class="p">,</span> <span class="s1">&apos;x&apos;</span><span class="p">,</span> <span class="s1">&apos;z&apos;</span><span class="p">,</span> <span class="s1">&apos;y&apos;</span><span class="p">],</span>
+<span class="gp">   ....:</span>                     <span class="s1">&apos;jolie&apos;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">4</span><span class="p">)})</span>
+<span class="gp">   ....:</span> 
+
+<span class="gp">In [98]: </span><span class="n">dfm</span> <span class="o">=</span> <span class="n">dfm</span><span class="o">.</span><span class="n">set_index</span><span class="p">([</span><span class="s1">&apos;jim&apos;</span><span class="p">,</span> <span class="s1">&apos;joe&apos;</span><span class="p">])</span>
+
+<span class="gp">In [99]: </span><span class="n">dfm</span>
+<span class="gr">Out[99]: </span>
+<span class="go">            jolie</span>
+<span class="go">jim joe          </span>
+<span class="go">0   x    0.490671</span>
+<span class="go">    x    0.120248</span>
+<span class="go">1   z    0.537020</span>
+<span class="go">    y    0.110968</span>
+</pre></div>
+</div>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [4]: </span><span class="n">dfm</span><span class="o">.</span><span class="n">loc</span><span class="p">[(</span><span class="mi">1</span><span class="p">,</span> <span class="s1">&apos;z&apos;</span><span class="p">)]</span>
+<span class="go">PerformanceWarning: indexing past lexsort depth may impact performance.</span>
+
+<span class="go">Out[4]:</span>
+<span class="go">           jolie</span>
+<span class="go">jim joe</span>
+<span class="go">1   z    0.64094</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-162">此外，如果你尝试索引的东西不完全lexsorted，这可以提出：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [5]: </span><span class="n">dfm</span><span class="o">.</span><span class="n">loc</span><span class="p">[(</span><span class="mi">0</span><span class="p">,</span><span class="s1">&apos;y&apos;</span><span class="p">):(</span><span class="mi">1</span><span class="p">,</span> <span class="s1">&apos;z&apos;</span><span class="p">)]</span>
+<span class="go">KeyError: &apos;Key length (2) was greater than MultiIndex lexsort depth (1)&apos;</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-163"><code class="docutils literal"><span class="pre">Index</span></code>上的<code class="docutils literal"><span class="pre">is_lexsorted()</span></code>方法显示索引是否已排序，并且<code class="docutils literal"><span class="pre">lexsort_depth</span></code>属性返回排序深度：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [100]: </span><span class="n">dfm</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">is_lexsorted</span><span class="p">()</span>
+<span class="gr">Out[100]: </span><span class="bp">False</span>
+
+<span class="gp">In [101]: </span><span class="n">dfm</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">lexsort_depth</span>
+<span class="gr">Out[101]: </span><span class="mi">1</span>
+</pre></div>
+</div>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [102]: </span><span class="n">dfm</span> <span class="o">=</span> <span class="n">dfm</span><span class="o">.</span><span class="n">sort_index</span><span class="p">()</span>
+
+<span class="gp">In [103]: </span><span class="n">dfm</span>
+<span class="gr">Out[103]: </span>
+<span class="go">            jolie</span>
+<span class="go">jim joe          </span>
+<span class="go">0   x    0.490671</span>
+<span class="go">    x    0.120248</span>
+<span class="go">1   y    0.110968</span>
+<span class="go">    z    0.537020</span>
+
+<span class="gp">In [104]: </span><span class="n">dfm</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">is_lexsorted</span><span class="p">()</span>
+<span class="gr">Out[104]: </span><span class="bp">True</span>
+
+<span class="gp">In [105]: </span><span class="n">dfm</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">lexsort_depth</span>
+<span class="gr">Out[105]: </span><span class="mi">2</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-164">现在选择工作正如预期。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [106]: </span><span class="n">dfm</span><span class="o">.</span><span class="n">loc</span><span class="p">[(</span><span class="mi">0</span><span class="p">,</span><span class="s1">&apos;y&apos;</span><span class="p">):(</span><span class="mi">1</span><span class="p">,</span> <span class="s1">&apos;z&apos;</span><span class="p">)]</span>
+<span class="gr">Out[106]: </span>
+<span class="go">            jolie</span>
+<span class="go">jim joe          </span>
+<span class="go">1   y    0.110968</span>
+<span class="go">    z    0.537020</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="take-methods">
+<h2><span class="yiyi-st" id="yiyi-165">Take Methods</span></h2>
+<p id="advanced-take"><span class="yiyi-st" id="yiyi-166">与numpy ndarrays类似，pandas Index，Series和DataFrame还提供了<code class="docutils literal"><span class="pre">take</span></code>方法，用于在给定的索引处检索沿给定轴的元素。</span><span class="yiyi-st" id="yiyi-167">给定的索引必须是整数索引位置的列表或者ndarray。</span><span class="yiyi-st" id="yiyi-168"><code class="docutils literal"><span class="pre">take</span></code>也会接受负整数作为对象结尾的相对位置。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [107]: </span><span class="n">index</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Index</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1000</span><span class="p">,</span> <span class="mi">10</span><span class="p">))</span>
+
+<span class="gp">In [108]: </span><span class="n">index</span>
+<span class="gr">Out[108]: </span><span class="n">Int64Index</span><span class="p">([</span><span class="mi">214</span><span class="p">,</span> <span class="mi">502</span><span class="p">,</span> <span class="mi">712</span><span class="p">,</span> <span class="mi">567</span><span class="p">,</span> <span class="mi">786</span><span class="p">,</span> <span class="mi">175</span><span class="p">,</span> <span class="mi">993</span><span class="p">,</span> <span class="mi">133</span><span class="p">,</span> <span class="mi">758</span><span class="p">,</span> <span class="mi">329</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&apos;int64&apos;</span><span class="p">)</span>
+
+<span class="gp">In [109]: </span><span class="n">positions</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">9</span><span class="p">,</span> <span class="mi">3</span><span class="p">]</span>
+
+<span class="gp">In [110]: </span><span class="n">index</span><span class="p">[</span><span class="n">positions</span><span class="p">]</span>
+<span class="gr">Out[110]: </span><span class="n">Int64Index</span><span class="p">([</span><span class="mi">214</span><span class="p">,</span> <span class="mi">329</span><span class="p">,</span> <span class="mi">567</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&apos;int64&apos;</span><span class="p">)</span>
+
+<span class="gp">In [111]: </span><span class="n">index</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">positions</span><span class="p">)</span>
+<span class="gr">Out[111]: </span><span class="n">Int64Index</span><span class="p">([</span><span class="mi">214</span><span class="p">,</span> <span class="mi">329</span><span class="p">,</span> <span class="mi">567</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&apos;int64&apos;</span><span class="p">)</span>
+
+<span class="gp">In [112]: </span><span class="n">ser</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">10</span><span class="p">))</span>
+
+<span class="gp">In [113]: </span><span class="n">ser</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">positions</span><span class="p">]</span>
+<span class="gr">Out[113]: </span>
+<span class="go">0   -0.179666</span>
+<span class="go">9    1.824375</span>
+<span class="go">3    0.392149</span>
+<span class="go">dtype: float64</span>
+
+<span class="gp">In [114]: </span><span class="n">ser</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">positions</span><span class="p">)</span>
+<span class="gr">Out[114]: </span>
+<span class="go">0   -0.179666</span>
+<span class="go">9    1.824375</span>
+<span class="go">3    0.392149</span>
+<span class="go">dtype: float64</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-169">对于DataFrames，给定的索引应该是指定行或列位置的1d列表或ndarray。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [115]: </span><span class="n">frm</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+
+<span class="gp">In [116]: </span><span class="n">frm</span><span class="o">.</span><span class="n">take</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">3</span><span class="p">])</span>
+<span class="gr">Out[116]: </span>
+<span class="go">          0         1         2</span>
+<span class="go">1 -1.237881  0.106854 -1.276829</span>
+<span class="go">4  0.629675 -1.425966  1.857704</span>
+<span class="go">3  0.979542 -1.633678  0.615855</span>
+
+<span class="gp">In [117]: </span><span class="n">frm</span><span class="o">.</span><span class="n">take</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="gr">Out[117]: </span>
+<span class="go">          0         2</span>
+<span class="go">0  0.595974  0.601544</span>
+<span class="go">1 -1.237881 -1.276829</span>
+<span class="go">2 -0.767101  1.499591</span>
+<span class="go">3  0.979542  0.615855</span>
+<span class="go">4  0.629675  1.857704</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-170">重要的是要注意，pandas对象上的<code class="docutils literal"><span class="pre">take</span></code>方法不适用于布尔索引，并且可能返回意想不到的结果。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [118]: </span><span class="n">arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+
+<span class="gp">In [119]: </span><span class="n">arr</span><span class="o">.</span><span class="n">take</span><span class="p">([</span><span class="bp">False</span><span class="p">,</span> <span class="bp">False</span><span class="p">,</span> <span class="bp">True</span><span class="p">,</span> <span class="bp">True</span><span class="p">])</span>
+<span class="gr">Out[119]: </span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mf">1.1935</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.1935</span><span class="p">,</span>  <span class="mf">0.6775</span><span class="p">,</span>  <span class="mf">0.6775</span><span class="p">])</span>
+
+<span class="gp">In [120]: </span><span class="n">arr</span><span class="p">[[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]]</span>
+<span class="gr">Out[120]: </span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mf">1.1935</span><span class="p">,</span>  <span class="mf">0.6775</span><span class="p">])</span>
+
+<span class="gp">In [121]: </span><span class="n">ser</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">10</span><span class="p">))</span>
+
+<span class="gp">In [122]: </span><span class="n">ser</span><span class="o">.</span><span class="n">take</span><span class="p">([</span><span class="bp">False</span><span class="p">,</span> <span class="bp">False</span><span class="p">,</span> <span class="bp">True</span><span class="p">,</span> <span class="bp">True</span><span class="p">])</span>
+<span class="gr">Out[122]: </span>
+<span class="go">0    0.233141</span>
+<span class="go">0    0.233141</span>
+<span class="go">1   -0.223540</span>
+<span class="go">1   -0.223540</span>
+<span class="go">dtype: float64</span>
+
+<span class="gp">In [123]: </span><span class="n">ser</span><span class="o">.</span><span class="n">ix</span><span class="p">[[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]]</span>
+<span class="gr">Out[123]: </span>
+<span class="go">0    0.233141</span>
+<span class="go">1   -0.223540</span>
+<span class="go">dtype: float64</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-171">最后，作为对性能的一个小注释，因为<code class="docutils literal"><span class="pre">take</span></code>方法处理较窄的输入范围，它可以提供比花式索引更快的性能。</span></p>
+</div>
+<div class="section" id="index-types">
+<span id="indexing-index-types"></span><h2><span class="yiyi-st" id="yiyi-172">Index Types</span></h2>
+<p><span class="yiyi-st" id="yiyi-173">我们已经在前面的章节讨论了<code class="docutils literal"><span class="pre">MultiIndex</span></code>。</span><span class="yiyi-st" id="yiyi-174"><code class="docutils literal"><span class="pre">DatetimeIndex</span></code>和<code class="docutils literal"><span class="pre">PeriodIndex</span></code>在此显示为<a class="reference internal" href="timeseries.html#timeseries-overview"><span class="std std-ref">here</span></a>。</span><span class="yiyi-st" id="yiyi-175"><code class="docutils literal"><span class="pre">TimedeltaIndex</span></code>在此处为<a class="reference internal" href="timedeltas.html#timedeltas-timedeltas"><span class="std std-ref">here</span></a>。</span></p>
+<p><span class="yiyi-st" id="yiyi-176">在下面的小节中，我们将高亮一些其他索引类型。</span></p>
+<div class="section" id="categoricalindex">
+<span id="indexing-categoricalindex"></span><h3><span class="yiyi-st" id="yiyi-177">CategoricalIndex</span></h3>
+<div class="versionadded">
+<p><span class="yiyi-st" id="yiyi-178"><span class="versionmodified">版本0.16.1中的新功能。</span></span></p>
+</div>
+<p><span class="yiyi-st" id="yiyi-179">我们引入了一个<code class="docutils literal"><span class="pre">CategoricalIndex</span></code>，一种新类型的索引对象，用于支持使用重复索引。</span><span class="yiyi-st" id="yiyi-180">这是围绕<code class="docutils literal"><span class="pre">Categorical</span></code>（在v0.15.0中引入）的容器，允许对具有大量重复元素的索引进行有效的索引和存储。</span><span class="yiyi-st" id="yiyi-181">在0.16.1之前，使用<code class="docutils literal"><span class="pre">category</span></code> dtype设置<code class="docutils literal"><span class="pre">DataFrame/Series</span></code>的索引会将其转换为常规基于对象的<code class="docutils literal"><span class="pre">Index</span></code>。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [124]: </span><span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s1">&apos;A&apos;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">6</span><span class="p">),</span>
+<span class="gp">   .....:</span>                    <span class="s1">&apos;B&apos;</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="s1">&apos;aabbca&apos;</span><span class="p">)})</span>
+<span class="gp">   .....:</span> 
+
+<span class="gp">In [125]: </span><span class="n">df</span><span class="p">[</span><span class="s1">&apos;B&apos;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s1">&apos;B&apos;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">&apos;category&apos;</span><span class="p">,</span> <span class="n">categories</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="s1">&apos;cab&apos;</span><span class="p">))</span>
+
+<span class="gp">In [126]: </span><span class="n">df</span>
+<span class="gr">Out[126]: </span>
+<span class="go">   A  B</span>
+<span class="go">0  0  a</span>
+<span class="go">1  1  a</span>
+<span class="go">2  2  b</span>
+<span class="go">3  3  b</span>
+<span class="go">4  4  c</span>
+<span class="go">5  5  a</span>
+
+<span class="gp">In [127]: </span><span class="n">df</span><span class="o">.</span><span class="n">dtypes</span>
+<span class="gr">Out[127]: </span>
+<span class="go">A       int64</span>
+<span class="go">B    category</span>
+<span class="go">dtype: object</span>
+
+<span class="gp">In [128]: </span><span class="n">df</span><span class="o">.</span><span class="n">B</span><span class="o">.</span><span class="n">cat</span><span class="o">.</span><span class="n">categories</span>
+<span class="gr">Out[128]: </span><span class="n">Index</span><span class="p">([</span><span class="s1">u&apos;c&apos;</span><span class="p">,</span> <span class="s1">u&apos;a&apos;</span><span class="p">,</span> <span class="s1">u&apos;b&apos;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&apos;object&apos;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-182">设置索引，将创建<code class="docutils literal"><span class="pre">CategoricalIndex</span></code></span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [129]: </span><span class="n">df2</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s1">&apos;B&apos;</span><span class="p">)</span>
+
+<span class="gp">In [130]: </span><span class="n">df2</span><span class="o">.</span><span class="n">index</span>
+<span class="gr">Out[130]: </span><span class="n">CategoricalIndex</span><span class="p">([</span><span class="s1">u&apos;a&apos;</span><span class="p">,</span> <span class="s1">u&apos;a&apos;</span><span class="p">,</span> <span class="s1">u&apos;b&apos;</span><span class="p">,</span> <span class="s1">u&apos;b&apos;</span><span class="p">,</span> <span class="s1">u&apos;c&apos;</span><span class="p">,</span> <span class="s1">u&apos;a&apos;</span><span class="p">],</span> <span class="n">categories</span><span class="o">=</span><span class="p">[</span><span class="s1">u&apos;c&apos;</span><span class="p">,</span> <span class="s1">u&apos;a&apos;</span><span class="p">,</span> <span class="s1">u&apos;b&apos;</span><span class="p">],</span> <span class="n">ordered</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">u&apos;B&apos;</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&apos;category&apos;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-183">使用<code class="docutils literal"><span class="pre">__getitem__/.iloc/.loc/.ix</span></code>索引与<code class="docutils literal"><span class="pre">Index</span></code>类似，具有重复。</span><span class="yiyi-st" id="yiyi-184">索引器必须在类别中或操作将增加。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [131]: </span><span class="n">df2</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="s1">&apos;a&apos;</span><span class="p">]</span>
+<span class="gr">Out[131]: </span>
+<span class="go">   A</span>
+<span class="go">B   </span>
+<span class="go">a  0</span>
+<span class="go">a  1</span>
+<span class="go">a  5</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-185">这些保留<code class="docutils literal"><span class="pre">CategoricalIndex</span></code></span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [132]: </span><span class="n">df2</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="s1">&apos;a&apos;</span><span class="p">]</span><span class="o">.</span><span class="n">index</span>
+<span class="gr">Out[132]: </span><span class="n">CategoricalIndex</span><span class="p">([</span><span class="s1">u&apos;a&apos;</span><span class="p">,</span> <span class="s1">u&apos;a&apos;</span><span class="p">,</span> <span class="s1">u&apos;a&apos;</span><span class="p">],</span> <span class="n">categories</span><span class="o">=</span><span class="p">[</span><span class="s1">u&apos;c&apos;</span><span class="p">,</span> <span class="s1">u&apos;a&apos;</span><span class="p">,</span> <span class="s1">u&apos;b&apos;</span><span class="p">],</span> <span class="n">ordered</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">u&apos;B&apos;</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&apos;category&apos;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-186">排序将按类别的顺序排序</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [133]: </span><span class="n">df2</span><span class="o">.</span><span class="n">sort_index</span><span class="p">()</span>
+<span class="gr">Out[133]: </span>
+<span class="go">   A</span>
+<span class="go">B   </span>
+<span class="go">c  4</span>
+<span class="go">a  0</span>
+<span class="go">a  1</span>
+<span class="go">a  5</span>
+<span class="go">b  2</span>
+<span class="go">b  3</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-187">索引上的Groupby操作也将保留索引本质</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [134]: </span><span class="n">df2</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+<span class="gr">Out[134]: </span>
+<span class="go">   A</span>
+<span class="go">B   </span>
+<span class="go">c  4</span>
+<span class="go">a  6</span>
+<span class="go">b  5</span>
+
+<span class="gp">In [135]: </span><span class="n">df2</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span><span class="o">.</span><span class="n">index</span>
+<span class="gr">Out[135]: </span><span class="n">CategoricalIndex</span><span class="p">([</span><span class="s1">u&apos;c&apos;</span><span class="p">,</span> <span class="s1">u&apos;a&apos;</span><span class="p">,</span> <span class="s1">u&apos;b&apos;</span><span class="p">],</span> <span class="n">categories</span><span class="o">=</span><span class="p">[</span><span class="s1">u&apos;c&apos;</span><span class="p">,</span> <span class="s1">u&apos;a&apos;</span><span class="p">,</span> <span class="s1">u&apos;b&apos;</span><span class="p">],</span> <span class="n">ordered</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">u&apos;B&apos;</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&apos;category&apos;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-188">重索引操作将根据传递的索引器的类型返回一个结果索引，这意味着传递一个列表将返回一个普通的<code class="docutils literal"><span class="pre">Index</span></code>；用<code class="docutils literal"><span class="pre">Categorical</span></code>索引将返回<code class="docutils literal"><span class="pre">CategoricalIndex</span></code>，根据PASSED <code class="docutils literal"><span class="pre">Categorical</span></code> dtype的类别索引。</span><span class="yiyi-st" id="yiyi-189">这允许任意索引这些甚至与不在类别中的值，类似于如何重新索引任何熊猫索引。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [136]: </span><span class="n">df2</span><span class="o">.</span><span class="n">reindex</span><span class="p">([</span><span class="s1">&apos;a&apos;</span><span class="p">,</span><span class="s1">&apos;e&apos;</span><span class="p">])</span>
+<span class="gr">Out[136]: </span>
+<span class="go">     A</span>
+<span class="go">B     </span>
+<span class="go">a  0.0</span>
+<span class="go">a  1.0</span>
+<span class="go">a  5.0</span>
+<span class="go">e  NaN</span>
+
+<span class="gp">In [137]: </span><span class="n">df2</span><span class="o">.</span><span class="n">reindex</span><span class="p">([</span><span class="s1">&apos;a&apos;</span><span class="p">,</span><span class="s1">&apos;e&apos;</span><span class="p">])</span><span class="o">.</span><span class="n">index</span>
+<span class="gr">Out[137]: </span><span class="n">Index</span><span class="p">([</span><span class="s1">u&apos;a&apos;</span><span class="p">,</span> <span class="s1">u&apos;a&apos;</span><span class="p">,</span> <span class="s1">u&apos;a&apos;</span><span class="p">,</span> <span class="s1">u&apos;e&apos;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&apos;object&apos;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">u&apos;B&apos;</span><span class="p">)</span>
+
+<span class="gp">In [138]: </span><span class="n">df2</span><span class="o">.</span><span class="n">reindex</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">Categorical</span><span class="p">([</span><span class="s1">&apos;a&apos;</span><span class="p">,</span><span class="s1">&apos;e&apos;</span><span class="p">],</span><span class="n">categories</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="s1">&apos;abcde&apos;</span><span class="p">)))</span>
+<span class="gr">Out[138]: </span>
+<span class="go">     A</span>
+<span class="go">B     </span>
+<span class="go">a  0.0</span>
+<span class="go">a  1.0</span>
+<span class="go">a  5.0</span>
+<span class="go">e  NaN</span>
+
+<span class="gp">In [139]: </span><span class="n">df2</span><span class="o">.</span><span class="n">reindex</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">Categorical</span><span class="p">([</span><span class="s1">&apos;a&apos;</span><span class="p">,</span><span class="s1">&apos;e&apos;</span><span class="p">],</span><span class="n">categories</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="s1">&apos;abcde&apos;</span><span class="p">)))</span><span class="o">.</span><span class="n">index</span>
+<span class="gr">Out[139]: </span><span class="n">CategoricalIndex</span><span class="p">([</span><span class="s1">u&apos;a&apos;</span><span class="p">,</span> <span class="s1">u&apos;a&apos;</span><span class="p">,</span> <span class="s1">u&apos;a&apos;</span><span class="p">,</span> <span class="s1">u&apos;e&apos;</span><span class="p">],</span> <span class="n">categories</span><span class="o">=</span><span class="p">[</span><span class="s1">u&apos;a&apos;</span><span class="p">,</span> <span class="s1">u&apos;b&apos;</span><span class="p">,</span> <span class="s1">u&apos;c&apos;</span><span class="p">,</span> <span class="s1">u&apos;d&apos;</span><span class="p">,</span> <span class="s1">u&apos;e&apos;</span><span class="p">],</span> <span class="n">ordered</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">u&apos;B&apos;</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&apos;category&apos;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="admonition warning">
+<p class="first admonition-title"><span class="yiyi-st" id="yiyi-190">警告</span></p>
+<p><span class="yiyi-st" id="yiyi-191">对<code class="docutils literal"><span class="pre">CategoricalIndex</span></code>的重塑和比较操作必须具有相同的类别，否则会引发<code class="docutils literal"><span class="pre">TypeError</span></code>。</span></p>
+<div class="last highlight-python"><div class="highlight"><pre><span></span><span class="n">In</span> <span class="p">[</span><span class="mi">9</span><span class="p">]:</span> <span class="n">df3</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s1">&apos;A&apos;</span> <span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">6</span><span class="p">),</span>
+                            <span class="s1">&apos;B&apos;</span> <span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="s1">&apos;aabbca&apos;</span><span class="p">))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">&apos;category&apos;</span><span class="p">)})</span>
+
+<span class="n">In</span> <span class="p">[</span><span class="mi">11</span><span class="p">]:</span> <span class="n">df3</span> <span class="o">=</span> <span class="n">df3</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s1">&apos;B&apos;</span><span class="p">)</span>
+
+<span class="n">In</span> <span class="p">[</span><span class="mi">11</span><span class="p">]:</span> <span class="n">df3</span><span class="o">.</span><span class="n">index</span>
+<span class="n">Out</span><span class="p">[</span><span class="mi">11</span><span class="p">]:</span> <span class="n">CategoricalIndex</span><span class="p">([</span><span class="s1">u&apos;a&apos;</span><span class="p">,</span> <span class="s1">u&apos;a&apos;</span><span class="p">,</span> <span class="s1">u&apos;b&apos;</span><span class="p">,</span> <span class="s1">u&apos;b&apos;</span><span class="p">,</span> <span class="s1">u&apos;c&apos;</span><span class="p">,</span> <span class="s1">u&apos;a&apos;</span><span class="p">],</span> <span class="n">categories</span><span class="o">=</span><span class="p">[</span><span class="s1">u&apos;a&apos;</span><span class="p">,</span> <span class="s1">u&apos;b&apos;</span><span class="p">,</span> <span class="s1">u&apos;c&apos;</span><span class="p">],</span> <span class="n">ordered</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">u&apos;B&apos;</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&apos;category&apos;</span><span class="p">)</span>
+
+<span class="n">In</span> <span class="p">[</span><span class="mi">12</span><span class="p">]:</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">df2</span><span class="p">,</span> <span class="n">df3</span><span class="p">]</span>
+<span class="ne">TypeError</span><span class="p">:</span> <span class="n">categories</span> <span class="n">must</span> <span class="n">match</span> <span class="n">existing</span> <span class="n">categories</span> <span class="n">when</span> <span class="n">appending</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="int64index-and-rangeindex">
+<span id="indexing-rangeindex"></span><h3><span class="yiyi-st" id="yiyi-192">Int64Index and RangeIndex</span></h3>
+<div class="admonition warning">
+<p class="first admonition-title"><span class="yiyi-st" id="yiyi-193">警告</span></p>
+<p class="last"><span class="yiyi-st" id="yiyi-194">对于具有浮点数的整数索引的索引已经在0.18.0中阐明，对于变化的总结，参见<a class="reference internal" href="whatsnew.html#whatsnew-0180-float-indexers"><span class="std std-ref">here</span></a>。</span></p>
+</div>
+<p><span class="yiyi-st" id="yiyi-195"><code class="docutils literal"><span class="pre">Int64Index</span></code>是<em>pandas</em>中的基本基本索引。</span><span class="yiyi-st" id="yiyi-196">这是一个不可变数组实现有序，可切分集。</span><span class="yiyi-st" id="yiyi-197">在0.18.0之前，<code class="docutils literal"><span class="pre">Int64Index</span></code>将为所有<code class="docutils literal"><span class="pre">NDFrame</span></code>对象提供默认索引。</span></p>
+<p><span class="yiyi-st" id="yiyi-198"><code class="docutils literal"><span class="pre">RangeIndex</span></code>是版本0.18.0中添加的<code class="docutils literal"><span class="pre">Int64Index</span></code>的子类，现在为所有<code class="docutils literal"><span class="pre">NDFrame</span></code>对象提供默认索引。</span><span class="yiyi-st" id="yiyi-199"><code class="docutils literal"><span class="pre">RangeIndex</span></code>是可以表示单调有序集的<code class="docutils literal"><span class="pre">Int64Index</span></code>的优化版本。</span><span class="yiyi-st" id="yiyi-200">这些类似于python <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#typesseq-range">范围类型</a>。</span></p>
+</div>
+<div class="section" id="float64index">
+<span id="indexing-float64index"></span><h3><span class="yiyi-st" id="yiyi-201">Float64Index</span></h3>
+<div class="admonition note">
+<p class="first admonition-title"><span class="yiyi-st" id="yiyi-202">注意</span></p>
+<p class="last"><span class="yiyi-st" id="yiyi-203">从0.14.0开始，<code class="docutils literal"><span class="pre">Float64Index</span></code>由原生<code class="docutils literal"><span class="pre">float64</span></code> dtype数组支持。</span><span class="yiyi-st" id="yiyi-204">在0.14.0之前，<code class="docutils literal"><span class="pre">Float64Index</span></code>由<code class="docutils literal"><span class="pre">object</span></code> dtype数组支持。</span><span class="yiyi-st" id="yiyi-205">在后端中使用<code class="docutils literal"><span class="pre">float64</span></code> dtype将算术运算速度提高大约30倍，并且在<code class="docutils literal"><span class="pre">Float64Index</span></code>本身上的布尔索引操作大约快两倍。</span></p>
+</div>
+<div class="versionadded">
+<p><span class="yiyi-st" id="yiyi-206"><span class="versionmodified">版本0.13.0中的新功能。</span></span></p>
+</div>
+<p><span class="yiyi-st" id="yiyi-207">默认情况下，在索引创建中传递浮动或混合整数浮点值时，将自动创建<code class="docutils literal"><span class="pre">Float64Index</span></code>。</span><span class="yiyi-st" id="yiyi-208">这使得纯标签的切片范例使<code class="docutils literal"><span class="pre">[],ix,loc</span></code>用于标量索引和切片工作完全相同。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [140]: </span><span class="n">indexf</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Index</span><span class="p">([</span><span class="mf">1.5</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mf">4.5</span><span class="p">,</span> <span class="mi">5</span><span class="p">])</span>
+
+<span class="gp">In [141]: </span><span class="n">indexf</span>
+<span class="gr">Out[141]: </span><span class="n">Float64Index</span><span class="p">([</span><span class="mf">1.5</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">,</span> <span class="mf">4.5</span><span class="p">,</span> <span class="mf">5.0</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&apos;float64&apos;</span><span class="p">)</span>
+
+<span class="gp">In [142]: </span><span class="n">sf</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">5</span><span class="p">),</span> <span class="n">index</span><span class="o">=</span><span class="n">indexf</span><span class="p">)</span>
+
+<span class="gp">In [143]: </span><span class="n">sf</span>
+<span class="gr">Out[143]: </span>
+<span class="go">1.5    0</span>
+<span class="go">2.0    1</span>
+<span class="go">3.0    2</span>
+<span class="go">4.5    3</span>
+<span class="go">5.0    4</span>
+<span class="go">dtype: int64</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-209">对于<code class="docutils literal"><span class="pre">[],.ix,.loc</span></code>的标量选择将始终以标签为基础。</span><span class="yiyi-st" id="yiyi-210">整数将匹配相等的浮点索引（例如，<code class="docutils literal"><span class="pre">3</span></code>等效于<code class="docutils literal"><span class="pre">3.0</span></code>）</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [144]: </span><span class="n">sf</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+<span class="gr">Out[144]: </span><span class="mi">2</span>
+
+<span class="gp">In [145]: </span><span class="n">sf</span><span class="p">[</span><span class="mf">3.0</span><span class="p">]</span>
+<span class="gr">Out[145]: </span><span class="mi">2</span>
+
+<span class="gp">In [146]: </span><span class="n">sf</span><span class="o">.</span><span class="n">ix</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+<span class="gr">Out[146]: </span><span class="mi">2</span>
+
+<span class="gp">In [147]: </span><span class="n">sf</span><span class="o">.</span><span class="n">ix</span><span class="p">[</span><span class="mf">3.0</span><span class="p">]</span>
+<span class="gr">Out[147]: </span><span class="mi">2</span>
+
+<span class="gp">In [148]: </span><span class="n">sf</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+<span class="gr">Out[148]: </span><span class="mi">2</span>
+
+<span class="gp">In [149]: </span><span class="n">sf</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="mf">3.0</span><span class="p">]</span>
+<span class="gr">Out[149]: </span><span class="mi">2</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-211">唯一的位置索引是通过<code class="docutils literal"><span class="pre">iloc</span></code></span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [150]: </span><span class="n">sf</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+<span class="gr">Out[150]: </span><span class="mi">3</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-212">未找到的标量索引将引发<code class="docutils literal"><span class="pre">KeyError</span></code></span></p>
+<p><span class="yiyi-st" id="yiyi-213">对于<code class="docutils literal"><span class="pre">[],ix,loc</span></code>和ALWAYS位置，<code class="docutils literal"><span class="pre">iloc</span></code>的值始终对索引的值进行切片。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [151]: </span><span class="n">sf</span><span class="p">[</span><span class="mi">2</span><span class="p">:</span><span class="mi">4</span><span class="p">]</span>
+<span class="gr">Out[151]: </span>
+<span class="go">2.0    1</span>
+<span class="go">3.0    2</span>
+<span class="go">dtype: int64</span>
+
+<span class="gp">In [152]: </span><span class="n">sf</span><span class="o">.</span><span class="n">ix</span><span class="p">[</span><span class="mi">2</span><span class="p">:</span><span class="mi">4</span><span class="p">]</span>
+<span class="gr">Out[152]: </span>
+<span class="go">2.0    1</span>
+<span class="go">3.0    2</span>
+<span class="go">dtype: int64</span>
+
+<span class="gp">In [153]: </span><span class="n">sf</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="mi">2</span><span class="p">:</span><span class="mi">4</span><span class="p">]</span>
+<span class="gr">Out[153]: </span>
+<span class="go">2.0    1</span>
+<span class="go">3.0    2</span>
+<span class="go">dtype: int64</span>
+
+<span class="gp">In [154]: </span><span class="n">sf</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">2</span><span class="p">:</span><span class="mi">4</span><span class="p">]</span>
+<span class="gr">Out[154]: </span>
+<span class="go">3.0    2</span>
+<span class="go">4.5    3</span>
+<span class="go">dtype: int64</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-214">在浮点索引中，允许使用浮点数进行切片</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [155]: </span><span class="n">sf</span><span class="p">[</span><span class="mf">2.1</span><span class="p">:</span><span class="mf">4.6</span><span class="p">]</span>
+<span class="gr">Out[155]: </span>
+<span class="go">3.0    2</span>
+<span class="go">4.5    3</span>
+<span class="go">dtype: int64</span>
+
+<span class="gp">In [156]: </span><span class="n">sf</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="mf">2.1</span><span class="p">:</span><span class="mf">4.6</span><span class="p">]</span>
+<span class="gr">Out[156]: </span>
+<span class="go">3.0    2</span>
+<span class="go">4.5    3</span>
+<span class="go">dtype: int64</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-215">在非浮点索引中，使用浮点数的切片将产生<code class="docutils literal"><span class="pre">TypeError</span></code></span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [1]: </span><span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">5</span><span class="p">))[</span><span class="mf">3.5</span><span class="p">]</span>
+<span class="go">TypeError: the label [3.5] is not a proper indexer for this index type (Int64Index)</span>
+
+<span class="gp">In [1]: </span><span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">5</span><span class="p">))[</span><span class="mf">3.5</span><span class="p">:</span><span class="mf">4.5</span><span class="p">]</span>
+<span class="go">TypeError: the slice start [3.5] is not a proper indexer for this index type (Int64Index)</span>
+</pre></div>
+</div>
+<div class="admonition warning">
+<p class="first admonition-title"><span class="yiyi-st" id="yiyi-216">警告</span></p>
+<p><span class="yiyi-st" id="yiyi-217">在0.18.0中已经删除了<code class="docutils literal"><span class="pre">.iloc</span></code>的标量浮点索引器，因此下面将会提出<code class="docutils literal"><span class="pre">TypeError</span></code></span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [3]: </span><span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">5</span><span class="p">))</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mf">3.0</span><span class="p">]</span>
+<span class="go">TypeError: cannot do positional indexing on &lt;class &apos;pandas.indexes.range.RangeIndex&apos;&gt; with these indexers [3.0] of &lt;type &apos;float&apos;&gt;</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-218">此外，在非浮点索引上使用浮点索引器处理<code class="docutils literal"><span class="pre">.ix</span></code>将基于标签，从而强制索引。</span></p>
+<div class="last highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [157]: </span><span class="n">s2</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="n">index</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="s1">&apos;abc&apos;</span><span class="p">))</span>
+
+<span class="gp">In [158]: </span><span class="n">s2</span>
+<span class="gr">Out[158]: </span>
+<span class="go">a    1</span>
+<span class="go">b    2</span>
+<span class="go">c    3</span>
+<span class="go">dtype: int64</span>
+
+<span class="gp">In [159]: </span><span class="n">s2</span><span class="o">.</span><span class="n">ix</span><span class="p">[</span><span class="mf">1.0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">10</span>
+
+<span class="gp">In [160]: </span><span class="n">s2</span>
+<span class="gr">Out[160]: </span>
+<span class="go">a       1</span>
+<span class="go">b       2</span>
+<span class="go">c       3</span>
+<span class="go">1.0    10</span>
+<span class="go">dtype: int64</span>
+</pre></div>
+</div>
+</div>
+<p><span class="yiyi-st" id="yiyi-219">以下是使用此类型索引的典型用例。</span><span class="yiyi-st" id="yiyi-220">想象一下，你有一个有点不规则的timedelta样索引方案，但数据记录为浮点数。</span><span class="yiyi-st" id="yiyi-221">这可以是例如毫秒偏移。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [161]: </span><span class="n">dfir</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span><span class="mi">2</span><span class="p">),</span>
+<span class="gp">   .....:</span>                                <span class="n">index</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span> <span class="o">*</span> <span class="mf">250.0</span><span class="p">,</span>
+<span class="gp">   .....:</span>                                <span class="n">columns</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="s1">&apos;AB&apos;</span><span class="p">)),</span>
+<span class="gp">   .....:</span>                   <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span><span class="mi">2</span><span class="p">),</span>
+<span class="gp">   .....:</span>                                <span class="n">index</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span><span class="mi">10</span><span class="p">)</span> <span class="o">*</span> <span class="mf">250.1</span><span class="p">,</span>
+<span class="gp">   .....:</span>                                <span class="n">columns</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="s1">&apos;AB&apos;</span><span class="p">))])</span>
+<span class="gp">   .....:</span> 
+
+<span class="gp">In [162]: </span><span class="n">dfir</span>
+<span class="gr">Out[162]: </span>
+<span class="go">               A         B</span>
+<span class="go">0.0     0.997289 -1.693316</span>
+<span class="go">250.0  -0.179129 -1.598062</span>
+<span class="go">500.0   0.936914  0.912560</span>
+<span class="go">750.0  -1.003401  1.632781</span>
+<span class="go">1000.0 -0.724626  0.178219</span>
+<span class="go">1000.4  0.310610 -0.108002</span>
+<span class="go">1250.5 -0.974226 -1.147708</span>
+<span class="go">1500.6 -2.281374  0.760010</span>
+<span class="go">1750.7 -0.742532  1.533318</span>
+<span class="go">2000.8  2.495362 -0.432771</span>
+<span class="go">2250.9 -0.068954  0.043520</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-222">对于所有选择运算符，选择操作将始终以值为基础工作。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [163]: </span><span class="n">dfir</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mf">1000.4</span><span class="p">]</span>
+<span class="gr">Out[163]: </span>
+<span class="go">               A         B</span>
+<span class="go">0.0     0.997289 -1.693316</span>
+<span class="go">250.0  -0.179129 -1.598062</span>
+<span class="go">500.0   0.936914  0.912560</span>
+<span class="go">750.0  -1.003401  1.632781</span>
+<span class="go">1000.0 -0.724626  0.178219</span>
+<span class="go">1000.4  0.310610 -0.108002</span>
+
+<span class="gp">In [164]: </span><span class="n">dfir</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">1001</span><span class="p">,</span><span class="s1">&apos;A&apos;</span><span class="p">]</span>
+<span class="gr">Out[164]: </span>
+<span class="go">0.0       0.997289</span>
+<span class="go">250.0    -0.179129</span>
+<span class="go">500.0     0.936914</span>
+<span class="go">750.0    -1.003401</span>
+<span class="go">1000.0   -0.724626</span>
+<span class="go">1000.4    0.310610</span>
+<span class="go">Name: A, dtype: float64</span>
+
+<span class="gp">In [165]: </span><span class="n">dfir</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="mf">1000.4</span><span class="p">]</span>
+<span class="gr">Out[165]: </span>
+<span class="go">A    0.310610</span>
+<span class="go">B   -0.108002</span>
+<span class="go">Name: 1000.4, dtype: float64</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-223">然后，您可以轻松挑出前1秒（1000毫秒）的数据。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [166]: </span><span class="n">dfir</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">1000</span><span class="p">]</span>
+<span class="gr">Out[166]: </span>
+<span class="go">               A         B</span>
+<span class="go">0.0     0.997289 -1.693316</span>
+<span class="go">250.0  -0.179129 -1.598062</span>
+<span class="go">500.0   0.936914  0.912560</span>
+<span class="go">750.0  -1.003401  1.632781</span>
+<span class="go">1000.0 -0.724626  0.178219</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-224">当然，如果你需要基于整数的选择，然后使用<code class="docutils literal"><span class="pre">iloc</span></code></span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [167]: </span><span class="n">dfir</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">5</span><span class="p">]</span>
+<span class="gr">Out[167]: </span>
+<span class="go">               A         B</span>
+<span class="go">0.0     0.997289 -1.693316</span>
+<span class="go">250.0  -0.179129 -1.598062</span>
+<span class="go">500.0   0.936914  0.912560</span>
+<span class="go">750.0  -1.003401  1.632781</span>
+<span class="go">1000.0 -0.724626  0.178219</span>
+</pre></div>
+</div>
+</div>
+</div>

@@ -1,0 +1,1016 @@
+
+<span id="id1"></span><h1><span class="yiyi-st" id="yiyi-78">Visualization</span></h1>
+        <blockquote>
+        <p>原文：<a href="http://pandas.pydata.org/pandas-docs/stable/visualization.html">http://pandas.pydata.org/pandas-docs/stable/visualization.html</a></p>
+        <p>译者：<a href="https://github.com/wizardforcel">飞龙</a> <a href="http://usyiyi.cn/">UsyiyiCN</a></p>
+        <p>校对：（虚位以待）</p>
+        </blockquote>
+    
+<p><span class="yiyi-st" id="yiyi-79">我们使用标准约定引用matplotlib API：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [1]: </span><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="kn">as</span> <span class="nn">plt</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-80">本文档中的绘图使用matplotlib的<code class="docutils literal"><span class="pre">ggplot</span></code>样式（版本1.4中的新功能）：</span></p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">matplotlib</span>
+<span class="n">matplotlib</span><span class="o">.</span><span class="n">style</span><span class="o">.</span><span class="n">use</span><span class="p">(</span><span class="s1">&apos;ggplot&apos;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-81">通过建立pandas格式的面板数据，我们可以轻松将其可视化。</span><span class="yiyi-st" id="yiyi-82">有关超出此处记录的基础知识的可视化库，请参阅<a class="reference internal" href="ecosystem.html#ecosystem-visualization"><span class="std std-ref">ecosystem</span></a>部分。</span></p>
+<div class="admonition note">
+<p class="first admonition-title"><span class="yiyi-st" id="yiyi-83">注意</span></p>
+<p class="last"><span class="yiyi-st" id="yiyi-84">对<code class="docutils literal"><span class="pre">np.random</span></code>的所有调用都使用123456进行播种。</span></p>
+</div>
+<div class="section" id="basic-plotting-plot">
+<span id="visualization-basic"></span><h2><span class="yiyi-st" id="yiyi-85">Basic Plotting: <code class="docutils literal"><span class="pre">plot</span></code></span></h2>
+<p><span class="yiyi-st" id="yiyi-86">有关某些高级策略，请参阅<a class="reference internal" href="cookbook.html#cookbook-plotting"><span class="std std-ref">cookbook</span></a></span></p>
+<p><span class="yiyi-st" id="yiyi-87">Series和DataFrame上的<code class="docutils literal"><span class="pre">plot</span></code>方法只是<a class="reference external" href="http://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes.plot" title="(in Matplotlib v1.5.3)"><code class="xref py py-meth docutils literal"><span class="pre">plt.plot()</span></code></a>的一个简单包装：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [2]: </span><span class="n">ts</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">1000</span><span class="p">),</span> <span class="n">index</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">date_range</span><span class="p">(</span><span class="s1">&apos;1/1/2000&apos;</span><span class="p">,</span> <span class="n">periods</span><span class="o">=</span><span class="mi">1000</span><span class="p">))</span>
+
+<span class="gp">In [3]: </span><span class="n">ts</span> <span class="o">=</span> <span class="n">ts</span><span class="o">.</span><span class="n">cumsum</span><span class="p">()</span>
+
+<span class="gp">In [4]: </span><span class="n">ts</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
+<span class="gr">Out[4]: </span><span class="o">&lt;</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">axes</span><span class="o">.</span><span class="n">_subplots</span><span class="o">.</span><span class="n">AxesSubplot</span> <span class="n">at</span> <span class="mh">0x7ff26d422750</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<img alt="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/series_plot_basic.png" src="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/series_plot_basic.png">
+<p><span class="yiyi-st" id="yiyi-88">如果索引由日期组成，它会调用<a class="reference external" href="http://matplotlib.org/api/figure_api.html#matplotlib.figure.Figure.autofmt_xdate" title="(in Matplotlib v1.5.3)"><code class="xref py py-meth docutils literal"><span class="pre">gcf().autofmt_xdate()</span></code></a>尝试按上述格式很好地格式化x轴。</span></p>
+<p><span class="yiyi-st" id="yiyi-89">在DataFrame上，<a class="reference internal" href="generated/pandas.DataFrame.plot.html#pandas.DataFrame.plot" title="pandas.DataFrame.plot"><code class="xref py py-meth docutils literal"><span class="pre">plot()</span></code></a>是方便绘制所有带标签的列：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [5]: </span><span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="n">index</span><span class="o">=</span><span class="n">ts</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="s1">&apos;ABCD&apos;</span><span class="p">))</span>
+
+<span class="gp">In [6]: </span><span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">cumsum</span><span class="p">()</span>
+
+<span class="gp">In [7]: </span><span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">();</span> <span class="n">df</span><span class="o">.</span><span class="n">plot</span><span class="p">();</span>
+</pre></div>
+</div>
+<img alt="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/frame_plot_basic.png" src="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/frame_plot_basic.png">
+<p><span class="yiyi-st" id="yiyi-90">您可以使用<a class="reference internal" href="generated/pandas.DataFrame.plot.html#pandas.DataFrame.plot" title="pandas.DataFrame.plot"><code class="xref py py-meth docutils literal"><span class="pre">plot()</span></code></a>中的<cite>x</cite>和<cite>y</cite>关键字绘制一列与另一列：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [8]: </span><span class="n">df3</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&apos;B&apos;</span><span class="p">,</span> <span class="s1">&apos;C&apos;</span><span class="p">])</span><span class="o">.</span><span class="n">cumsum</span><span class="p">()</span>
+
+<span class="gp">In [9]: </span><span class="n">df3</span><span class="p">[</span><span class="s1">&apos;A&apos;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">df</span><span class="p">))))</span>
+
+<span class="gp">In [10]: </span><span class="n">df3</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="s1">&apos;A&apos;</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="s1">&apos;B&apos;</span><span class="p">)</span>
+<span class="gr">Out[10]: </span><span class="o">&lt;</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">axes</span><span class="o">.</span><span class="n">_subplots</span><span class="o">.</span><span class="n">AxesSubplot</span> <span class="n">at</span> <span class="mh">0x7ff2667845d0</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<img alt="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/df_plot_xy.png" src="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/df_plot_xy.png">
+<div class="admonition note">
+<p class="first admonition-title"><span class="yiyi-st" id="yiyi-91">注意</span></p>
+<p class="last"><span class="yiyi-st" id="yiyi-92">有关更多格式和样式选项，请参阅下面的<a class="reference internal" href="#visualization-formatting"><span class="std std-ref">below</span></a>。</span></p>
+</div>
+</div>
+<div class="section" id="other-plots">
+<span id="visualization-other"></span><h2><span class="yiyi-st" id="yiyi-93">Other Plots</span></h2>
+<p><span class="yiyi-st" id="yiyi-94">绘图方法允许使用除默认线图外的一些绘图样式。</span><span class="yiyi-st" id="yiyi-95">这些方法可以作为<a class="reference internal" href="generated/pandas.DataFrame.plot.html#pandas.DataFrame.plot" title="pandas.DataFrame.plot"><code class="xref py py-meth docutils literal"><span class="pre">plot()</span></code></a>的<code class="docutils literal"><span class="pre">kind</span></code>关键字参数提供。</span><span class="yiyi-st" id="yiyi-96">这些包括：</span></p>
+<ul class="simple">
+<li><span class="yiyi-st" id="yiyi-97"><a class="reference internal" href="#visualization-barplot"><span class="std std-ref">‘bar’</span></a>或<a class="reference internal" href="#visualization-barplot"><span class="std std-ref">‘barh’</span></a></span></li>
+<li><span class="yiyi-st" id="yiyi-98"><a class="reference internal" href="#visualization-hist"><span class="std std-ref">‘hist’</span></a></span></li>
+<li><span class="yiyi-st" id="yiyi-99"><a class="reference internal" href="#visualization-box"><span class="std std-ref">‘box’</span></a></span></li>
+<li><span class="yiyi-st" id="yiyi-100"><a class="reference internal" href="#visualization-kde"><span class="std std-ref">‘kde’</span></a>或<code class="docutils literal"><span class="pre">&apos;density&apos;</span></code></span></li>
+<li><span class="yiyi-st" id="yiyi-101"><a class="reference internal" href="#visualization-area-plot"><span class="std std-ref">‘area’</span></a></span></li>
+<li><span class="yiyi-st" id="yiyi-102"><a class="reference internal" href="#visualization-scatter"><span class="std std-ref">‘scatter’</span></a>用于散点图</span></li>
+<li><span class="yiyi-st" id="yiyi-103"><a class="reference internal" href="#visualization-hexbin"><span class="std std-ref">‘hexbin’</span></a>用于六边形面图</span></li>
+<li><span class="yiyi-st" id="yiyi-104"><a class="reference internal" href="#visualization-pie"><span class="std std-ref">‘pie’</span></a>用于饼图</span></li>
+</ul>
+<p><span class="yiyi-st" id="yiyi-105">例如，可以通过以下方式创建条形图：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [11]: </span><span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">();</span>
+
+<span class="gp">In [12]: </span><span class="n">df</span><span class="o">.</span><span class="n">ix</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">kind</span><span class="o">=</span><span class="s1">&apos;bar&apos;</span><span class="p">);</span> <span class="n">plt</span><span class="o">.</span><span class="n">axhline</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&apos;k&apos;</span><span class="p">)</span>
+<span class="gr">Out[12]: </span><span class="o">&lt;</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">lines</span><span class="o">.</span><span class="n">Line2D</span> <span class="n">at</span> <span class="mh">0x7ff266b33890</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<img alt="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/bar_plot_ex.png" src="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/bar_plot_ex.png">
+<div class="versionadded">
+<p><span class="yiyi-st" id="yiyi-106"><span class="versionmodified">版本0.17.0中的新功能。</span></span></p>
+</div>
+<p><span class="yiyi-st" id="yiyi-107">您还可以使用方法<code class="docutils literal"><span class="pre">DataFrame.plot.&lt;kind&gt;</span></code>创建这些其他图，而不是提供<code class="docutils literal"><span class="pre">kind</span></code>关键字参数。</span><span class="yiyi-st" id="yiyi-108">这使得更容易发现绘图方法和他们使用的具体参数：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [13]: </span><span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">()</span>
+
+<span class="gp">In [14]: </span><span class="n">df</span><span class="o">.</span><span class="n">plot</span><span class="o">.&lt;</span><span class="n">TAB</span><span class="o">&gt;</span>
+<span class="go">df.plot.area     df.plot.barh     df.plot.density  df.plot.hist     df.plot.line     df.plot.scatter</span>
+<span class="go">df.plot.bar      df.plot.box      df.plot.hexbin   df.plot.kde      df.plot.pie</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-109">除了这些<code class="docutils literal"><span class="pre">kind</span></code>，还有<a class="reference internal" href="#visualization-hist"><span class="std std-ref">DataFrame.hist()</span></a>和<a class="reference internal" href="#visualization-box"><span class="std std-ref">DataFrame.boxplot()</span></a>方法，它们使用单​​独的接口。</span></p>
+<p><span class="yiyi-st" id="yiyi-110">最后，在<code class="docutils literal"><span class="pre">pandas.tools.plotting</span></code>中有一些<a class="reference internal" href="#visualization-tools"><span class="std std-ref">plotting functions</span></a>，以<a class="reference internal" href="generated/pandas.Series.html#pandas.Series" title="pandas.Series"><code class="xref py py-class docutils literal"><span class="pre">Series</span></code></a>或<a class="reference internal" href="generated/pandas.DataFrame.html#pandas.DataFrame" title="pandas.DataFrame"><code class="xref py py-class docutils literal"><span class="pre">DataFrame</span></code></a> 。</span><span class="yiyi-st" id="yiyi-111">这些包括</span></p>
+<ul class="simple">
+<li><span class="yiyi-st" id="yiyi-112"><a class="reference internal" href="#visualization-scatter-matrix"><span class="std std-ref">Scatter Matrix</span></a></span></li>
+<li><span class="yiyi-st" id="yiyi-113"><a class="reference internal" href="#visualization-andrews-curves"><span class="std std-ref">Andrews Curves</span></a></span></li>
+<li><span class="yiyi-st" id="yiyi-114"><a class="reference internal" href="#visualization-parallel-coordinates"><span class="std std-ref">Parallel Coordinates</span></a></span></li>
+<li><span class="yiyi-st" id="yiyi-115"><a class="reference internal" href="#visualization-lag"><span class="std std-ref">Lag Plot</span></a></span></li>
+<li><span class="yiyi-st" id="yiyi-116"><a class="reference internal" href="#visualization-autocorrelation"><span class="std std-ref">Autocorrelation Plot</span></a></span></li>
+<li><span class="yiyi-st" id="yiyi-117"><a class="reference internal" href="#visualization-bootstrap"><span class="std std-ref">Bootstrap Plot</span></a></span></li>
+<li><span class="yiyi-st" id="yiyi-118"><a class="reference internal" href="#visualization-radviz"><span class="std std-ref">RadViz</span></a></span></li>
+</ul>
+<p><span class="yiyi-st" id="yiyi-119">绘图也可以用<a class="reference internal" href="#visualization-errorbars"><span class="std std-ref">errorbars</span></a>或<a class="reference internal" href="#visualization-table"><span class="std std-ref">tables</span></a>来装饰。</span></p>
+<div class="section" id="bar-plots">
+<span id="visualization-barplot"></span><h3><span class="yiyi-st" id="yiyi-120">Bar plots</span></h3>
+<p><span class="yiyi-st" id="yiyi-121">对于带标签的非时间序列数据，您可能希望产生条形图：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [15]: </span><span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">();</span>
+
+<span class="gp">In [16]: </span><span class="n">df</span><span class="o">.</span><span class="n">ix</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="o">.</span><span class="n">bar</span><span class="p">();</span> <span class="n">plt</span><span class="o">.</span><span class="n">axhline</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&apos;k&apos;</span><span class="p">)</span>
+<span class="gr">Out[16]: </span><span class="o">&lt;</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">lines</span><span class="o">.</span><span class="n">Line2D</span> <span class="n">at</span> <span class="mh">0x7ff2673d3510</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<img alt="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/bar_plot_ex.png" src="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/bar_plot_ex.png">
+<p><span class="yiyi-st" id="yiyi-122">调用DataFrame的<a class="reference internal" href="generated/pandas.DataFrame.plot.bar.html#pandas.DataFrame.plot.bar" title="pandas.DataFrame.plot.bar"><code class="xref py py-meth docutils literal"><span class="pre">plot.bar()</span></code></a>方法会产生多条形图：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [17]: </span><span class="n">df2</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&apos;a&apos;</span><span class="p">,</span> <span class="s1">&apos;b&apos;</span><span class="p">,</span> <span class="s1">&apos;c&apos;</span><span class="p">,</span> <span class="s1">&apos;d&apos;</span><span class="p">])</span>
+
+<span class="gp">In [18]: </span><span class="n">df2</span><span class="o">.</span><span class="n">plot</span><span class="o">.</span><span class="n">bar</span><span class="p">();</span>
+</pre></div>
+</div>
+<img alt="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/bar_plot_multi_ex.png" src="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/bar_plot_multi_ex.png">
+<p><span class="yiyi-st" id="yiyi-123">要生成堆叠棒图，请传递<code class="docutils literal"><span class="pre">stacked=True</span></code>：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [19]: </span><span class="n">df2</span><span class="o">.</span><span class="n">plot</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span><span class="n">stacked</span><span class="o">=</span><span class="bp">True</span><span class="p">);</span>
+</pre></div>
+</div>
+<img alt="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/bar_plot_stacked_ex.png" src="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/bar_plot_stacked_ex.png">
+<p><span class="yiyi-st" id="yiyi-124">要获取水平条形图，请使用<code class="docutils literal"><span class="pre">barh</span></code>方法：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [20]: </span><span class="n">df2</span><span class="o">.</span><span class="n">plot</span><span class="o">.</span><span class="n">barh</span><span class="p">(</span><span class="n">stacked</span><span class="o">=</span><span class="bp">True</span><span class="p">);</span>
+</pre></div>
+</div>
+<img alt="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/barh_plot_stacked_ex.png" src="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/barh_plot_stacked_ex.png">
+</div>
+<div class="section" id="histograms">
+<span id="visualization-hist"></span><h3><span class="yiyi-st" id="yiyi-125">Histograms</span></h3>
+<div class="versionadded">
+<p><span class="yiyi-st" id="yiyi-126"><span class="versionmodified">版本0.15.0中的新功能。</span></span></p>
+</div>
+<p><span class="yiyi-st" id="yiyi-127">直方图可以使用<a class="reference internal" href="generated/pandas.DataFrame.plot.hist.html#pandas.DataFrame.plot.hist" title="pandas.DataFrame.plot.hist"><code class="xref py py-meth docutils literal"><span class="pre">DataFrame.plot.hist()</span></code></a>和<a class="reference internal" href="generated/pandas.Series.plot.hist.html#pandas.Series.plot.hist" title="pandas.Series.plot.hist"><code class="xref py py-meth docutils literal"><span class="pre">Series.plot.hist()</span></code></a>方法绘制。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [21]: </span><span class="n">df4</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s1">&apos;a&apos;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">1000</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&apos;b&apos;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">1000</span><span class="p">),</span>
+<span class="gp">   ....:</span>                     <span class="s1">&apos;c&apos;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">1000</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">},</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&apos;a&apos;</span><span class="p">,</span> <span class="s1">&apos;b&apos;</span><span class="p">,</span> <span class="s1">&apos;c&apos;</span><span class="p">])</span>
+<span class="gp">   ....:</span> 
+
+<span class="gp">In [22]: </span><span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">();</span>
+
+<span class="gp">In [23]: </span><span class="n">df4</span><span class="o">.</span><span class="n">plot</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span><span class="n">alpha</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+<span class="gr">Out[23]: </span><span class="o">&lt;</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">axes</span><span class="o">.</span><span class="n">_subplots</span><span class="o">.</span><span class="n">AxesSubplot</span> <span class="n">at</span> <span class="mh">0x7ff26779c3d0</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<img alt="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/hist_new.png" src="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/hist_new.png">
+<p><span class="yiyi-st" id="yiyi-128">直方图可以通过<code class="docutils literal"><span class="pre">stacked=True</span></code>堆叠。</span><span class="yiyi-st" id="yiyi-129">Bin大小可以通过<code class="docutils literal"><span class="pre">bins</span></code>关键字更改。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [24]: </span><span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">();</span>
+
+<span class="gp">In [25]: </span><span class="n">df4</span><span class="o">.</span><span class="n">plot</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span><span class="n">stacked</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">bins</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
+<span class="gr">Out[25]: </span><span class="o">&lt;</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">axes</span><span class="o">.</span><span class="n">_subplots</span><span class="o">.</span><span class="n">AxesSubplot</span> <span class="n">at</span> <span class="mh">0x7ff26caf76d0</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<img alt="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/hist_new_stacked.png" src="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/hist_new_stacked.png">
+<p><span class="yiyi-st" id="yiyi-130">您可以传递由matplotlib <code class="docutils literal"><span class="pre">hist</span></code>支持的其他关键字。</span><span class="yiyi-st" id="yiyi-131">例如，水平和累积的histgram可以通过<code class="docutils literal"><span class="pre">orientation=&apos;horizontal&apos;</span></code>和<code class="docutils literal"><span class="pre">cumulative=&apos;True&apos;</span></code>来绘制。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [26]: </span><span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">();</span>
+
+<span class="gp">In [27]: </span><span class="n">df4</span><span class="p">[</span><span class="s1">&apos;a&apos;</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span><span class="n">orientation</span><span class="o">=</span><span class="s1">&apos;horizontal&apos;</span><span class="p">,</span> <span class="n">cumulative</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="gr">Out[27]: </span><span class="o">&lt;</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">axes</span><span class="o">.</span><span class="n">_subplots</span><span class="o">.</span><span class="n">AxesSubplot</span> <span class="n">at</span> <span class="mh">0x7ff26c2c89d0</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<img alt="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/hist_new_kwargs.png" src="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/hist_new_kwargs.png">
+<p><span class="yiyi-st" id="yiyi-132">有关更多信息，请参阅<a class="reference external" href="http://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes.hist" title="(in Matplotlib v1.5.3)"><code class="xref py py-meth docutils literal"><span class="pre">hist</span></code></a>方法和<a class="reference external" href="http://matplotlib.org/api/pyplot_api.html#matplotlib.pyplot.hist">matplotlib hist文档</a>。</span></p>
+<p><span class="yiyi-st" id="yiyi-133">现有的界面<code class="docutils literal"><span class="pre">DataFrame.hist</span></code>仍然可以使用绘制直方图。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [28]: </span><span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">();</span>
+
+<span class="gp">In [29]: </span><span class="n">df</span><span class="p">[</span><span class="s1">&apos;A&apos;</span><span class="p">]</span><span class="o">.</span><span class="n">diff</span><span class="p">()</span><span class="o">.</span><span class="n">hist</span><span class="p">()</span>
+<span class="gr">Out[29]: </span><span class="o">&lt;</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">axes</span><span class="o">.</span><span class="n">_subplots</span><span class="o">.</span><span class="n">AxesSubplot</span> <span class="n">at</span> <span class="mh">0x7ff2770919d0</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<img alt="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/hist_plot_ex.png" src="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/hist_plot_ex.png">
+<p><span class="yiyi-st" id="yiyi-134"><a class="reference internal" href="generated/pandas.DataFrame.hist.html#pandas.DataFrame.hist" title="pandas.DataFrame.hist"><code class="xref py py-meth docutils literal"><span class="pre">DataFrame.hist()</span></code></a>在多个子图上绘制列的直方图：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [30]: </span><span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+<span class="gr">Out[30]: </span><span class="o">&lt;</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">figure</span><span class="o">.</span><span class="n">Figure</span> <span class="n">at</span> <span class="mh">0x7ff26d67c090</span><span class="o">&gt;</span>
+
+<span class="gp">In [31]: </span><span class="n">df</span><span class="o">.</span><span class="n">diff</span><span class="p">()</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span><span class="n">color</span><span class="o">=</span><span class="s1">&apos;k&apos;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">bins</span><span class="o">=</span><span class="mi">50</span><span class="p">)</span>
+<span class="gr">Out[31]: </span>
+<span class="go">array([[&lt;matplotlib.axes._subplots.AxesSubplot object at 0x7ff2726264d0&gt;,</span>
+<span class="go">        &lt;matplotlib.axes._subplots.AxesSubplot object at 0x7ff2667c8390&gt;],</span>
+<span class="go">       [&lt;matplotlib.axes._subplots.AxesSubplot object at 0x7ff266667a50&gt;,</span>
+<span class="go">        &lt;matplotlib.axes._subplots.AxesSubplot object at 0x7ff2671545d0&gt;]], dtype=object)</span>
+</pre></div>
+</div>
+<img alt="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/frame_hist_ex.png" src="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/frame_hist_ex.png">
+<div class="versionadded">
+<p><span class="yiyi-st" id="yiyi-135"><span class="versionmodified">版本0.10.0中的新功能。</span></span></p>
+</div>
+<p><span class="yiyi-st" id="yiyi-136">可以指定<code class="docutils literal"><span class="pre">by</span></code>关键字绘制分组的直方图：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [32]: </span><span class="n">data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">1000</span><span class="p">))</span>
+
+<span class="gp">In [33]: </span><span class="n">data</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span><span class="n">by</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">1000</span><span class="p">),</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
+<span class="gr">Out[33]: </span>
+<span class="go">array([[&lt;matplotlib.axes._subplots.AxesSubplot object at 0x7ff266750690&gt;,</span>
+<span class="go">        &lt;matplotlib.axes._subplots.AxesSubplot object at 0x7ff26c71e110&gt;],</span>
+<span class="go">       [&lt;matplotlib.axes._subplots.AxesSubplot object at 0x7ff26735f750&gt;,</span>
+<span class="go">        &lt;matplotlib.axes._subplots.AxesSubplot object at 0x7ff26c2fe650&gt;]], dtype=object)</span>
+</pre></div>
+</div>
+<img alt="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/grouped_hist.png" src="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/grouped_hist.png">
+</div>
+<div class="section" id="box-plots">
+<span id="visualization-box"></span><h3><span class="yiyi-st" id="yiyi-137">Box Plots</span></h3>
+<div class="versionadded">
+<p><span class="yiyi-st" id="yiyi-138"><span class="versionmodified">版本0.15.0中的新功能。</span></span></p>
+</div>
+<p><span class="yiyi-st" id="yiyi-139">Boxplot可以绘制为调用<a class="reference internal" href="generated/pandas.Series.plot.box.html#pandas.Series.plot.box" title="pandas.Series.plot.box"><code class="xref py py-meth docutils literal"><span class="pre">Series.plot.box()</span></code></a>和<a class="reference internal" href="generated/pandas.DataFrame.plot.box.html#pandas.DataFrame.plot.box" title="pandas.DataFrame.plot.box"><code class="xref py py-meth docutils literal"><span class="pre">DataFrame.plot.box()</span></code></a>或<a class="reference internal" href="generated/pandas.DataFrame.boxplot.html#pandas.DataFrame.boxplot" title="pandas.DataFrame.boxplot"><code class="xref py py-meth docutils literal"><span class="pre">DataFrame.boxplot()</span></code></a>每列中的值的分布。</span></p>
+<p><span class="yiyi-st" id="yiyi-140">例如，这里是一个箱线图，表示在[0,1]上的一个均匀随机变量的10次观察的五次试验。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [34]: </span><span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">5</span><span class="p">),</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&apos;A&apos;</span><span class="p">,</span> <span class="s1">&apos;B&apos;</span><span class="p">,</span> <span class="s1">&apos;C&apos;</span><span class="p">,</span> <span class="s1">&apos;D&apos;</span><span class="p">,</span> <span class="s1">&apos;E&apos;</span><span class="p">])</span>
+
+<span class="gp">In [35]: </span><span class="n">df</span><span class="o">.</span><span class="n">plot</span><span class="o">.</span><span class="n">box</span><span class="p">()</span>
+<span class="gr">Out[35]: </span><span class="o">&lt;</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">axes</span><span class="o">.</span><span class="n">_subplots</span><span class="o">.</span><span class="n">AxesSubplot</span> <span class="n">at</span> <span class="mh">0x7ff27132a050</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<img alt="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/box_plot_new.png" src="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/box_plot_new.png">
+<p><span class="yiyi-st" id="yiyi-141">Boxplot可以通过传递<code class="docutils literal"><span class="pre">color</span></code>关键字来着色。</span><span class="yiyi-st" id="yiyi-142">您可以传递<code class="docutils literal"><span class="pre">boxes</span></code>，<code class="docutils literal"><span class="pre">whiskers</span></code>，<code class="docutils literal"><span class="pre">medians</span></code>和<code class="docutils literal"><span class="pre">caps</span></code>的<code class="docutils literal"><span class="pre">dict</span></code></span><span class="yiyi-st" id="yiyi-143">如果<code class="docutils literal"><span class="pre">dict</span></code>中缺少某些键，则默认颜色将用于相应的艺术家。</span><span class="yiyi-st" id="yiyi-144">此外，boxplot还有<code class="docutils literal"><span class="pre">sym</span></code>关键字来指定flier样式。</span></p>
+<p><span class="yiyi-st" id="yiyi-145">When you pass other type of arguments via <code class="docutils literal"><span class="pre">color</span></code> keyword, it will be directly passed to matplotlib for all the <code class="docutils literal"><span class="pre">boxes</span></code>, <code class="docutils literal"><span class="pre">whiskers</span></code>, <code class="docutils literal"><span class="pre">medians</span></code> and <code class="docutils literal"><span class="pre">caps</span></code> colorization.</span></p>
+<p><span class="yiyi-st" id="yiyi-146">颜色应用于每个要绘制的框。</span><span class="yiyi-st" id="yiyi-147">如果您想要更复杂的着色，可以通过传递<a class="reference internal" href="#visualization-box-return"><span class="std std-ref">return_type</span></a>来获取每个绘制的艺术家。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [36]: </span><span class="n">color</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">boxes</span><span class="o">=</span><span class="s1">&apos;DarkGreen&apos;</span><span class="p">,</span> <span class="n">whiskers</span><span class="o">=</span><span class="s1">&apos;DarkOrange&apos;</span><span class="p">,</span>
+<span class="gp">   ....:</span>              <span class="n">medians</span><span class="o">=</span><span class="s1">&apos;DarkBlue&apos;</span><span class="p">,</span> <span class="n">caps</span><span class="o">=</span><span class="s1">&apos;Gray&apos;</span><span class="p">)</span>
+<span class="gp">   ....:</span> 
+
+<span class="gp">In [37]: </span><span class="n">df</span><span class="o">.</span><span class="n">plot</span><span class="o">.</span><span class="n">box</span><span class="p">(</span><span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span> <span class="n">sym</span><span class="o">=</span><span class="s1">&apos;r+&apos;</span><span class="p">)</span>
+<span class="gr">Out[37]: </span><span class="o">&lt;</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">axes</span><span class="o">.</span><span class="n">_subplots</span><span class="o">.</span><span class="n">AxesSubplot</span> <span class="n">at</span> <span class="mh">0x7ff26c76b890</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<img alt="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/box_new_colorize.png" src="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/box_new_colorize.png">
+<p><span class="yiyi-st" id="yiyi-148">此外，您可以传递由matplotlib <code class="docutils literal"><span class="pre">boxplot</span></code>支持的其他关键字。</span><span class="yiyi-st" id="yiyi-149">例如，水平和自定义盒线图可以由<code class="docutils literal"><span class="pre">vert=False</span></code>和<code class="docutils literal"><span class="pre">positions</span></code>关键字绘制。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [38]: </span><span class="n">df</span><span class="o">.</span><span class="n">plot</span><span class="o">.</span><span class="n">box</span><span class="p">(</span><span class="n">vert</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">positions</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">8</span><span class="p">])</span>
+<span class="gr">Out[38]: </span><span class="o">&lt;</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">axes</span><span class="o">.</span><span class="n">_subplots</span><span class="o">.</span><span class="n">AxesSubplot</span> <span class="n">at</span> <span class="mh">0x7ff26c1f2dd0</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<img alt="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/box_new_kwargs.png" src="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/box_new_kwargs.png">
+<p><span class="yiyi-st" id="yiyi-150">有关更多信息，请参阅<a class="reference external" href="http://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes.boxplot" title="(in Matplotlib v1.5.3)"><code class="xref py py-meth docutils literal"><span class="pre">boxplot</span></code></a>方法和<a class="reference external" href="http://matplotlib.org/api/pyplot_api.html#matplotlib.pyplot.boxplot">matplotlib boxplot文档</a>。</span></p>
+<p><span class="yiyi-st" id="yiyi-151">现有的接口<code class="docutils literal"><span class="pre">DataFrame.boxplot</span></code>仍然可以使用绘图箱图。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [39]: </span><span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">5</span><span class="p">))</span>
+
+<span class="gp">In [40]: </span><span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">();</span>
+
+<span class="gp">In [41]: </span><span class="n">bp</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">boxplot</span><span class="p">()</span>
+</pre></div>
+</div>
+<img alt="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/box_plot_ex.png" src="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/box_plot_ex.png">
+<p><span class="yiyi-st" id="yiyi-152">您可以使用<code class="docutils literal"><span class="pre">by</span></code>关键字参数创建分层箱形图以创建分组。</span><span class="yiyi-st" id="yiyi-153">例如，</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [42]: </span><span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">2</span><span class="p">),</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&apos;Col1&apos;</span><span class="p">,</span> <span class="s1">&apos;Col2&apos;</span><span class="p">]</span> <span class="p">)</span>
+
+<span class="gp">In [43]: </span><span class="n">df</span><span class="p">[</span><span class="s1">&apos;X&apos;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">([</span><span class="s1">&apos;A&apos;</span><span class="p">,</span><span class="s1">&apos;A&apos;</span><span class="p">,</span><span class="s1">&apos;A&apos;</span><span class="p">,</span><span class="s1">&apos;A&apos;</span><span class="p">,</span><span class="s1">&apos;A&apos;</span><span class="p">,</span><span class="s1">&apos;B&apos;</span><span class="p">,</span><span class="s1">&apos;B&apos;</span><span class="p">,</span><span class="s1">&apos;B&apos;</span><span class="p">,</span><span class="s1">&apos;B&apos;</span><span class="p">,</span><span class="s1">&apos;B&apos;</span><span class="p">])</span>
+
+<span class="gp">In [44]: </span><span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">();</span>
+
+<span class="gp">In [45]: </span><span class="n">bp</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">boxplot</span><span class="p">(</span><span class="n">by</span><span class="o">=</span><span class="s1">&apos;X&apos;</span><span class="p">)</span>
+</pre></div>
+</div>
+<img alt="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/box_plot_ex2.png" src="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/box_plot_ex2.png">
+<p><span class="yiyi-st" id="yiyi-154">您还可以传递要绘制的列的子集，以及按多个列分组：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [46]: </span><span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">3</span><span class="p">),</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&apos;Col1&apos;</span><span class="p">,</span> <span class="s1">&apos;Col2&apos;</span><span class="p">,</span> <span class="s1">&apos;Col3&apos;</span><span class="p">])</span>
+
+<span class="gp">In [47]: </span><span class="n">df</span><span class="p">[</span><span class="s1">&apos;X&apos;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">([</span><span class="s1">&apos;A&apos;</span><span class="p">,</span><span class="s1">&apos;A&apos;</span><span class="p">,</span><span class="s1">&apos;A&apos;</span><span class="p">,</span><span class="s1">&apos;A&apos;</span><span class="p">,</span><span class="s1">&apos;A&apos;</span><span class="p">,</span><span class="s1">&apos;B&apos;</span><span class="p">,</span><span class="s1">&apos;B&apos;</span><span class="p">,</span><span class="s1">&apos;B&apos;</span><span class="p">,</span><span class="s1">&apos;B&apos;</span><span class="p">,</span><span class="s1">&apos;B&apos;</span><span class="p">])</span>
+
+<span class="gp">In [48]: </span><span class="n">df</span><span class="p">[</span><span class="s1">&apos;Y&apos;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">([</span><span class="s1">&apos;A&apos;</span><span class="p">,</span><span class="s1">&apos;B&apos;</span><span class="p">,</span><span class="s1">&apos;A&apos;</span><span class="p">,</span><span class="s1">&apos;B&apos;</span><span class="p">,</span><span class="s1">&apos;A&apos;</span><span class="p">,</span><span class="s1">&apos;B&apos;</span><span class="p">,</span><span class="s1">&apos;A&apos;</span><span class="p">,</span><span class="s1">&apos;B&apos;</span><span class="p">,</span><span class="s1">&apos;A&apos;</span><span class="p">,</span><span class="s1">&apos;B&apos;</span><span class="p">])</span>
+
+<span class="gp">In [49]: </span><span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">();</span>
+
+<span class="gp">In [50]: </span><span class="n">bp</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">boxplot</span><span class="p">(</span><span class="n">column</span><span class="o">=</span><span class="p">[</span><span class="s1">&apos;Col1&apos;</span><span class="p">,</span><span class="s1">&apos;Col2&apos;</span><span class="p">],</span> <span class="n">by</span><span class="o">=</span><span class="p">[</span><span class="s1">&apos;X&apos;</span><span class="p">,</span><span class="s1">&apos;Y&apos;</span><span class="p">])</span>
+</pre></div>
+</div>
+<img alt="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/box_plot_ex3.png" src="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/box_plot_ex3.png">
+<div class="admonition warning" id="visualization-box-return">
+<p class="first admonition-title"><span class="yiyi-st" id="yiyi-155">警告</span></p>
+<p class="last"><span class="yiyi-st" id="yiyi-156">默认值从版本0.19.0中的<code class="docutils literal"><span class="pre">&apos;dict&apos;</span></code>更改为<code class="docutils literal"><span class="pre">&apos;axes&apos;</span></code>。</span></p>
+</div>
+<p><span class="yiyi-st" id="yiyi-157">在<code class="docutils literal"><span class="pre">boxplot</span></code>中，返回类型可以通过<code class="docutils literal"><span class="pre">return_type</span></code>关键字控制。</span><span class="yiyi-st" id="yiyi-158">有效的选项是<code class="docutils literal"><span class="pre">{“axes”，</span> <span class="pre">“dict”，</span> <span class="pre">“both”，</span> <span class="pre">None}  </span></code>。</span><span class="yiyi-st" id="yiyi-159">由<code class="docutils literal"><span class="pre">DataFrame.boxplot</span></code>与<code class="docutils literal"><span class="pre">by</span></code>关键字创建的面，也会影响输出类型：</span></p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="33%">
+<col width="14%">
+<col width="53%">
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><span class="yiyi-st" id="yiyi-160"><code class="docutils literal"><span class="pre">return_type=</span></code></span></td>
+<td><span class="yiyi-st" id="yiyi-161">方面</span></td>
+<td><span class="yiyi-st" id="yiyi-162">输出类型</span></td>
+</tr>
+<tr class="row-even"><td><span class="yiyi-st" id="yiyi-163"><code class="docutils literal"><span class="pre">None</span></code></span></td>
+<td><span class="yiyi-st" id="yiyi-164">没有</span></td>
+<td><span class="yiyi-st" id="yiyi-165">轴</span></td>
+</tr>
+<tr class="row-odd"><td><span class="yiyi-st" id="yiyi-166"><code class="docutils literal"><span class="pre">None</span></code></span></td>
+<td><span class="yiyi-st" id="yiyi-167">是</span></td>
+<td><span class="yiyi-st" id="yiyi-168">轴的2-D阵列</span></td>
+</tr>
+<tr class="row-even"><td><span class="yiyi-st" id="yiyi-169"><code class="docutils literal"><span class="pre">&apos;axes&apos;</span></code></span></td>
+<td><span class="yiyi-st" id="yiyi-170">没有</span></td>
+<td><span class="yiyi-st" id="yiyi-171">轴</span></td>
+</tr>
+<tr class="row-odd"><td><span class="yiyi-st" id="yiyi-172"><code class="docutils literal"><span class="pre">&apos;axes&apos;</span></code></span></td>
+<td><span class="yiyi-st" id="yiyi-173">是</span></td>
+<td><span class="yiyi-st" id="yiyi-174">系列轴</span></td>
+</tr>
+<tr class="row-even"><td><span class="yiyi-st" id="yiyi-175"><code class="docutils literal"><span class="pre">&apos;dict&apos;</span></code></span></td>
+<td><span class="yiyi-st" id="yiyi-176">没有</span></td>
+<td><span class="yiyi-st" id="yiyi-177">艺术家的话</span></td>
+</tr>
+<tr class="row-odd"><td><span class="yiyi-st" id="yiyi-178"><code class="docutils literal"><span class="pre">&apos;dict&apos;</span></code></span></td>
+<td><span class="yiyi-st" id="yiyi-179">是</span></td>
+<td><span class="yiyi-st" id="yiyi-180">系列的艺术家</span></td>
+</tr>
+<tr class="row-even"><td><span class="yiyi-st" id="yiyi-181"><code class="docutils literal"><span class="pre">&apos;both&apos;</span></code></span></td>
+<td><span class="yiyi-st" id="yiyi-182">没有</span></td>
+<td><span class="yiyi-st" id="yiyi-183">namedtuple</span></td>
+</tr>
+<tr class="row-odd"><td><span class="yiyi-st" id="yiyi-184"><code class="docutils literal"><span class="pre">&apos;both&apos;</span></code></span></td>
+<td><span class="yiyi-st" id="yiyi-185">是</span></td>
+<td><span class="yiyi-st" id="yiyi-186">namedtuples系列</span></td>
+</tr>
+</tbody>
+</table>
+<p><span class="yiyi-st" id="yiyi-187"><code class="docutils literal"><span class="pre">Groupby.boxplot</span></code>始终返回一系列<code class="docutils literal"><span class="pre">return_type</span></code>。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [51]: </span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">1234</span><span class="p">)</span>
+
+<span class="gp">In [52]: </span><span class="n">df_box</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">50</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+
+<span class="gp">In [53]: </span><span class="n">df_box</span><span class="p">[</span><span class="s1">&apos;g&apos;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">([</span><span class="s1">&apos;A&apos;</span><span class="p">,</span> <span class="s1">&apos;B&apos;</span><span class="p">],</span> <span class="n">size</span><span class="o">=</span><span class="mi">50</span><span class="p">)</span>
+
+<span class="gp">In [54]: </span><span class="n">df_box</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">df_box</span><span class="p">[</span><span class="s1">&apos;g&apos;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&apos;B&apos;</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">3</span>
+
+<span class="gp">In [55]: </span><span class="n">bp</span> <span class="o">=</span> <span class="n">df_box</span><span class="o">.</span><span class="n">boxplot</span><span class="p">(</span><span class="n">by</span><span class="o">=</span><span class="s1">&apos;g&apos;</span><span class="p">)</span>
+</pre></div>
+</div>
+<img alt="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/boxplot_groupby.png" src="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/boxplot_groupby.png">
+<p><span class="yiyi-st" id="yiyi-188">相比于：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [56]: </span><span class="n">bp</span> <span class="o">=</span> <span class="n">df_box</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s1">&apos;g&apos;</span><span class="p">)</span><span class="o">.</span><span class="n">boxplot</span><span class="p">()</span>
+</pre></div>
+</div>
+<img alt="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/groupby_boxplot_vis.png" src="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/groupby_boxplot_vis.png">
+</div>
+<div class="section" id="area-plot">
+<span id="visualization-area-plot"></span><h3><span class="yiyi-st" id="yiyi-189">Area Plot</span></h3>
+<div class="versionadded">
+<p><span class="yiyi-st" id="yiyi-190"><span class="versionmodified">版本0.14中的新功能。</span></span></p>
+</div>
+<p><span class="yiyi-st" id="yiyi-191">您可以使用<a class="reference internal" href="generated/pandas.Series.plot.area.html#pandas.Series.plot.area" title="pandas.Series.plot.area"><code class="xref py py-meth docutils literal"><span class="pre">Series.plot.area()</span></code></a>和<a class="reference internal" href="generated/pandas.DataFrame.plot.area.html#pandas.DataFrame.plot.area" title="pandas.DataFrame.plot.area"><code class="xref py py-meth docutils literal"><span class="pre">DataFrame.plot.area()</span></code></a>创建面积图。</span><span class="yiyi-st" id="yiyi-192">默认情况下，区域图被堆叠。</span><span class="yiyi-st" id="yiyi-193">为了产生堆积面积图，每列必须是正值或全部负值。</span></p>
+<p><span class="yiyi-st" id="yiyi-194">当输入数据包含<cite>NaN</cite>时，它将自动填充0。</span><span class="yiyi-st" id="yiyi-195">如果要通过不同的值删除或填充，请在调用<cite>plot</cite>之前使用<code class="xref py py-func docutils literal"><span class="pre">dataframe.dropna()</span></code>或<code class="xref py py-func docutils literal"><span class="pre">dataframe.fillna()</span></code>。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [57]: </span><span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&apos;a&apos;</span><span class="p">,</span> <span class="s1">&apos;b&apos;</span><span class="p">,</span> <span class="s1">&apos;c&apos;</span><span class="p">,</span> <span class="s1">&apos;d&apos;</span><span class="p">])</span>
+
+<span class="gp">In [58]: </span><span class="n">df</span><span class="o">.</span><span class="n">plot</span><span class="o">.</span><span class="n">area</span><span class="p">();</span>
+</pre></div>
+</div>
+<img alt="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/area_plot_stacked.png" src="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/area_plot_stacked.png">
+<p><span class="yiyi-st" id="yiyi-196">要生成未堆叠的绘图，请传递<code class="docutils literal"><span class="pre">stacked=False</span></code>。</span><span class="yiyi-st" id="yiyi-197">除非另有说明，Alpha值设置为0.5：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [59]: </span><span class="n">df</span><span class="o">.</span><span class="n">plot</span><span class="o">.</span><span class="n">area</span><span class="p">(</span><span class="n">stacked</span><span class="o">=</span><span class="bp">False</span><span class="p">);</span>
+</pre></div>
+</div>
+<img alt="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/area_plot_unstacked.png" src="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/area_plot_unstacked.png">
+</div>
+<div class="section" id="scatter-plot">
+<span id="visualization-scatter"></span><h3><span class="yiyi-st" id="yiyi-198">Scatter Plot</span></h3>
+<div class="versionadded">
+<p><span class="yiyi-st" id="yiyi-199"><span class="versionmodified">版本0.13中的新功能。</span></span></p>
+</div>
+<p><span class="yiyi-st" id="yiyi-200">散点图可以使用<a class="reference internal" href="generated/pandas.DataFrame.plot.scatter.html#pandas.DataFrame.plot.scatter" title="pandas.DataFrame.plot.scatter"><code class="xref py py-meth docutils literal"><span class="pre">DataFrame.plot.scatter()</span></code></a>方法绘制。</span><span class="yiyi-st" id="yiyi-201">散点图需要x和y轴的数字列。</span><span class="yiyi-st" id="yiyi-202">这些可以由<code class="docutils literal"><span class="pre">x</span></code>和<code class="docutils literal"><span class="pre">y</span></code>关键字指定。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [60]: </span><span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">50</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&apos;a&apos;</span><span class="p">,</span> <span class="s1">&apos;b&apos;</span><span class="p">,</span> <span class="s1">&apos;c&apos;</span><span class="p">,</span> <span class="s1">&apos;d&apos;</span><span class="p">])</span>
+
+<span class="gp">In [61]: </span><span class="n">df</span><span class="o">.</span><span class="n">plot</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="s1">&apos;a&apos;</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="s1">&apos;b&apos;</span><span class="p">);</span>
+</pre></div>
+</div>
+<img alt="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/scatter_plot.png" src="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/scatter_plot.png">
+<p><span class="yiyi-st" id="yiyi-203">要在单个轴上绘制多个列组，请重复<code class="docutils literal"><span class="pre">plot</span></code>方法指定目标<code class="docutils literal"><span class="pre">ax</span></code>。</span><span class="yiyi-st" id="yiyi-204">建议指定<code class="docutils literal"><span class="pre">color</span></code>和<code class="docutils literal"><span class="pre">label</span></code>关键字以区分每个组。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [62]: </span><span class="n">ax</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">plot</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="s1">&apos;a&apos;</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="s1">&apos;b&apos;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&apos;DarkBlue&apos;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&apos;Group 1&apos;</span><span class="p">);</span>
+
+<span class="gp">In [63]: </span><span class="n">df</span><span class="o">.</span><span class="n">plot</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="s1">&apos;c&apos;</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="s1">&apos;d&apos;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&apos;DarkGreen&apos;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&apos;Group 2&apos;</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">);</span>
+</pre></div>
+</div>
+<img alt="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/scatter_plot_repeated.png" src="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/scatter_plot_repeated.png">
+<p><span class="yiyi-st" id="yiyi-205">可以给出关键字<code class="docutils literal"><span class="pre">c</span></code>作为为每个点提供颜色的列的名称：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [64]: </span><span class="n">df</span><span class="o">.</span><span class="n">plot</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="s1">&apos;a&apos;</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="s1">&apos;b&apos;</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="s1">&apos;c&apos;</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="mi">50</span><span class="p">);</span>
+</pre></div>
+</div>
+<img alt="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/scatter_plot_colored.png" src="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/scatter_plot_colored.png">
+<p><span class="yiyi-st" id="yiyi-206">您可以传递由matplotlib <code class="docutils literal"><span class="pre">scatter</span></code>支持的其他关键字。</span><span class="yiyi-st" id="yiyi-207">下面的示例显示了将气泡大小用于数据框列值的气泡图。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [65]: </span><span class="n">df</span><span class="o">.</span><span class="n">plot</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="s1">&apos;a&apos;</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="s1">&apos;b&apos;</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="n">df</span><span class="p">[</span><span class="s1">&apos;c&apos;</span><span class="p">]</span><span class="o">*</span><span class="mi">200</span><span class="p">);</span>
+</pre></div>
+</div>
+<img alt="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/scatter_plot_bubble.png" src="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/scatter_plot_bubble.png">
+<p><span class="yiyi-st" id="yiyi-208">有关更多信息，请参阅<a class="reference external" href="http://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes.scatter" title="(in Matplotlib v1.5.3)"><code class="xref py py-meth docutils literal"><span class="pre">scatter</span></code></a>方法和<a class="reference external" href="http://matplotlib.org/api/pyplot_api.html#matplotlib.pyplot.scatter">matplotlib scatter文档</a>。</span></p>
+</div>
+<div class="section" id="hexagonal-bin-plot">
+<span id="visualization-hexbin"></span><h3><span class="yiyi-st" id="yiyi-209">Hexagonal Bin Plot</span></h3>
+<div class="versionadded">
+<p><span class="yiyi-st" id="yiyi-210"><span class="versionmodified">版本0.14中的新功能。</span></span></p>
+</div>
+<p><span class="yiyi-st" id="yiyi-211">您可以使用<a class="reference internal" href="generated/pandas.DataFrame.plot.hexbin.html#pandas.DataFrame.plot.hexbin" title="pandas.DataFrame.plot.hexbin"><code class="xref py py-meth docutils literal"><span class="pre">DataFrame.plot.hexbin()</span></code></a>创建六边形面元图。</span><span class="yiyi-st" id="yiyi-212">如果数据太密集，则Hexbin图可能是散点图的有用替代方法，无法单独绘制每个点。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [66]: </span><span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&apos;a&apos;</span><span class="p">,</span> <span class="s1">&apos;b&apos;</span><span class="p">])</span>
+
+<span class="gp">In [67]: </span><span class="n">df</span><span class="p">[</span><span class="s1">&apos;b&apos;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s1">&apos;b&apos;</span><span class="p">]</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">1000</span><span class="p">)</span>
+
+<span class="gp">In [68]: </span><span class="n">df</span><span class="o">.</span><span class="n">plot</span><span class="o">.</span><span class="n">hexbin</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="s1">&apos;a&apos;</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="s1">&apos;b&apos;</span><span class="p">,</span> <span class="n">gridsize</span><span class="o">=</span><span class="mi">25</span><span class="p">)</span>
+<span class="gr">Out[68]: </span><span class="o">&lt;</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">axes</span><span class="o">.</span><span class="n">_subplots</span><span class="o">.</span><span class="n">AxesSubplot</span> <span class="n">at</span> <span class="mh">0x7ff2713ce350</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<img alt="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/hexbin_plot.png" src="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/hexbin_plot.png">
+<p><span class="yiyi-st" id="yiyi-213">一个有用的关键字参数是<code class="docutils literal"><span class="pre">gridsize</span></code>；它控制x方向上的六边形数量，默认为100。</span><span class="yiyi-st" id="yiyi-214">较大的<code class="docutils literal"><span class="pre">gridsize</span></code>意味着更多，更小的bin。</span></p>
+<p><span class="yiyi-st" id="yiyi-215">默认情况下，计算每个<code class="docutils literal"><span class="pre">（x，</span> <span class="pre">y）</span></code>点的计数的直方图。</span><span class="yiyi-st" id="yiyi-216">您可以通过将值传递到<code class="docutils literal"><span class="pre">C</span></code>和<code class="docutils literal"><span class="pre">reduce_C_function</span></code>参数来指定备用聚合。</span><span class="yiyi-st" id="yiyi-217"><code class="docutils literal"><span class="pre">C</span></code>指定每个<code class="docutils literal"><span class="pre">（x，</span> <span class="pre">y）</span></code>点和<code class="docutils literal"><span class="pre">reduce_C_function</span></code>将一个bin中的所有值减少为单个数字的一​​个参数的函数（例如<code class="docutils literal"><span class="pre">mean</span></code>，<code class="docutils literal"><span class="pre">max</span></code>，<code class="docutils literal"><span class="pre">sum</span></code>，<code class="docutils literal"><span class="pre">std</span></code>）。</span><span class="yiyi-st" id="yiyi-218">在该示例中，位置由列<code class="docutils literal"><span class="pre">a</span></code>和<code class="docutils literal"><span class="pre">b</span></code>给出，而值由列<code class="docutils literal"><span class="pre">z</span></code>给出。</span><span class="yiyi-st" id="yiyi-219">这些bin与numpy的<code class="docutils literal"><span class="pre">max</span></code>函数聚合。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [69]: </span><span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&apos;a&apos;</span><span class="p">,</span> <span class="s1">&apos;b&apos;</span><span class="p">])</span>
+
+<span class="gp">In [70]: </span><span class="n">df</span><span class="p">[</span><span class="s1">&apos;b&apos;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s1">&apos;b&apos;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s1">&apos;b&apos;</span><span class="p">]</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">1000</span><span class="p">)</span>
+
+<span class="gp">In [71]: </span><span class="n">df</span><span class="p">[</span><span class="s1">&apos;z&apos;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">1000</span><span class="p">)</span>
+
+<span class="gp">In [72]: </span><span class="n">df</span><span class="o">.</span><span class="n">plot</span><span class="o">.</span><span class="n">hexbin</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="s1">&apos;a&apos;</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="s1">&apos;b&apos;</span><span class="p">,</span> <span class="n">C</span><span class="o">=</span><span class="s1">&apos;z&apos;</span><span class="p">,</span> <span class="n">reduce_C_function</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">,</span>
+<span class="gp">   ....:</span>         <span class="n">gridsize</span><span class="o">=</span><span class="mi">25</span><span class="p">)</span>
+<span class="gp">   ....:</span> 
+<span class="gr">Out[72]: </span><span class="o">&lt;</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">axes</span><span class="o">.</span><span class="n">_subplots</span><span class="o">.</span><span class="n">AxesSubplot</span> <span class="n">at</span> <span class="mh">0x7ff2669b58d0</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<img alt="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/hexbin_plot_agg.png" src="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/hexbin_plot_agg.png">
+<p><span class="yiyi-st" id="yiyi-220">有关详细信息，请参阅<a class="reference external" href="http://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes.hexbin" title="(in Matplotlib v1.5.3)"><code class="xref py py-meth docutils literal"><span class="pre">hexbin</span></code></a>方法和<a class="reference external" href="http://matplotlib.org/api/pyplot_api.html#matplotlib.pyplot.hexbin">matplotlib hexbin文档</a>。</span></p>
+</div>
+<div class="section" id="pie-plot">
+<span id="visualization-pie"></span><h3><span class="yiyi-st" id="yiyi-221">Pie plot</span></h3>
+<div class="versionadded">
+<p><span class="yiyi-st" id="yiyi-222"><span class="versionmodified">版本0.14中的新功能。</span></span></p>
+</div>
+<p><span class="yiyi-st" id="yiyi-223">您可以使用<a class="reference internal" href="generated/pandas.DataFrame.plot.pie.html#pandas.DataFrame.plot.pie" title="pandas.DataFrame.plot.pie"><code class="xref py py-meth docutils literal"><span class="pre">DataFrame.plot.pie()</span></code></a>或<a class="reference internal" href="generated/pandas.Series.plot.pie.html#pandas.Series.plot.pie" title="pandas.Series.plot.pie"><code class="xref py py-meth docutils literal"><span class="pre">Series.plot.pie()</span></code></a>创建饼图。</span><span class="yiyi-st" id="yiyi-224">如果您的数据包含任何<code class="docutils literal"><span class="pre">NaN</span></code>，它们将自动填充0。</span><span class="yiyi-st" id="yiyi-225">如果数据中有任何负值，则会引发<code class="docutils literal"><span class="pre">ValueError</span></code>。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [73]: </span><span class="n">series</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="mi">3</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">4</span><span class="p">),</span> <span class="n">index</span><span class="o">=</span><span class="p">[</span><span class="s1">&apos;a&apos;</span><span class="p">,</span> <span class="s1">&apos;b&apos;</span><span class="p">,</span> <span class="s1">&apos;c&apos;</span><span class="p">,</span> <span class="s1">&apos;d&apos;</span><span class="p">],</span> <span class="n">name</span><span class="o">=</span><span class="s1">&apos;series&apos;</span><span class="p">)</span>
+
+<span class="gp">In [74]: </span><span class="n">series</span><span class="o">.</span><span class="n">plot</span><span class="o">.</span><span class="n">pie</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="mi">6</span><span class="p">))</span>
+<span class="gr">Out[74]: </span><span class="o">&lt;</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">axes</span><span class="o">.</span><span class="n">_subplots</span><span class="o">.</span><span class="n">AxesSubplot</span> <span class="n">at</span> <span class="mh">0x7ff26c8ac210</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<img alt="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/series_pie_plot.png" src="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/series_pie_plot.png">
+<p><span class="yiyi-st" id="yiyi-226">对于饼图，最好使用正方形的数字，一个具有相等的宽高比。</span><span class="yiyi-st" id="yiyi-227">您可以通过在返回的<code class="docutils literal"><span class="pre">axes</span></code>对象上调用<code class="docutils literal"><span class="pre">ax.set_aspect(&apos;equal&apos;)</span></code>创建具有相等宽度和高度的图形，或强制绘制后的宽高比相等。</span></p>
+<p><span class="yiyi-st" id="yiyi-228">请注意，<a class="reference internal" href="generated/pandas.DataFrame.html#pandas.DataFrame" title="pandas.DataFrame"><code class="xref py py-class docutils literal"><span class="pre">DataFrame</span></code></a>的饼形图需要您通过<code class="docutils literal"><span class="pre">y</span></code>参数或<code class="docutils literal"><span class="pre">subplots=True</span></code>指定目标列。</span><span class="yiyi-st" id="yiyi-229">指定<code class="docutils literal"><span class="pre">y</span></code>时，将绘制所选列的饼图。</span><span class="yiyi-st" id="yiyi-230">如果指定<code class="docutils literal"><span class="pre">subplots=True</span></code>，则每个列的饼图将绘制为子图。</span><span class="yiyi-st" id="yiyi-231">默认情况下，每个饼图中将绘制一个图例；指定<code class="docutils literal"><span class="pre">legend=False</span></code>以隐藏它。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [75]: </span><span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="mi">3</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="n">index</span><span class="o">=</span><span class="p">[</span><span class="s1">&apos;a&apos;</span><span class="p">,</span> <span class="s1">&apos;b&apos;</span><span class="p">,</span> <span class="s1">&apos;c&apos;</span><span class="p">,</span> <span class="s1">&apos;d&apos;</span><span class="p">],</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&apos;x&apos;</span><span class="p">,</span> <span class="s1">&apos;y&apos;</span><span class="p">])</span>
+
+<span class="gp">In [76]: </span><span class="n">df</span><span class="o">.</span><span class="n">plot</span><span class="o">.</span><span class="n">pie</span><span class="p">(</span><span class="n">subplots</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
+<span class="gr">Out[76]: </span>
+<span class="go">array([&lt;matplotlib.axes._subplots.AxesSubplot object at 0x7ff26c896f50&gt;,</span>
+<span class="go">       &lt;matplotlib.axes._subplots.AxesSubplot object at 0x7ff26ceb2750&gt;], dtype=object)</span>
+</pre></div>
+</div>
+<img alt="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/df_pie_plot.png" src="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/df_pie_plot.png">
+<p><span class="yiyi-st" id="yiyi-232">您可以使用<code class="docutils literal"><span class="pre">labels</span></code>和<code class="docutils literal"><span class="pre">colors</span></code>关键字来指定每个楔形的标签和颜色。</span></p>
+<div class="admonition warning">
+<p class="first admonition-title"><span class="yiyi-st" id="yiyi-233">警告</span></p>
+<p class="last"><span class="yiyi-st" id="yiyi-234">大多数熊猫图使用<code class="docutils literal"><span class="pre">label</span></code>和<code class="docutils literal"><span class="pre">color</span></code>参数（注意缺少“s”）。</span><span class="yiyi-st" id="yiyi-235">要与<a class="reference external" href="http://matplotlib.org/api/pyplot_api.html#matplotlib.pyplot.pie" title="(in Matplotlib v1.5.3)"><code class="xref py py-func docutils literal"><span class="pre">matplotlib.pyplot.pie()</span></code></a>保持一致，您必须使用<code class="docutils literal"><span class="pre">labels</span></code>和<code class="docutils literal"><span class="pre">colors</span></code>。</span></p>
+</div>
+<p><span class="yiyi-st" id="yiyi-236">如果您要隐藏楔形标签，请指定<code class="docutils literal"><span class="pre">labels=None</span></code>。</span><span class="yiyi-st" id="yiyi-237">如果指定<code class="docutils literal"><span class="pre">fontsize</span></code>，则该值将应用于楔形标签。</span><span class="yiyi-st" id="yiyi-238">此外，还可以使用<a class="reference external" href="http://matplotlib.org/api/pyplot_api.html#matplotlib.pyplot.pie" title="(in Matplotlib v1.5.3)"><code class="xref py py-func docutils literal"><span class="pre">matplotlib.pyplot.pie()</span></code></a>支持的其他关键字。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [77]: </span><span class="n">series</span><span class="o">.</span><span class="n">plot</span><span class="o">.</span><span class="n">pie</span><span class="p">(</span><span class="n">labels</span><span class="o">=</span><span class="p">[</span><span class="s1">&apos;AA&apos;</span><span class="p">,</span> <span class="s1">&apos;BB&apos;</span><span class="p">,</span> <span class="s1">&apos;CC&apos;</span><span class="p">,</span> <span class="s1">&apos;DD&apos;</span><span class="p">],</span> <span class="n">colors</span><span class="o">=</span><span class="p">[</span><span class="s1">&apos;r&apos;</span><span class="p">,</span> <span class="s1">&apos;g&apos;</span><span class="p">,</span> <span class="s1">&apos;b&apos;</span><span class="p">,</span> <span class="s1">&apos;c&apos;</span><span class="p">],</span>
+<span class="gp">   ....:</span>                 <span class="n">autopct</span><span class="o">=</span><span class="s1">&apos;</span><span class="si">%.2f</span><span class="s1">&apos;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="mi">6</span><span class="p">))</span>
+<span class="gp">   ....:</span> 
+<span class="gr">Out[77]: </span><span class="o">&lt;</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">axes</span><span class="o">.</span><span class="n">_subplots</span><span class="o">.</span><span class="n">AxesSubplot</span> <span class="n">at</span> <span class="mh">0x7ff270fede50</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<img alt="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/series_pie_plot_options.png" src="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/series_pie_plot_options.png">
+<p><span class="yiyi-st" id="yiyi-239">如果传递总和小于1.0的值，则matplotlib绘制一个半圆。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [78]: </span><span class="n">series</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">([</span><span class="mf">0.1</span><span class="p">]</span> <span class="o">*</span> <span class="mi">4</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="p">[</span><span class="s1">&apos;a&apos;</span><span class="p">,</span> <span class="s1">&apos;b&apos;</span><span class="p">,</span> <span class="s1">&apos;c&apos;</span><span class="p">,</span> <span class="s1">&apos;d&apos;</span><span class="p">],</span> <span class="n">name</span><span class="o">=</span><span class="s1">&apos;series2&apos;</span><span class="p">)</span>
+
+<span class="gp">In [79]: </span><span class="n">series</span><span class="o">.</span><span class="n">plot</span><span class="o">.</span><span class="n">pie</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="mi">6</span><span class="p">))</span>
+<span class="gr">Out[79]: </span><span class="o">&lt;</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">axes</span><span class="o">.</span><span class="n">_subplots</span><span class="o">.</span><span class="n">AxesSubplot</span> <span class="n">at</span> <span class="mh">0x7ff26c39e9d0</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<img alt="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/series_pie_plot_semi.png" src="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/series_pie_plot_semi.png">
+<p><span class="yiyi-st" id="yiyi-240">有关更多信息，请参阅<a class="reference external" href="http://matplotlib.org/api/pyplot_api.html#matplotlib.pyplot.pie">matplotlib饼文档</a>。</span></p>
+</div>
+</div>
+<div class="section" id="plotting-with-missing-data">
+<span id="visualization-missing-data"></span><h2><span class="yiyi-st" id="yiyi-241">Plotting with Missing Data</span></h2>
+<p><span class="yiyi-st" id="yiyi-242">Pandas试图做实用的绘制包含缺失数据的DataFrames或Series。</span><span class="yiyi-st" id="yiyi-243">根据绘图类型，丢弃，舍弃或填充缺失值。</span></p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="30%">
+<col width="70%">
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head"><span class="yiyi-st" id="yiyi-244">绘图类型</span></th>
+<th class="head"><span class="yiyi-st" id="yiyi-245">NaN处理</span></th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><span class="yiyi-st" id="yiyi-246">线</span></td>
+<td><span class="yiyi-st" id="yiyi-247">在NaNs处留下空隙</span></td>
+</tr>
+<tr class="row-odd"><td><span class="yiyi-st" id="yiyi-248">线（堆叠）</span></td>
+<td><span class="yiyi-st" id="yiyi-249">填充0</span></td>
+</tr>
+<tr class="row-even"><td><span class="yiyi-st" id="yiyi-250">柱形图</span></td>
+<td><span class="yiyi-st" id="yiyi-251">填充0</span></td>
+</tr>
+<tr class="row-odd"><td><span class="yiyi-st" id="yiyi-252">散点图</span></td>
+<td><span class="yiyi-st" id="yiyi-253">去除NANS</span></td>
+</tr>
+<tr class="row-even"><td><span class="yiyi-st" id="yiyi-254">直方图</span></td>
+<td><span class="yiyi-st" id="yiyi-255">去除NaNs(逐列)</span></td>
+</tr>
+<tr class="row-odd"><td><span class="yiyi-st" id="yiyi-256">箱图</span></td>
+<td><span class="yiyi-st" id="yiyi-257">删除NaNs（逐列）</span></td>
+</tr>
+<tr class="row-even"><td><span class="yiyi-st" id="yiyi-258">面积图</span></td>
+<td><span class="yiyi-st" id="yiyi-259">填充0</span></td>
+</tr>
+<tr class="row-odd"><td><span class="yiyi-st" id="yiyi-260">KDE</span></td>
+<td><span class="yiyi-st" id="yiyi-261">删除NaNs（逐列）</span></td>
+</tr>
+<tr class="row-even"><td><span class="yiyi-st" id="yiyi-262">Hexbin</span></td>
+<td><span class="yiyi-st" id="yiyi-263">删除NaNs</span></td>
+</tr>
+<tr class="row-odd"><td><span class="yiyi-st" id="yiyi-264">饼图</span></td>
+<td><span class="yiyi-st" id="yiyi-265">填充0</span></td>
+</tr>
+</tbody>
+</table>
+<p><span class="yiyi-st" id="yiyi-266">如果任何这些默认值不是你想要的，或者如果你想明确如何处理缺失值，可以在绘图前使用<a class="reference internal" href="generated/pandas.DataFrame.fillna.html#pandas.DataFrame.fillna" title="pandas.DataFrame.fillna"><code class="xref py py-meth docutils literal"><span class="pre">fillna()</span></code></a>或<a class="reference internal" href="generated/pandas.DataFrame.dropna.html#pandas.DataFrame.dropna" title="pandas.DataFrame.dropna"><code class="xref py py-meth docutils literal"><span class="pre">dropna()</span></code></a></span></p>
+</div>
+<div class="section" id="plotting-tools">
+<span id="visualization-tools"></span><h2><span class="yiyi-st" id="yiyi-267">Plotting Tools</span></h2>
+<p><span class="yiyi-st" id="yiyi-268">这些函数可以从<code class="docutils literal"><span class="pre">pandas.tools.plotting</span></code>导入，并以<a class="reference internal" href="generated/pandas.Series.html#pandas.Series" title="pandas.Series"><code class="xref py py-class docutils literal"><span class="pre">Series</span></code></a>或<a class="reference internal" href="generated/pandas.DataFrame.html#pandas.DataFrame" title="pandas.DataFrame"><code class="xref py py-class docutils literal"><span class="pre">DataFrame</span></code></a>作为参数。</span></p>
+<div class="section" id="scatter-matrix-plot">
+<span id="visualization-scatter-matrix"></span><h3><span class="yiyi-st" id="yiyi-269">Scatter Matrix Plot</span></h3>
+<div class="versionadded">
+<p><span class="yiyi-st" id="yiyi-270"><span class="versionmodified">新版本0.7.3. </span></span></p>
+</div>
+<p><span class="yiyi-st" id="yiyi-271">您可以使用<code class="docutils literal"><span class="pre">pandas.tools.plotting</span></code>中的<code class="docutils literal"><span class="pre">scatter_matrix</span></code>方法创建散点图矩阵：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [80]: </span><span class="kn">from</span> <span class="nn">pandas.tools.plotting</span> <span class="kn">import</span> <span class="n">scatter_matrix</span>
+
+<span class="gp">In [81]: </span><span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&apos;a&apos;</span><span class="p">,</span> <span class="s1">&apos;b&apos;</span><span class="p">,</span> <span class="s1">&apos;c&apos;</span><span class="p">,</span> <span class="s1">&apos;d&apos;</span><span class="p">])</span>
+
+<span class="gp">In [82]: </span><span class="n">scatter_matrix</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="mi">6</span><span class="p">),</span> <span class="n">diagonal</span><span class="o">=</span><span class="s1">&apos;kde&apos;</span><span class="p">)</span>
+<span class="gr">Out[82]: </span>
+<span class="go">array([[&lt;matplotlib.axes._subplots.AxesSubplot object at 0x7ff26def9410&gt;,</span>
+<span class="go">        &lt;matplotlib.axes._subplots.AxesSubplot object at 0x7ff2705099d0&gt;,</span>
+<span class="go">        &lt;matplotlib.axes._subplots.AxesSubplot object at 0x7ff26cff4050&gt;,</span>
+<span class="go">        &lt;matplotlib.axes._subplots.AxesSubplot object at 0x7ff26e422990&gt;],</span>
+<span class="go">       [&lt;matplotlib.axes._subplots.AxesSubplot object at 0x7ff26e1ffe10&gt;,</span>
+<span class="go">        &lt;matplotlib.axes._subplots.AxesSubplot object at 0x7ff26d005250&gt;,</span>
+<span class="go">        &lt;matplotlib.axes._subplots.AxesSubplot object at 0x7ff2701eb2d0&gt;,</span>
+<span class="go">        &lt;matplotlib.axes._subplots.AxesSubplot object at 0x7ff26d058090&gt;],</span>
+<span class="go">       [&lt;matplotlib.axes._subplots.AxesSubplot object at 0x7ff267867110&gt;,</span>
+<span class="go">        &lt;matplotlib.axes._subplots.AxesSubplot object at 0x7ff2679232d0&gt;,</span>
+<span class="go">        &lt;matplotlib.axes._subplots.AxesSubplot object at 0x7ff271ddb290&gt;,</span>
+<span class="go">        &lt;matplotlib.axes._subplots.AxesSubplot object at 0x7ff26ee92210&gt;],</span>
+<span class="go">       [&lt;matplotlib.axes._subplots.AxesSubplot object at 0x7ff26ddd2350&gt;,</span>
+<span class="go">        &lt;matplotlib.axes._subplots.AxesSubplot object at 0x7ff26e2142d0&gt;,</span>
+<span class="go">        &lt;matplotlib.axes._subplots.AxesSubplot object at 0x7ff26df3d0d0&gt;,</span>
+<span class="go">        &lt;matplotlib.axes._subplots.AxesSubplot object at 0x7ff26d59c2d0&gt;]], dtype=object)</span>
+</pre></div>
+</div>
+<img alt="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/scatter_matrix_kde.png" src="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/scatter_matrix_kde.png">
+</div>
+<div class="section" id="density-plot">
+<span id="visualization-kde"></span><h3><span class="yiyi-st" id="yiyi-272">Density Plot</span></h3>
+<div class="versionadded">
+<p><span class="yiyi-st" id="yiyi-273"><span class="versionmodified">版本0.8.0中的新功能。</span></span></p>
+</div>
+<p><span class="yiyi-st" id="yiyi-274">您可以使用<a class="reference internal" href="generated/pandas.Series.plot.kde.html#pandas.Series.plot.kde" title="pandas.Series.plot.kde"><code class="xref py py-meth docutils literal"><span class="pre">Series.plot.kde()</span></code></a>和<a class="reference internal" href="generated/pandas.DataFrame.plot.kde.html#pandas.DataFrame.plot.kde" title="pandas.DataFrame.plot.kde"><code class="xref py py-meth docutils literal"><span class="pre">DataFrame.plot.kde()</span></code></a>方法创建密度图。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [83]: </span><span class="n">ser</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">1000</span><span class="p">))</span>
+
+<span class="gp">In [84]: </span><span class="n">ser</span><span class="o">.</span><span class="n">plot</span><span class="o">.</span><span class="n">kde</span><span class="p">()</span>
+<span class="gr">Out[84]: </span><span class="o">&lt;</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">axes</span><span class="o">.</span><span class="n">_subplots</span><span class="o">.</span><span class="n">AxesSubplot</span> <span class="n">at</span> <span class="mh">0x7ff266c28d10</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<img alt="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/kde_plot.png" src="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/kde_plot.png">
+</div>
+<div class="section" id="andrews-curves">
+<span id="visualization-andrews-curves"></span><h3><span class="yiyi-st" id="yiyi-275">Andrews Curves</span></h3>
+<p><span class="yiyi-st" id="yiyi-276">安德鲁斯曲线允许将多变量数据绘制为使用样本的属性作为傅里叶级数系数​​创建的大量曲线。</span><span class="yiyi-st" id="yiyi-277">通过为每个类不同地着色这些曲线，可以可视化数据聚类。</span><span class="yiyi-st" id="yiyi-278">属于相同类别的样品的曲线通常更靠近在一起并形成更大的结构。</span></p>
+<p><span class="yiyi-st" id="yiyi-279"><strong>注意</strong>：“Iris”数据集在<a class="reference external" href="https://raw.github.com/pandas-dev/pandas/master/pandas/tests/data/iris.csv">此处</a>中可用。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [85]: </span><span class="kn">from</span> <span class="nn">pandas.tools.plotting</span> <span class="kn">import</span> <span class="n">andrews_curves</span>
+
+<span class="gp">In [86]: </span><span class="n">data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s1">&apos;data/iris.data&apos;</span><span class="p">)</span>
+
+<span class="gp">In [87]: </span><span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+<span class="gr">Out[87]: </span><span class="o">&lt;</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">figure</span><span class="o">.</span><span class="n">Figure</span> <span class="n">at</span> <span class="mh">0x7ff26c276bd0</span><span class="o">&gt;</span>
+
+<span class="gp">In [88]: </span><span class="n">andrews_curves</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="s1">&apos;Name&apos;</span><span class="p">)</span>
+<span class="gr">Out[88]: </span><span class="o">&lt;</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">axes</span><span class="o">.</span><span class="n">_subplots</span><span class="o">.</span><span class="n">AxesSubplot</span> <span class="n">at</span> <span class="mh">0x7ff270a8a9d0</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<img alt="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/andrews_curves.png" src="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/andrews_curves.png">
+</div>
+<div class="section" id="parallel-coordinates">
+<span id="visualization-parallel-coordinates"></span><h3><span class="yiyi-st" id="yiyi-280">Parallel Coordinates</span></h3>
+<p><span class="yiyi-st" id="yiyi-281">平行坐标是绘制多变量数据的绘图技术。</span><span class="yiyi-st" id="yiyi-282">它允许人们看到数据中的簇，并可视地估计其他统计量。</span><span class="yiyi-st" id="yiyi-283">使用平行坐标点表示为连接的线段。</span><span class="yiyi-st" id="yiyi-284">每个垂直线表示一个属性。</span><span class="yiyi-st" id="yiyi-285">一组连接的线段表示一个数据点。</span><span class="yiyi-st" id="yiyi-286">倾向于聚类的点将更靠近在一起。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [89]: </span><span class="kn">from</span> <span class="nn">pandas.tools.plotting</span> <span class="kn">import</span> <span class="n">parallel_coordinates</span>
+
+<span class="gp">In [90]: </span><span class="n">data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s1">&apos;data/iris.data&apos;</span><span class="p">)</span>
+
+<span class="gp">In [91]: </span><span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+<span class="gr">Out[91]: </span><span class="o">&lt;</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">figure</span><span class="o">.</span><span class="n">Figure</span> <span class="n">at</span> <span class="mh">0x7ff26798f850</span><span class="o">&gt;</span>
+
+<span class="gp">In [92]: </span><span class="n">parallel_coordinates</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="s1">&apos;Name&apos;</span><span class="p">)</span>
+<span class="gr">Out[92]: </span><span class="o">&lt;</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">axes</span><span class="o">.</span><span class="n">_subplots</span><span class="o">.</span><span class="n">AxesSubplot</span> <span class="n">at</span> <span class="mh">0x7ff267994810</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<img alt="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/parallel_coordinates.png" src="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/parallel_coordinates.png">
+</div>
+<div class="section" id="lag-plot">
+<span id="visualization-lag"></span><h3><span class="yiyi-st" id="yiyi-287">Lag Plot</span></h3>
+<p><span class="yiyi-st" id="yiyi-288">滞后图用于检查数据集或时间序列是否是随机的。</span><span class="yiyi-st" id="yiyi-289">随机数据在滞后图中不应显示任何结构。</span><span class="yiyi-st" id="yiyi-290">非随机结构意味着底层数据不是随机的。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [93]: </span><span class="kn">from</span> <span class="nn">pandas.tools.plotting</span> <span class="kn">import</span> <span class="n">lag_plot</span>
+
+<span class="gp">In [94]: </span><span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+<span class="gr">Out[94]: </span><span class="o">&lt;</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">figure</span><span class="o">.</span><span class="n">Figure</span> <span class="n">at</span> <span class="mh">0x7ff26dd75d10</span><span class="o">&gt;</span>
+
+<span class="gp">In [95]: </span><span class="n">data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="mf">0.1</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">1000</span><span class="p">)</span> <span class="o">+</span>
+<span class="gp">   ....:</span>     <span class="mf">0.9</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mi">99</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="mi">99</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="mi">1000</span><span class="p">)))</span>
+<span class="gp">   ....:</span> 
+
+<span class="gp">In [96]: </span><span class="n">lag_plot</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+<span class="gr">Out[96]: </span><span class="o">&lt;</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">axes</span><span class="o">.</span><span class="n">_subplots</span><span class="o">.</span><span class="n">AxesSubplot</span> <span class="n">at</span> <span class="mh">0x7ff26dd75910</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<img alt="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/lag_plot.png" src="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/lag_plot.png">
+</div>
+<div class="section" id="autocorrelation-plot">
+<span id="visualization-autocorrelation"></span><h3><span class="yiyi-st" id="yiyi-291">Autocorrelation Plot</span></h3>
+<p><span class="yiyi-st" id="yiyi-292">自相关图通常用于检查时间序列中的随机性。</span><span class="yiyi-st" id="yiyi-293">这是通过计算在不同时间滞后的数据值的自相关来完成的。</span><span class="yiyi-st" id="yiyi-294">如果时间序列是随机的，对于任何和所有时间滞后分离，这种自相关应该接近零。</span><span class="yiyi-st" id="yiyi-295">如果时间序列是非随机的，则一个或多个自相关将显着地非零。</span><span class="yiyi-st" id="yiyi-296">图中显示的水平线对应于95％和99％置信带。</span><span class="yiyi-st" id="yiyi-297">虚线是99％置信带。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [97]: </span><span class="kn">from</span> <span class="nn">pandas.tools.plotting</span> <span class="kn">import</span> <span class="n">autocorrelation_plot</span>
+
+<span class="gp">In [98]: </span><span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+<span class="gr">Out[98]: </span><span class="o">&lt;</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">figure</span><span class="o">.</span><span class="n">Figure</span> <span class="n">at</span> <span class="mh">0x7ff267d7a350</span><span class="o">&gt;</span>
+
+<span class="gp">In [99]: </span><span class="n">data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="mf">0.7</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">1000</span><span class="p">)</span> <span class="o">+</span>
+<span class="gp">   ....:</span>    <span class="mf">0.3</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mi">9</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="mi">9</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="mi">1000</span><span class="p">)))</span>
+<span class="gp">   ....:</span> 
+
+<span class="gp">In [100]: </span><span class="n">autocorrelation_plot</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+<span class="gr">Out[100]: </span><span class="o">&lt;</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">axes</span><span class="o">.</span><span class="n">_subplots</span><span class="o">.</span><span class="n">AxesSubplot</span> <span class="n">at</span> <span class="mh">0x7ff26dd79ad0</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<img alt="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/autocorrelation_plot.png" src="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/autocorrelation_plot.png">
+</div>
+<div class="section" id="bootstrap-plot">
+<span id="visualization-bootstrap"></span><h3><span class="yiyi-st" id="yiyi-298">Bootstrap Plot</span></h3>
+<p><span class="yiyi-st" id="yiyi-299">引导图用于视觉评估统计的不确定性，例如平均值，中值，中频等。</span><span class="yiyi-st" id="yiyi-300">从数据集中选择指定大小的随机子集，针对该子集计算所讨论的统计量，并且将该过程重复指定次数。</span><span class="yiyi-st" id="yiyi-301">结果图和直方图是什么构成了引导图。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [101]: </span><span class="kn">from</span> <span class="nn">pandas.tools.plotting</span> <span class="kn">import</span> <span class="n">bootstrap_plot</span>
+
+<span class="gp">In [102]: </span><span class="n">data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">1000</span><span class="p">))</span>
+
+<span class="gp">In [103]: </span><span class="n">bootstrap_plot</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">samples</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&apos;grey&apos;</span><span class="p">)</span>
+<span class="gr">Out[103]: </span><span class="o">&lt;</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">figure</span><span class="o">.</span><span class="n">Figure</span> <span class="n">at</span> <span class="mh">0x7ff2677380d0</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<img alt="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/bootstrap_plot.png" src="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/bootstrap_plot.png">
+</div>
+<div class="section" id="radviz">
+<span id="visualization-radviz"></span><h3><span class="yiyi-st" id="yiyi-302">RadViz</span></h3>
+<p><span class="yiyi-st" id="yiyi-303">RadViz是一种可视化多变量数据的方法。</span><span class="yiyi-st" id="yiyi-304">它基于简单的弹簧张力最小化算法。</span><span class="yiyi-st" id="yiyi-305">基本上你在飞机上设置了一堆点。</span><span class="yiyi-st" id="yiyi-306">在我们的例子中，它们在单位圆上等间隔。</span><span class="yiyi-st" id="yiyi-307">每个点表示单个属性。</span><span class="yiyi-st" id="yiyi-308">然后假设数据集中的每个样本通过弹簧附加到这些点中的每一个上，其刚度与该属性的数值成比例（它们被归一化为单位间隔）。</span><span class="yiyi-st" id="yiyi-309">在我们的样本沉降的平面上的点（其中作用在我们的样本上的力处于平衡）是表示我们的样本的点将被绘制的点。</span><span class="yiyi-st" id="yiyi-310">根据样本属于哪个类别，它将有不同的颜色。</span></p>
+<p><span class="yiyi-st" id="yiyi-311"><strong>注意</strong>：“Iris”数据集在<a class="reference external" href="https://raw.github.com/pandas-dev/pandas/master/pandas/tests/data/iris.csv">此处</a>中可用。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [104]: </span><span class="kn">from</span> <span class="nn">pandas.tools.plotting</span> <span class="kn">import</span> <span class="n">radviz</span>
+
+<span class="gp">In [105]: </span><span class="n">data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s1">&apos;data/iris.data&apos;</span><span class="p">)</span>
+
+<span class="gp">In [106]: </span><span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+<span class="gr">Out[106]: </span><span class="o">&lt;</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">figure</span><span class="o">.</span><span class="n">Figure</span> <span class="n">at</span> <span class="mh">0x7ff26e5d5190</span><span class="o">&gt;</span>
+
+<span class="gp">In [107]: </span><span class="n">radviz</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="s1">&apos;Name&apos;</span><span class="p">)</span>
+<span class="gr">Out[107]: </span><span class="o">&lt;</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">axes</span><span class="o">.</span><span class="n">_subplots</span><span class="o">.</span><span class="n">AxesSubplot</span> <span class="n">at</span> <span class="mh">0x7ff26ebc86d0</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<img alt="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/radviz.png" src="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/radviz.png">
+</div>
+</div>
+<div class="section" id="plot-formatting">
+<span id="visualization-formatting"></span><h2><span class="yiyi-st" id="yiyi-312">Plot Formatting</span></h2>
+<p><span class="yiyi-st" id="yiyi-313">大多数绘图方法都有一组控制返回绘图的布局和格式的关键字参数：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [108]: </span><span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">();</span> <span class="n">ts</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">style</span><span class="o">=</span><span class="s1">&apos;k--&apos;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&apos;Series&apos;</span><span class="p">);</span>
+</pre></div>
+</div>
+<img alt="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/series_plot_basic2.png" src="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/series_plot_basic2.png">
+<p><span class="yiyi-st" id="yiyi-314">For each kind of plot (e.g. <cite>line</cite>, <cite>bar</cite>, <cite>scatter</cite>) any additional arguments keywords are passed along to the corresponding matplotlib function (<a class="reference external" href="http://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes.plot" title="(in Matplotlib v1.5.3)"><code class="xref py py-meth docutils literal"><span class="pre">ax.plot()</span></code></a>, <a class="reference external" href="http://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes.bar" title="(in Matplotlib v1.5.3)"><code class="xref py py-meth docutils literal"><span class="pre">ax.bar()</span></code></a>, <a class="reference external" href="http://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes.scatter" title="(in Matplotlib v1.5.3)"><code class="xref py py-meth docutils literal"><span class="pre">ax.scatter()</span></code></a>). </span><span class="yiyi-st" id="yiyi-315">这些可以用于控制额外的造型，超出了熊猫提供。</span></p>
+<div class="section" id="controlling-the-legend">
+<h3><span class="yiyi-st" id="yiyi-316">Controlling the Legend</span></h3>
+<p><span class="yiyi-st" id="yiyi-317">您可以将<code class="docutils literal"><span class="pre">legend</span></code>参数设置为<code class="docutils literal"><span class="pre">False</span></code>以隐藏图例（默认情况下显示）。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [109]: </span><span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="n">index</span><span class="o">=</span><span class="n">ts</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="s1">&apos;ABCD&apos;</span><span class="p">))</span>
+
+<span class="gp">In [110]: </span><span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">cumsum</span><span class="p">()</span>
+
+<span class="gp">In [111]: </span><span class="n">df</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">legend</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="gr">Out[111]: </span><span class="o">&lt;</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">axes</span><span class="o">.</span><span class="n">_subplots</span><span class="o">.</span><span class="n">AxesSubplot</span> <span class="n">at</span> <span class="mh">0x7ff26e65d590</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<img alt="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/frame_plot_basic_noleg.png" src="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/frame_plot_basic_noleg.png">
+</div>
+<div class="section" id="scales">
+<h3><span class="yiyi-st" id="yiyi-318">Scales</span></h3>
+<p><span class="yiyi-st" id="yiyi-319">您可以传递<code class="docutils literal"><span class="pre">logy</span></code>以获取对数刻度Y轴。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [112]: </span><span class="n">ts</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">1000</span><span class="p">),</span> <span class="n">index</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">date_range</span><span class="p">(</span><span class="s1">&apos;1/1/2000&apos;</span><span class="p">,</span> <span class="n">periods</span><span class="o">=</span><span class="mi">1000</span><span class="p">))</span>
+
+<span class="gp">In [113]: </span><span class="n">ts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">ts</span><span class="o">.</span><span class="n">cumsum</span><span class="p">())</span>
+
+<span class="gp">In [114]: </span><span class="n">ts</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">logy</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="gr">Out[114]: </span><span class="o">&lt;</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">axes</span><span class="o">.</span><span class="n">_subplots</span><span class="o">.</span><span class="n">AxesSubplot</span> <span class="n">at</span> <span class="mh">0x7ff2704da990</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<img alt="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/series_plot_logy.png" src="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/series_plot_logy.png">
+<p><span class="yiyi-st" id="yiyi-320">另请参阅<code class="docutils literal"><span class="pre">logx</span></code>和<code class="docutils literal"><span class="pre">loglog</span></code>关键字参数。</span></p>
+</div>
+<div class="section" id="plotting-on-a-secondary-y-axis">
+<h3><span class="yiyi-st" id="yiyi-321">Plotting on a Secondary Y-axis</span></h3>
+<p><span class="yiyi-st" id="yiyi-322">要在辅助y轴上绘制数据，请使用<code class="docutils literal"><span class="pre">secondary_y</span></code>关键字：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [115]: </span><span class="n">df</span><span class="o">.</span><span class="n">A</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
+<span class="gr">Out[115]: </span><span class="o">&lt;</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">axes</span><span class="o">.</span><span class="n">_subplots</span><span class="o">.</span><span class="n">AxesSubplot</span> <span class="n">at</span> <span class="mh">0x7ff26e663290</span><span class="o">&gt;</span>
+
+<span class="gp">In [116]: </span><span class="n">df</span><span class="o">.</span><span class="n">B</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">secondary_y</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="s1">&apos;g&apos;</span><span class="p">)</span>
+<span class="gr">Out[116]: </span><span class="o">&lt;</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">axes</span><span class="o">.</span><span class="n">_subplots</span><span class="o">.</span><span class="n">AxesSubplot</span> <span class="n">at</span> <span class="mh">0x7ff26e10e1d0</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<img alt="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/series_plot_secondary_y.png" src="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/series_plot_secondary_y.png">
+<p><span class="yiyi-st" id="yiyi-323">要在DataFrame中绘制某些列，请为<code class="docutils literal"><span class="pre">secondary_y</span></code>关键字指定列名称：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [117]: </span><span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+<span class="gr">Out[117]: </span><span class="o">&lt;</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">figure</span><span class="o">.</span><span class="n">Figure</span> <span class="n">at</span> <span class="mh">0x7ff26cd69450</span><span class="o">&gt;</span>
+
+<span class="gp">In [118]: </span><span class="n">ax</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">secondary_y</span><span class="o">=</span><span class="p">[</span><span class="s1">&apos;A&apos;</span><span class="p">,</span> <span class="s1">&apos;B&apos;</span><span class="p">])</span>
+
+<span class="gp">In [119]: </span><span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&apos;CD scale&apos;</span><span class="p">)</span>
+<span class="gr">Out[119]: </span><span class="o">&lt;</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">text</span><span class="o">.</span><span class="n">Text</span> <span class="n">at</span> <span class="mh">0x7ff26c8112d0</span><span class="o">&gt;</span>
+
+<span class="gp">In [120]: </span><span class="n">ax</span><span class="o">.</span><span class="n">right_ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&apos;AB scale&apos;</span><span class="p">)</span>
+<span class="gr">Out[120]: </span><span class="o">&lt;</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">text</span><span class="o">.</span><span class="n">Text</span> <span class="n">at</span> <span class="mh">0x7ff266f57710</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<img alt="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/frame_plot_secondary_y.png" src="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/frame_plot_secondary_y.png">
+<p><span class="yiyi-st" id="yiyi-324">请注意，在辅助y轴上绘制的列在图例中自动标记为“（右）”。</span><span class="yiyi-st" id="yiyi-325">要关闭自动标记，请使用<code class="docutils literal"><span class="pre">mark_right=False</span></code>关键字：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [121]: </span><span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+<span class="gr">Out[121]: </span><span class="o">&lt;</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">figure</span><span class="o">.</span><span class="n">Figure</span> <span class="n">at</span> <span class="mh">0x7ff26752ced0</span><span class="o">&gt;</span>
+
+<span class="gp">In [122]: </span><span class="n">df</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">secondary_y</span><span class="o">=</span><span class="p">[</span><span class="s1">&apos;A&apos;</span><span class="p">,</span> <span class="s1">&apos;B&apos;</span><span class="p">],</span> <span class="n">mark_right</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="gr">Out[122]: </span><span class="o">&lt;</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">axes</span><span class="o">.</span><span class="n">_subplots</span><span class="o">.</span><span class="n">AxesSubplot</span> <span class="n">at</span> <span class="mh">0x7ff267a133d0</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<img alt="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/frame_plot_secondary_y_no_right.png" src="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/frame_plot_secondary_y_no_right.png">
+</div>
+<div class="section" id="suppressing-tick-resolution-adjustment">
+<h3><span class="yiyi-st" id="yiyi-326">Suppressing Tick Resolution Adjustment</span></h3>
+<p><span class="yiyi-st" id="yiyi-327">pandas包括对常规频率时间序列数据的自动勾号分辨率调整。</span><span class="yiyi-st" id="yiyi-328">对于其中熊猫无法推断频率信息（例如，在外部创建的<code class="docutils literal"><span class="pre">twinx</span></code>）的有限情况，您可以选择抑制此行为以进行对齐。</span></p>
+<p><span class="yiyi-st" id="yiyi-329">这里是默认行为，注意如何执行x轴刻度标记：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [123]: </span><span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+<span class="gr">Out[123]: </span><span class="o">&lt;</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">figure</span><span class="o">.</span><span class="n">Figure</span> <span class="n">at</span> <span class="mh">0x7ff267a3bc10</span><span class="o">&gt;</span>
+
+<span class="gp">In [124]: </span><span class="n">df</span><span class="o">.</span><span class="n">A</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
+<span class="gr">Out[124]: </span><span class="o">&lt;</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">axes</span><span class="o">.</span><span class="n">_subplots</span><span class="o">.</span><span class="n">AxesSubplot</span> <span class="n">at</span> <span class="mh">0x7ff26e538f90</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<img alt="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/ser_plot_suppress.png" src="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/ser_plot_suppress.png">
+<p><span class="yiyi-st" id="yiyi-330">使用<code class="docutils literal"><span class="pre">x_compat</span></code>参数，可以抑制此行为：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [125]: </span><span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+<span class="gr">Out[125]: </span><span class="o">&lt;</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">figure</span><span class="o">.</span><span class="n">Figure</span> <span class="n">at</span> <span class="mh">0x7ff26e51add0</span><span class="o">&gt;</span>
+
+<span class="gp">In [126]: </span><span class="n">df</span><span class="o">.</span><span class="n">A</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x_compat</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="gr">Out[126]: </span><span class="o">&lt;</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">axes</span><span class="o">.</span><span class="n">_subplots</span><span class="o">.</span><span class="n">AxesSubplot</span> <span class="n">at</span> <span class="mh">0x7ff26eae0b10</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<img alt="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/ser_plot_suppress_parm.png" src="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/ser_plot_suppress_parm.png">
+<p><span class="yiyi-st" id="yiyi-331">如果您有多个需要抑制的图，<code class="docutils literal"><span class="pre">pandas.plot_params</span></code>中的<code class="docutils literal"><span class="pre">use</span></code>方法可以在<cite>with statement</cite>中使用：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [127]: </span><span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+<span class="gr">Out[127]: </span><span class="o">&lt;</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">figure</span><span class="o">.</span><span class="n">Figure</span> <span class="n">at</span> <span class="mh">0x7ff26dea43d0</span><span class="o">&gt;</span>
+
+<span class="gp">In [128]: </span><span class="k">with</span> <span class="n">pd</span><span class="o">.</span><span class="n">plot_params</span><span class="o">.</span><span class="n">use</span><span class="p">(</span><span class="s1">&apos;x_compat&apos;</span><span class="p">,</span> <span class="bp">True</span><span class="p">):</span>
+<span class="gp">   .....:</span>     <span class="n">df</span><span class="o">.</span><span class="n">A</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">color</span><span class="o">=</span><span class="s1">&apos;r&apos;</span><span class="p">)</span>
+<span class="gp">   .....:</span>     <span class="n">df</span><span class="o">.</span><span class="n">B</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">color</span><span class="o">=</span><span class="s1">&apos;g&apos;</span><span class="p">)</span>
+<span class="gp">   .....:</span>     <span class="n">df</span><span class="o">.</span><span class="n">C</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">color</span><span class="o">=</span><span class="s1">&apos;b&apos;</span><span class="p">)</span>
+<span class="gp">   .....:</span> 
+</pre></div>
+</div>
+<img alt="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/ser_plot_suppress_context.png" src="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/ser_plot_suppress_context.png">
+</div>
+<div class="section" id="subplots">
+<h3><span class="yiyi-st" id="yiyi-332">Subplots</span></h3>
+<p><span class="yiyi-st" id="yiyi-333">可以使用<code class="docutils literal"><span class="pre">subplots</span></code>关键字将DataFrame中的每个系列绘制在不同的轴上：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [129]: </span><span class="n">df</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">subplots</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="mi">6</span><span class="p">));</span>
+</pre></div>
+</div>
+<img alt="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/frame_plot_subplots.png" src="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/frame_plot_subplots.png">
+</div>
+<div class="section" id="using-layout-and-targeting-multiple-axes">
+<h3><span class="yiyi-st" id="yiyi-334">Using Layout and Targeting Multiple Axes</span></h3>
+<p><span class="yiyi-st" id="yiyi-335">子图的布局可以通过<code class="docutils literal"><span class="pre">layout</span></code>关键字指定。</span><span class="yiyi-st" id="yiyi-336">它可以接受<code class="docutils literal"><span class="pre">（行，</span> <span class="pre">列）</span></code>。</span><span class="yiyi-st" id="yiyi-337"><code class="docutils literal"><span class="pre">layout</span></code>关键字也可以在<code class="docutils literal"><span class="pre">hist</span></code>和<code class="docutils literal"><span class="pre">boxplot</span></code>中使用。</span><span class="yiyi-st" id="yiyi-338">如果输入无效，则会引发<code class="docutils literal"><span class="pre">ValueError</span></code>。</span></p>
+<p><span class="yiyi-st" id="yiyi-339"><code class="docutils literal"><span class="pre">layout</span></code>指定的行x列可包含的轴数必须大于所需子图的数量。</span><span class="yiyi-st" id="yiyi-340">如果布局可以包含比所需更多的轴，则不绘制空白轴。</span><span class="yiyi-st" id="yiyi-341">与numpy数组的<code class="docutils literal"><span class="pre">reshape</span></code>方法类似，您可以对一个维度使用<code class="docutils literal"><span class="pre">-1</span></code>自动计算所需的行数或列数，而另一个维度。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [130]: </span><span class="n">df</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">subplots</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">layout</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="mi">6</span><span class="p">),</span> <span class="n">sharex</span><span class="o">=</span><span class="bp">False</span><span class="p">);</span>
+</pre></div>
+</div>
+<img alt="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/frame_plot_subplots_layout.png" src="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/frame_plot_subplots_layout.png">
+<p><span class="yiyi-st" id="yiyi-342">上面的例子与使用相同</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [131]: </span><span class="n">df</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">subplots</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">layout</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">),</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="mi">6</span><span class="p">),</span> <span class="n">sharex</span><span class="o">=</span><span class="bp">False</span><span class="p">);</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-343">所需的列数（3）根据要绘制的系列数和给定行数（2）推断。</span></p>
+<p><span class="yiyi-st" id="yiyi-344">此外，您可以通过<code class="docutils literal"><span class="pre">ax</span></code>关键字传递预先创建的多个轴作为列表。</span><span class="yiyi-st" id="yiyi-345">这允许使用更复杂的布局。</span><span class="yiyi-st" id="yiyi-346">传递的轴必须与绘制的子图的编号相同。</span></p>
+<p><span class="yiyi-st" id="yiyi-347">当通过<code class="docutils literal"><span class="pre">ax</span></code>关键字，<code class="docutils literal"><span class="pre">layout</span></code>，<code class="docutils literal"><span class="pre">sharex</span></code>和<code class="docutils literal"><span class="pre">sharey</span></code>关键字传递多个轴时，不会影响输出。</span><span class="yiyi-st" id="yiyi-348">您应该明确传递<code class="docutils literal"><span class="pre">sharex=False</span></code>和<code class="docutils literal"><span class="pre">sharey=False</span></code>，否则您将看到警告。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [132]: </span><span class="n">fig</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="mi">6</span><span class="p">));</span>
+
+<span class="gp">In [133]: </span><span class="n">plt</span><span class="o">.</span><span class="n">subplots_adjust</span><span class="p">(</span><span class="n">wspace</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">hspace</span><span class="o">=</span><span class="mf">0.5</span><span class="p">);</span>
+
+<span class="gp">In [134]: </span><span class="n">target1</span> <span class="o">=</span> <span class="p">[</span><span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">axes</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">2</span><span class="p">],</span> <span class="n">axes</span><span class="p">[</span><span class="mi">3</span><span class="p">][</span><span class="mi">3</span><span class="p">]]</span>
+
+<span class="gp">In [135]: </span><span class="n">target2</span> <span class="o">=</span> <span class="p">[</span><span class="n">axes</span><span class="p">[</span><span class="mi">3</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">axes</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">2</span><span class="p">],</span> <span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">3</span><span class="p">]]</span>
+
+<span class="gp">In [136]: </span><span class="n">df</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">subplots</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">target1</span><span class="p">,</span> <span class="n">legend</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">sharex</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">sharey</span><span class="o">=</span><span class="bp">False</span><span class="p">);</span>
+
+<span class="gp">In [137]: </span><span class="p">(</span><span class="o">-</span><span class="n">df</span><span class="p">)</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">subplots</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">target2</span><span class="p">,</span> <span class="n">legend</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">sharex</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">sharey</span><span class="o">=</span><span class="bp">False</span><span class="p">);</span>
+</pre></div>
+</div>
+<img alt="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/frame_plot_subplots_multi_ax.png" src="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/frame_plot_subplots_multi_ax.png">
+<p><span class="yiyi-st" id="yiyi-349">另一个选项是将<code class="docutils literal"><span class="pre">ax</span></code>参数传递给<a class="reference internal" href="generated/pandas.Series.plot.html#pandas.Series.plot" title="pandas.Series.plot"><code class="xref py py-meth docutils literal"><span class="pre">Series.plot()</span></code></a>以绘制特定轴：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [138]: </span><span class="n">fig</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">nrows</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">ncols</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+
+<span class="gp">In [139]: </span><span class="n">df</span><span class="p">[</span><span class="s1">&apos;A&apos;</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]);</span> <span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&apos;A&apos;</span><span class="p">);</span>
+
+<span class="gp">In [140]: </span><span class="n">df</span><span class="p">[</span><span class="s1">&apos;B&apos;</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]);</span> <span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&apos;B&apos;</span><span class="p">);</span>
+
+<span class="gp">In [141]: </span><span class="n">df</span><span class="p">[</span><span class="s1">&apos;C&apos;</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">]);</span> <span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&apos;C&apos;</span><span class="p">);</span>
+
+<span class="gp">In [142]: </span><span class="n">df</span><span class="p">[</span><span class="s1">&apos;D&apos;</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">]);</span> <span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&apos;D&apos;</span><span class="p">);</span>
+</pre></div>
+</div>
+<img alt="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/series_plot_multi.png" src="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/series_plot_multi.png">
+</div>
+<div class="section" id="plotting-with-error-bars">
+<span id="visualization-errorbars"></span><h3><span class="yiyi-st" id="yiyi-350">Plotting With Error Bars</span></h3>
+<div class="versionadded">
+<p><span class="yiyi-st" id="yiyi-351"><span class="versionmodified">版本0.14中的新功能。</span></span></p>
+</div>
+<p><span class="yiyi-st" id="yiyi-352">现在在<a class="reference internal" href="generated/pandas.DataFrame.plot.html#pandas.DataFrame.plot" title="pandas.DataFrame.plot"><code class="xref py py-meth docutils literal"><span class="pre">DataFrame.plot()</span></code></a>和<a class="reference internal" href="generated/pandas.Series.plot.html#pandas.Series.plot" title="pandas.Series.plot"><code class="xref py py-meth docutils literal"><span class="pre">Series.plot()</span></code></a>中支持带有误差棒的绘图</span></p>
+<p><span class="yiyi-st" id="yiyi-353">水平和垂直误差线可以提供给<a class="reference internal" href="generated/pandas.DataFrame.plot.html#pandas.DataFrame.plot" title="pandas.DataFrame.plot"><code class="xref py py-meth docutils literal"><span class="pre">plot()</span></code></a>的<code class="docutils literal"><span class="pre">xerr</span></code>和<code class="docutils literal"><span class="pre">yerr</span></code>关键字参数。</span><span class="yiyi-st" id="yiyi-354">可以使用各种格式指定错误值。</span></p>
+<ul class="simple">
+<li><span class="yiyi-st" id="yiyi-355">As a <a class="reference internal" href="generated/pandas.DataFrame.html#pandas.DataFrame" title="pandas.DataFrame"><code class="xref py py-class docutils literal"><span class="pre">DataFrame</span></code></a> or <code class="docutils literal"><span class="pre">dict</span></code> of errors with column names matching the <code class="docutils literal"><span class="pre">columns</span></code> attribute of the plotting <a class="reference internal" href="generated/pandas.DataFrame.html#pandas.DataFrame" title="pandas.DataFrame"><code class="xref py py-class docutils literal"><span class="pre">DataFrame</span></code></a> or matching the <code class="docutils literal"><span class="pre">name</span></code> attribute of the <a class="reference internal" href="generated/pandas.Series.html#pandas.Series" title="pandas.Series"><code class="xref py py-class docutils literal"><span class="pre">Series</span></code></a></span></li>
+<li><span class="yiyi-st" id="yiyi-356">作为指示绘制<a class="reference internal" href="generated/pandas.DataFrame.html#pandas.DataFrame" title="pandas.DataFrame"><code class="xref py py-class docutils literal"><span class="pre">DataFrame</span></code></a>的哪些列包含错误值的<code class="docutils literal"><span class="pre">str</span></code></span></li>
+<li><span class="yiyi-st" id="yiyi-357">作为原始值（<code class="docutils literal"><span class="pre">list</span></code>，<code class="docutils literal"><span class="pre">tuple</span></code>或<code class="docutils literal"><span class="pre">np.ndarray</span></code>）。</span><span class="yiyi-st" id="yiyi-358">必须与绘图<a class="reference internal" href="generated/pandas.DataFrame.html#pandas.DataFrame" title="pandas.DataFrame"><code class="xref py py-class docutils literal"><span class="pre">DataFrame</span></code></a> / <a class="reference internal" href="generated/pandas.Series.html#pandas.Series" title="pandas.Series"><code class="xref py py-class docutils literal"><span class="pre">Series</span></code></a>的长度相同</span></li>
+</ul>
+<p><span class="yiyi-st" id="yiyi-359">还支持非对称误差棒，但在这种情况下必须提供原始误差值。</span><span class="yiyi-st" id="yiyi-360">对于<code class="docutils literal"><span class="pre">M</span></code>长度<a class="reference internal" href="generated/pandas.Series.html#pandas.Series" title="pandas.Series"><code class="xref py py-class docutils literal"><span class="pre">Series</span></code></a>，应提供表示下部和上部（或左右）错误的<code class="docutils literal"><span class="pre">Mx2</span></code>数组。</span><span class="yiyi-st" id="yiyi-361">对于<code class="docutils literal"><span class="pre">MxN</span></code> <a class="reference internal" href="generated/pandas.DataFrame.html#pandas.DataFrame" title="pandas.DataFrame"><code class="xref py py-class docutils literal"><span class="pre">DataFrame</span></code></a>，不对称误差应在<code class="docutils literal"><span class="pre">Mx2xN</span></code>数组中。</span></p>
+<p><span class="yiyi-st" id="yiyi-362">这里有一个例子，可以方便地绘制群平均值与原始数据的标准偏差。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="c"># Generate the data</span>
+<span class="gp">In [143]: </span><span class="n">ix3</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">MultiIndex</span><span class="o">.</span><span class="n">from_arrays</span><span class="p">([[</span><span class="s1">&apos;a&apos;</span><span class="p">,</span> <span class="s1">&apos;a&apos;</span><span class="p">,</span> <span class="s1">&apos;a&apos;</span><span class="p">,</span> <span class="s1">&apos;a&apos;</span><span class="p">,</span> <span class="s1">&apos;b&apos;</span><span class="p">,</span> <span class="s1">&apos;b&apos;</span><span class="p">,</span> <span class="s1">&apos;b&apos;</span><span class="p">,</span> <span class="s1">&apos;b&apos;</span><span class="p">],</span> <span class="p">[</span><span class="s1">&apos;foo&apos;</span><span class="p">,</span> <span class="s1">&apos;foo&apos;</span><span class="p">,</span> <span class="s1">&apos;bar&apos;</span><span class="p">,</span> <span class="s1">&apos;bar&apos;</span><span class="p">,</span> <span class="s1">&apos;foo&apos;</span><span class="p">,</span> <span class="s1">&apos;foo&apos;</span><span class="p">,</span> <span class="s1">&apos;bar&apos;</span><span class="p">,</span> <span class="s1">&apos;bar&apos;</span><span class="p">]],</span> <span class="n">names</span><span class="o">=</span><span class="p">[</span><span class="s1">&apos;letter&apos;</span><span class="p">,</span> <span class="s1">&apos;word&apos;</span><span class="p">])</span>
+
+<span class="gp">In [144]: </span><span class="n">df3</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s1">&apos;data1&apos;</span><span class="p">:</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="s1">&apos;data2&apos;</span><span class="p">:</span> <span class="p">[</span><span class="mi">6</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">5</span><span class="p">]},</span> <span class="n">index</span><span class="o">=</span><span class="n">ix3</span><span class="p">)</span>
+
+<span class="c"># Group by index labels and take the means and standard deviations for each group</span>
+<span class="gp">In [145]: </span><span class="n">gp3</span> <span class="o">=</span> <span class="n">df3</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="p">(</span><span class="s1">&apos;letter&apos;</span><span class="p">,</span> <span class="s1">&apos;word&apos;</span><span class="p">))</span>
+
+<span class="gp">In [146]: </span><span class="n">means</span> <span class="o">=</span> <span class="n">gp3</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+
+<span class="gp">In [147]: </span><span class="n">errors</span> <span class="o">=</span> <span class="n">gp3</span><span class="o">.</span><span class="n">std</span><span class="p">()</span>
+
+<span class="gp">In [148]: </span><span class="n">means</span>
+<span class="gr">Out[148]: </span>
+<span class="go">             data1  data2</span>
+<span class="go">letter word              </span>
+<span class="go">a      bar     3.5    6.0</span>
+<span class="go">       foo     2.5    5.5</span>
+<span class="go">b      bar     2.5    5.5</span>
+<span class="go">       foo     3.0    4.5</span>
+
+<span class="gp">In [149]: </span><span class="n">errors</span>
+<span class="gr">Out[149]: </span>
+<span class="go">                data1     data2</span>
+<span class="go">letter word                    </span>
+<span class="go">a      bar   0.707107  1.414214</span>
+<span class="go">       foo   0.707107  0.707107</span>
+<span class="go">b      bar   0.707107  0.707107</span>
+<span class="go">       foo   1.414214  0.707107</span>
+
+<span class="c"># Plot</span>
+<span class="gp">In [150]: </span><span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">()</span>
+
+<span class="gp">In [151]: </span><span class="n">means</span><span class="o">.</span><span class="n">plot</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span><span class="n">yerr</span><span class="o">=</span><span class="n">errors</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">)</span>
+<span class="gr">Out[151]: </span><span class="o">&lt;</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">axes</span><span class="o">.</span><span class="n">_subplots</span><span class="o">.</span><span class="n">AxesSubplot</span> <span class="n">at</span> <span class="mh">0x7ff26cc76f90</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<img alt="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/errorbar_example.png" src="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/errorbar_example.png">
+</div>
+<div class="section" id="plotting-tables">
+<span id="visualization-table"></span><h3><span class="yiyi-st" id="yiyi-363">Plotting Tables</span></h3>
+<div class="versionadded">
+<p><span class="yiyi-st" id="yiyi-364"><span class="versionmodified">版本0.14中的新功能。</span></span></p>
+</div>
+<p><span class="yiyi-st" id="yiyi-365">现在在<a class="reference internal" href="generated/pandas.DataFrame.plot.html#pandas.DataFrame.plot" title="pandas.DataFrame.plot"><code class="xref py py-meth docutils literal"><span class="pre">DataFrame.plot()</span></code></a>和<a class="reference internal" href="generated/pandas.Series.plot.html#pandas.Series.plot" title="pandas.Series.plot"><code class="xref py py-meth docutils literal"><span class="pre">Series.plot()</span></code></a>中使用<code class="docutils literal"><span class="pre">table</span></code>关键字支持使用matplotlib表进行绘图。</span><span class="yiyi-st" id="yiyi-366"><code class="docutils literal"><span class="pre">table</span></code>关键字可以接受<code class="docutils literal"><span class="pre">bool</span></code>，<a class="reference internal" href="generated/pandas.DataFrame.html#pandas.DataFrame" title="pandas.DataFrame"><code class="xref py py-class docutils literal"><span class="pre">DataFrame</span></code></a>或<a class="reference internal" href="generated/pandas.Series.html#pandas.Series" title="pandas.Series"><code class="xref py py-class docutils literal"><span class="pre">Series</span></code></a>。</span><span class="yiyi-st" id="yiyi-367">绘制表的简单方法是指定<code class="docutils literal"><span class="pre">table=True</span></code>。</span><span class="yiyi-st" id="yiyi-368">数据将被转置以满足matplotlib的默认布局。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [152]: </span><span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+<span class="gp">In [153]: </span><span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&apos;a&apos;</span><span class="p">,</span> <span class="s1">&apos;b&apos;</span><span class="p">,</span> <span class="s1">&apos;c&apos;</span><span class="p">])</span>
+
+<span class="gp">In [154]: </span><span class="n">ax</span><span class="o">.</span><span class="n">get_xaxis</span><span class="p">()</span><span class="o">.</span><span class="n">set_visible</span><span class="p">(</span><span class="bp">False</span><span class="p">)</span>   <span class="c1"># Hide Ticks</span>
+
+<span class="gp">In [155]: </span><span class="n">df</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">table</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">)</span>
+<span class="gr">Out[155]: </span><span class="o">&lt;</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">axes</span><span class="o">.</span><span class="n">_subplots</span><span class="o">.</span><span class="n">AxesSubplot</span> <span class="n">at</span> <span class="mh">0x7ff26c4cc5d0</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<img alt="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/line_plot_table_true.png" src="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/line_plot_table_true.png">
+<p><span class="yiyi-st" id="yiyi-369">此外，您还可以为<code class="docutils literal"><span class="pre">table</span></code>关键字传递不同的<a class="reference internal" href="generated/pandas.DataFrame.html#pandas.DataFrame" title="pandas.DataFrame"><code class="xref py py-class docutils literal"><span class="pre">DataFrame</span></code></a>或<a class="reference internal" href="generated/pandas.Series.html#pandas.Series" title="pandas.Series"><code class="xref py py-class docutils literal"><span class="pre">Series</span></code></a>。</span><span class="yiyi-st" id="yiyi-370">数据将按照打印方法显示（不自动移调）。</span><span class="yiyi-st" id="yiyi-371">如果需要，它应该手动转置如下例。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [156]: </span><span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+<span class="gp">In [157]: </span><span class="n">ax</span><span class="o">.</span><span class="n">get_xaxis</span><span class="p">()</span><span class="o">.</span><span class="n">set_visible</span><span class="p">(</span><span class="bp">False</span><span class="p">)</span>   <span class="c1"># Hide Ticks</span>
+
+<span class="gp">In [158]: </span><span class="n">df</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">table</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">)</span>
+<span class="gr">Out[158]: </span><span class="o">&lt;</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">axes</span><span class="o">.</span><span class="n">_subplots</span><span class="o">.</span><span class="n">AxesSubplot</span> <span class="n">at</span> <span class="mh">0x7ff26ea2e690</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<img alt="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/line_plot_table_data.png" src="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/line_plot_table_data.png">
+<p><span class="yiyi-st" id="yiyi-372">Finally, there is a helper function <code class="docutils literal"><span class="pre">pandas.tools.plotting.table</span></code> to create a table from <a class="reference internal" href="generated/pandas.DataFrame.html#pandas.DataFrame" title="pandas.DataFrame"><code class="xref py py-class docutils literal"><span class="pre">DataFrame</span></code></a> and <a class="reference internal" href="generated/pandas.Series.html#pandas.Series" title="pandas.Series"><code class="xref py py-class docutils literal"><span class="pre">Series</span></code></a>, and add it to an <code class="docutils literal"><span class="pre">matplotlib.Axes</span></code>. </span><span class="yiyi-st" id="yiyi-373">此函数可以接受matplotlib表具有的关键字。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [159]: </span><span class="kn">from</span> <span class="nn">pandas.tools.plotting</span> <span class="kn">import</span> <span class="n">table</span>
+
+<span class="gp">In [160]: </span><span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+<span class="gp">In [161]: </span><span class="n">table</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">describe</span><span class="p">(),</span> <span class="mi">2</span><span class="p">),</span>
+<span class="gp">   .....:</span>       <span class="n">loc</span><span class="o">=</span><span class="s1">&apos;upper right&apos;</span><span class="p">,</span> <span class="n">colWidths</span><span class="o">=</span><span class="p">[</span><span class="mf">0.2</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">])</span>
+<span class="gp">   .....:</span> 
+<span class="gr">Out[161]: </span><span class="o">&lt;</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">Table</span> <span class="n">at</span> <span class="mh">0x7ff270843f10</span><span class="o">&gt;</span>
+
+<span class="gp">In [162]: </span><span class="n">df</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="n">ylim</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="n">legend</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
+<span class="gr">Out[162]: </span><span class="o">&lt;</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">axes</span><span class="o">.</span><span class="n">_subplots</span><span class="o">.</span><span class="n">AxesSubplot</span> <span class="n">at</span> <span class="mh">0x7ff267fce190</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<img alt="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/line_plot_table_describe.png" src="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/line_plot_table_describe.png">
+<p><span class="yiyi-st" id="yiyi-374"><strong>注意</strong>：您可以使用<code class="docutils literal"><span class="pre">axes.tables</span></code>属性获取轴上的表实例以进行进一步装饰。</span><span class="yiyi-st" id="yiyi-375">有关更多信息，请参阅<a class="reference external" href="http://matplotlib.org/api/axes_api.html#matplotlib.axes.Axes.table">matplotlib表文档</a>。</span></p>
+</div>
+<div class="section" id="colormaps">
+<span id="visualization-colormaps"></span><h3><span class="yiyi-st" id="yiyi-376">Colormaps</span></h3>
+<p><span class="yiyi-st" id="yiyi-377">绘制大量列时的潜在问题是，由于默认颜色的重复，可能难以区分某些系列。</span><span class="yiyi-st" id="yiyi-378">为了解决这个问题，DataFrame绘图支持使用<code class="docutils literal"><span class="pre">colormap=</span></code>参数，它接受一个Matplotlib <a class="reference external" href="http://matplotlib.org/api/cm_api.html">colormap</a>或者一个字符串，它是用Matplotlib注册的颜色。</span><span class="yiyi-st" id="yiyi-379">可以在<a class="reference external" href="http://wiki.scipy.org/Cookbook/Matplotlib/Show_colormaps">此处</a>获得默认matplotlib色彩映射的可视化。</span></p>
+<p><span class="yiyi-st" id="yiyi-380">由于matplotlib不直接支持基于行的绘图的色彩映射，所以基于由DataFrame中的列数确定的偶数间隔来选择颜色。</span><span class="yiyi-st" id="yiyi-381">没有考虑背景颜色，所以一些色彩映射将产生不容易看到的线。</span></p>
+<p><span class="yiyi-st" id="yiyi-382">要使用立方体颜色映射，我们可以简单地将<code class="docutils literal"><span class="pre">&apos;cubehelix&apos;</span></code>传递给<code class="docutils literal"><span class="pre">colormap=</span></code></span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [163]: </span><span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span> <span class="mi">10</span><span class="p">),</span> <span class="n">index</span><span class="o">=</span><span class="n">ts</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+
+<span class="gp">In [164]: </span><span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">cumsum</span><span class="p">()</span>
+
+<span class="gp">In [165]: </span><span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+<span class="gr">Out[165]: </span><span class="o">&lt;</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">figure</span><span class="o">.</span><span class="n">Figure</span> <span class="n">at</span> <span class="mh">0x7ff266ee9650</span><span class="o">&gt;</span>
+
+<span class="gp">In [166]: </span><span class="n">df</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">colormap</span><span class="o">=</span><span class="s1">&apos;cubehelix&apos;</span><span class="p">)</span>
+<span class="gr">Out[166]: </span><span class="o">&lt;</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">axes</span><span class="o">.</span><span class="n">_subplots</span><span class="o">.</span><span class="n">AxesSubplot</span> <span class="n">at</span> <span class="mh">0x7ff267037910</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<img alt="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/cubehelix.png" src="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/cubehelix.png">
+<p><span class="yiyi-st" id="yiyi-383">或者我们可以传递色彩映射本身</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [167]: </span><span class="kn">from</span> <span class="nn">matplotlib</span> <span class="kn">import</span> <span class="n">cm</span>
+
+<span class="gp">In [168]: </span><span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+<span class="gr">Out[168]: </span><span class="o">&lt;</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">figure</span><span class="o">.</span><span class="n">Figure</span> <span class="n">at</span> <span class="mh">0x7ff26c8efb10</span><span class="o">&gt;</span>
+
+<span class="gp">In [169]: </span><span class="n">df</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">colormap</span><span class="o">=</span><span class="n">cm</span><span class="o">.</span><span class="n">cubehelix</span><span class="p">)</span>
+<span class="gr">Out[169]: </span><span class="o">&lt;</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">axes</span><span class="o">.</span><span class="n">_subplots</span><span class="o">.</span><span class="n">AxesSubplot</span> <span class="n">at</span> <span class="mh">0x7ff270ee6c90</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<img alt="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/cubehelix_cm.png" src="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/cubehelix_cm.png">
+<p><span class="yiyi-st" id="yiyi-384">色彩图也可以使用其他图类型，如条形图：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [170]: </span><span class="n">dd</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">10</span><span class="p">))</span><span class="o">.</span><span class="n">applymap</span><span class="p">(</span><span class="nb">abs</span><span class="p">)</span>
+
+<span class="gp">In [171]: </span><span class="n">dd</span> <span class="o">=</span> <span class="n">dd</span><span class="o">.</span><span class="n">cumsum</span><span class="p">()</span>
+
+<span class="gp">In [172]: </span><span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+<span class="gr">Out[172]: </span><span class="o">&lt;</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">figure</span><span class="o">.</span><span class="n">Figure</span> <span class="n">at</span> <span class="mh">0x7ff272475250</span><span class="o">&gt;</span>
+
+<span class="gp">In [173]: </span><span class="n">dd</span><span class="o">.</span><span class="n">plot</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span><span class="n">colormap</span><span class="o">=</span><span class="s1">&apos;Greens&apos;</span><span class="p">)</span>
+<span class="gr">Out[173]: </span><span class="o">&lt;</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">axes</span><span class="o">.</span><span class="n">_subplots</span><span class="o">.</span><span class="n">AxesSubplot</span> <span class="n">at</span> <span class="mh">0x7ff26efff1d0</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<img alt="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/greens.png" src="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/greens.png">
+<p><span class="yiyi-st" id="yiyi-385">平行坐标图：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [174]: </span><span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+<span class="gr">Out[174]: </span><span class="o">&lt;</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">figure</span><span class="o">.</span><span class="n">Figure</span> <span class="n">at</span> <span class="mh">0x7ff2717f4250</span><span class="o">&gt;</span>
+
+<span class="gp">In [175]: </span><span class="n">parallel_coordinates</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="s1">&apos;Name&apos;</span><span class="p">,</span> <span class="n">colormap</span><span class="o">=</span><span class="s1">&apos;gist_rainbow&apos;</span><span class="p">)</span>
+<span class="gr">Out[175]: </span><span class="o">&lt;</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">axes</span><span class="o">.</span><span class="n">_subplots</span><span class="o">.</span><span class="n">AxesSubplot</span> <span class="n">at</span> <span class="mh">0x7ff2717d2810</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<img alt="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/parallel_gist_rainbow.png" src="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/parallel_gist_rainbow.png">
+<p><span class="yiyi-st" id="yiyi-386">安德鲁斯曲线图：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [176]: </span><span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+<span class="gr">Out[176]: </span><span class="o">&lt;</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">figure</span><span class="o">.</span><span class="n">Figure</span> <span class="n">at</span> <span class="mh">0x7ff25dd3af50</span><span class="o">&gt;</span>
+
+<span class="gp">In [177]: </span><span class="n">andrews_curves</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="s1">&apos;Name&apos;</span><span class="p">,</span> <span class="n">colormap</span><span class="o">=</span><span class="s1">&apos;winter&apos;</span><span class="p">)</span>
+<span class="gr">Out[177]: </span><span class="o">&lt;</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">axes</span><span class="o">.</span><span class="n">_subplots</span><span class="o">.</span><span class="n">AxesSubplot</span> <span class="n">at</span> <span class="mh">0x7ff25dcc9b90</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<img alt="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/andrews_curve_winter.png" src="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/andrews_curve_winter.png">
+</div>
+</div>
+<div class="section" id="plotting-directly-with-matplotlib">
+<h2><span class="yiyi-st" id="yiyi-387">Plotting directly with matplotlib</span></h2>
+<p><span class="yiyi-st" id="yiyi-388">在某些情况下，仍然可能优选或必须直接使用matplotlib准备绘图，例如当某种类型的绘图或定制没有被pandas支持时。</span><span class="yiyi-st" id="yiyi-389">Series和DataFrame对象的行为类似于数组，因此可以直接传递到matplotlib函数，而不需要显式转换。</span></p>
+<p><span class="yiyi-st" id="yiyi-390">pandas还自动注册识别日期索引的格式化程序和定位器，从而将日期和时间支持扩展到matplotlib中几乎所有可用的绘图类型。</span><span class="yiyi-st" id="yiyi-391">虽然此格式不提供与通过pandas绘图时获得的相同的细化级别，但在绘制大量点时可能会更快。</span></p>
+<div class="admonition note">
+<p class="first admonition-title"><span class="yiyi-st" id="yiyi-392">注意</span></p>
+<p class="last"><span class="yiyi-st" id="yiyi-393">大数据集的加速仅适用于pandas 0.14.0和更高版本。</span></p>
+</div>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [178]: </span><span class="n">price</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">150</span><span class="p">)</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(),</span>
+<span class="gp">   .....:</span>                   <span class="n">index</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">date_range</span><span class="p">(</span><span class="s1">&apos;2000-1-1&apos;</span><span class="p">,</span> <span class="n">periods</span><span class="o">=</span><span class="mi">150</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="s1">&apos;B&apos;</span><span class="p">))</span>
+<span class="gp">   .....:</span> 
+
+<span class="gp">In [179]: </span><span class="n">ma</span> <span class="o">=</span> <span class="n">price</span><span class="o">.</span><span class="n">rolling</span><span class="p">(</span><span class="mi">20</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+
+<span class="gp">In [180]: </span><span class="n">mstd</span> <span class="o">=</span> <span class="n">price</span><span class="o">.</span><span class="n">rolling</span><span class="p">(</span><span class="mi">20</span><span class="p">)</span><span class="o">.</span><span class="n">std</span><span class="p">()</span>
+
+<span class="gp">In [181]: </span><span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+<span class="gr">Out[181]: </span><span class="o">&lt;</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">figure</span><span class="o">.</span><span class="n">Figure</span> <span class="n">at</span> <span class="mh">0x7ff25d8ca350</span><span class="o">&gt;</span>
+
+<span class="gp">In [182]: </span><span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">price</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">price</span><span class="p">,</span> <span class="s1">&apos;k&apos;</span><span class="p">)</span>
+<span class="gr">Out[182]: </span><span class="p">[</span><span class="o">&lt;</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">lines</span><span class="o">.</span><span class="n">Line2D</span> <span class="n">at</span> <span class="mh">0x7ff25d88a910</span><span class="o">&gt;</span><span class="p">]</span>
+
+<span class="gp">In [183]: </span><span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">ma</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">ma</span><span class="p">,</span> <span class="s1">&apos;b&apos;</span><span class="p">)</span>
+<span class="gr">Out[183]: </span><span class="p">[</span><span class="o">&lt;</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">lines</span><span class="o">.</span><span class="n">Line2D</span> <span class="n">at</span> <span class="mh">0x7ff25d8cadd0</span><span class="o">&gt;</span><span class="p">]</span>
+
+<span class="gp">In [184]: </span><span class="n">plt</span><span class="o">.</span><span class="n">fill_between</span><span class="p">(</span><span class="n">mstd</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">ma</span><span class="o">-</span><span class="mi">2</span><span class="o">*</span><span class="n">mstd</span><span class="p">,</span> <span class="n">ma</span><span class="o">+</span><span class="mi">2</span><span class="o">*</span><span class="n">mstd</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&apos;b&apos;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.2</span><span class="p">)</span>
+<span class="gr">Out[184]: </span><span class="o">&lt;</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">collections</span><span class="o">.</span><span class="n">PolyCollection</span> <span class="n">at</span> <span class="mh">0x7ff25d853fd0</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<img alt="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/bollinger.png" src="http://pandas.pydata.org/pandas-docs/version/0.19.2/_images/bollinger.png">
+</div>
+<div class="section" id="trellis-plotting-interface">
+<span id="rplot"></span><h2><span class="yiyi-st" id="yiyi-394">Trellis plotting interface</span></h2>
+<div class="admonition warning">
+<p class="first admonition-title"><span class="yiyi-st" id="yiyi-395">警告</span></p>
+<p class="last"><span class="yiyi-st" id="yiyi-396"><code class="docutils literal"><span class="pre">rplot</span></code>网格绘图界面已删除<strong></strong>。</span><span class="yiyi-st" id="yiyi-397">请使用类似<a class="reference external" href="https://github.com/mwaskom/seaborn">seaborn</a>的外部软件包，以获得类似但更细化的功能，并参阅我们的0.18.1文档<a class="reference external" href="http://pandas.pydata.org/pandas-docs/version/0.18.1/visualization.html">此处</a>，了解如何转换为使用它。</span></p>
+</div>
+</div>

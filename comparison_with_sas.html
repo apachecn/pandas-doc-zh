@@ -1,0 +1,645 @@
+
+<span id="compare-with-sas"></span><h1><span class="yiyi-st" id="yiyi-71">Comparison with SAS</span></h1>
+        <blockquote>
+        <p>原文：<a href="http://pandas.pydata.org/pandas-docs/stable/comparison_with_sas.html">http://pandas.pydata.org/pandas-docs/stable/comparison_with_sas.html</a></p>
+        <p>译者：<a href="https://github.com/wizardforcel">飞龙</a> <a href="http://usyiyi.cn/">UsyiyiCN</a></p>
+        <p>校对：（虚位以待）</p>
+        </blockquote>
+    
+<p><span class="yiyi-st" id="yiyi-72">对于来自<a class="reference external" href="https://en.wikipedia.org/wiki/SAS_(software)">SAS</a>的潜在用户，此页面旨在演示如何在pandas中执行不同的SAS操作。</span></p>
+<p><span class="yiyi-st" id="yiyi-73">如果你刚刚接触pandas，你可能需要先阅读<a class="reference internal" href="10min.html#min"><span class="std std-ref">10 Minutes to pandas</span></a>，来熟悉这个库。</span></p>
+<p><span class="yiyi-st" id="yiyi-74">按照惯例，我们导入pandas和numpy如下：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [1]: </span><span class="kn">import</span> <span class="nn">pandas</span> <span class="kn">as</span> <span class="nn">pd</span>
+
+<span class="gp">In [2]: </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title"><span class="yiyi-st" id="yiyi-75">注意</span></p>
+<p><span class="yiyi-st" id="yiyi-76">在本教程中，将通过调用<code class="docutils literal"><span class="pre">df.head()</span></code>显示pandas <code class="docutils literal"><span class="pre">DataFrame</span></code>，它显示<code class="docutils literal"><span class="pre">DataFrame</span></code></span><span class="yiyi-st" id="yiyi-77">这通常用于交互式工作（例如<a class="reference external" href="https://jupyter.org/">Jupyter notebook</a>或terminal） -  SAS中的等效项为：</span></p>
+<div class="last highlight-none"><div class="highlight"><pre><span></span>proc print data=df(obs=5);
+run;
+</pre></div>
+</div>
+</div>
+<div class="section" id="data-structures">
+<h2><span class="yiyi-st" id="yiyi-78">Data Structures</span></h2>
+<div class="section" id="general-terminology-translation">
+<h3><span class="yiyi-st" id="yiyi-79">General Terminology Translation</span></h3>
+<table border="1" class="docutils">
+<colgroup>
+<col width="50%">
+<col width="50%">
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head"><span class="yiyi-st" id="yiyi-80">Pandas</span></th>
+<th class="head"><span class="yiyi-st" id="yiyi-81">SAS</span></th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><span class="yiyi-st" id="yiyi-82"><code class="docutils literal"><span class="pre">DataFrame</span></code></span></td>
+<td><span class="yiyi-st" id="yiyi-83">数据集</span></td>
+</tr>
+<tr class="row-odd"><td><span class="yiyi-st" id="yiyi-84">列</span></td>
+<td><span class="yiyi-st" id="yiyi-85">变量</span></td>
+</tr>
+<tr class="row-even"><td><span class="yiyi-st" id="yiyi-86">行</span></td>
+<td><span class="yiyi-st" id="yiyi-87">观察</span></td>
+</tr>
+<tr class="row-odd"><td><span class="yiyi-st" id="yiyi-88">通过...分组</span></td>
+<td><span class="yiyi-st" id="yiyi-89">BY组</span></td>
+</tr>
+<tr class="row-even"><td><span class="yiyi-st" id="yiyi-90"><code class="docutils literal"><span class="pre">NaN</span></code></span></td>
+<td><span class="yiyi-st" id="yiyi-91"><code class="docutils literal"><span class="pre">.</span></code></span></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="dataframe-series">
+<h3><span class="yiyi-st" id="yiyi-92"><code class="docutils literal"><span class="pre">DataFrame</span></code> / <code class="docutils literal"><span class="pre">Series</span></code></span></h3>
+<p><span class="yiyi-st" id="yiyi-93">pandas中的<code class="docutils literal"><span class="pre">DataFrame</span></code>类似于SAS数据集 - 具有可以是不同类型的带标签列的二维数据源。</span><span class="yiyi-st" id="yiyi-94">如本文档所示，几乎任何可以应用于使用SAS的<code class="docutils literal"><span class="pre">DATA</span></code>步骤的数据集的操作也可以在pandas中完成。</span></p>
+<p><span class="yiyi-st" id="yiyi-95"><code class="docutils literal"><span class="pre">Series</span></code>是表示<code class="docutils literal"><span class="pre">DataFrame</span></code>的一列的数据结构。</span><span class="yiyi-st" id="yiyi-96">SAS没有单个列的单独数据结构，但通常，使用<code class="docutils literal"><span class="pre">Series</span></code>类似于引用<code class="docutils literal"><span class="pre">DATA</span></code>步骤中的列。</span></p>
+</div>
+<div class="section" id="index">
+<h3><span class="yiyi-st" id="yiyi-97"><code class="docutils literal"><span class="pre">Index</span></code></span></h3>
+<p><span class="yiyi-st" id="yiyi-98">每个<code class="docutils literal"><span class="pre">DataFrame</span></code>和<code class="docutils literal"><span class="pre">Series</span></code>都有一个<code class="docutils literal"><span class="pre">Index</span></code>  - 它们是数据的<em>行</em>上的标签。</span><span class="yiyi-st" id="yiyi-99">SAS没有完全类似的概念。</span><span class="yiyi-st" id="yiyi-100">除了在<code class="docutils literal"><span class="pre">DATA</span></code>步骤（<code class="docutils literal"><span class="pre">_N_</span></code>）期间可以访问的隐式整数索引，数据集的行基本上未标记。</span></p>
+<p><span class="yiyi-st" id="yiyi-101">在pandas中，如果未指定索引，则默认情况下也使用整数索引（第一行= 0，第二行= 1，依此类推）。</span><span class="yiyi-st" id="yiyi-102">While using a labeled <code class="docutils literal"><span class="pre">Index</span></code> or <code class="docutils literal"><span class="pre">MultiIndex</span></code> can enable sophisticated analyses and is ultimately an important part of pandas to understand, for this comparison we will essentially ignore the <code class="docutils literal"><span class="pre">Index</span></code> and just treat the <code class="docutils literal"><span class="pre">DataFrame</span></code> as a collection of columns. </span><span class="yiyi-st" id="yiyi-103">有关如何有效使用<code class="docutils literal"><span class="pre">Index</span></code>的更多信息，请参阅<a class="reference internal" href="indexing.html#indexing"><span class="std std-ref">indexing documentation</span></a>。</span></p>
+</div>
+</div>
+<div class="section" id="data-input-output">
+<h2><span class="yiyi-st" id="yiyi-104">Data Input / Output</span></h2>
+<div class="section" id="constructing-a-dataframe-from-values">
+<h3><span class="yiyi-st" id="yiyi-105">Constructing a DataFrame from Values</span></h3>
+<p><span class="yiyi-st" id="yiyi-106">SAS数据集可以通过将数据放在<code class="docutils literal"><span class="pre">datalines</span></code>语句之后并指定列名来从指定的值构建。</span></p>
+<div class="highlight-none"><div class="highlight"><pre><span></span>data df;
+    input x y;
+    datalines;
+    1 2
+    3 4
+    5 6
+    ;
+run;
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-107">可以以许多不同的方式构造pandas <code class="docutils literal"><span class="pre">DataFrame</span></code>，但对于少量的值，将其指定为python字典通常很方便，其中键是列名称，值是数据。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [3]: </span><span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span>
+<span class="gp">   ...:</span>           <span class="s1">&apos;x&apos;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">],</span>
+<span class="gp">   ...:</span>           <span class="s1">&apos;y&apos;</span><span class="p">:</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">6</span><span class="p">]})</span>
+<span class="gp">   ...:</span> 
+
+<span class="gp">In [4]: </span><span class="n">df</span>
+<span class="gr">Out[4]: </span>
+<span class="go">   x  y</span>
+<span class="go">0  1  2</span>
+<span class="go">1  3  4</span>
+<span class="go">2  5  6</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="reading-external-data">
+<h3><span class="yiyi-st" id="yiyi-108">Reading External Data</span></h3>
+<p><span class="yiyi-st" id="yiyi-109">像SAS一样，pandas提供了从多种格式读取数据的工具。</span><span class="yiyi-st" id="yiyi-110">在许多以下示例中将使用在pandas测试（<a class="reference external" href="https://raw.github.com/pandas-dev/pandas/master/pandas/tests/data/tips.csv">csv</a>）中找到的<code class="docutils literal"><span class="pre">tips</span></code>数据集。</span></p>
+<p><span class="yiyi-st" id="yiyi-111">SAS提供<code class="docutils literal"><span class="pre">PROC</span> <span class="pre">IMPORT</span></code>将csv数据读入数据集。</span></p>
+<div class="highlight-none"><div class="highlight"><pre><span></span>proc import datafile=&apos;tips.csv&apos; dbms=csv out=tips replace;
+    getnames=yes;
+run;
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-112">pandas方法是<a class="reference internal" href="generated/pandas.read_csv.html#pandas.read_csv" title="pandas.read_csv"><code class="xref py py-func docutils literal"><span class="pre">read_csv()</span></code></a>，其工作方式类似。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [5]: </span><span class="n">url</span> <span class="o">=</span> <span class="s1">&apos;https://raw.github.com/pandas-dev/pandas/master/pandas/tests/data/tips.csv&apos;</span>
+
+<span class="gp">In [6]: </span><span class="n">tips</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+
+<span class="gp">In [7]: </span><span class="n">tips</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
+<span class="gr">Out[7]: </span>
+<span class="go">   total_bill   tip     sex smoker  day    time  size</span>
+<span class="go">0       16.99  1.01  Female     No  Sun  Dinner     2</span>
+<span class="go">1       10.34  1.66    Male     No  Sun  Dinner     3</span>
+<span class="go">2       21.01  3.50    Male     No  Sun  Dinner     3</span>
+<span class="go">3       23.68  3.31    Male     No  Sun  Dinner     2</span>
+<span class="go">4       24.59  3.61  Female     No  Sun  Dinner     4</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-113">像<code class="docutils literal"><span class="pre">PROC</span> <span class="pre">IMPORT</span></code>，<code class="docutils literal"><span class="pre">read_csv</span></code>可以采用多个参数来指定应如何解析数据。</span><span class="yiyi-st" id="yiyi-114">例如，如果数据改为制表符分隔，并且没有列名，则pandas命令将是：</span></p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">tips</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s1">&apos;tips.csv&apos;</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s1">&apos;</span><span class="se">\t</span><span class="s1">&apos;</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
+
+<span class="c1"># alternatively, read_table is an alias to read_csv with tab delimiter</span>
+<span class="n">tips</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_table</span><span class="p">(</span><span class="s1">&apos;tips.csv&apos;</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-115">除了text / csv，pandas还支持各种其他数据格式，如Excel，HDF5和SQL数据库。</span><span class="yiyi-st" id="yiyi-116">这些都通过<code class="docutils literal"><span class="pre">pd.read_*</span></code>函数读取。</span><span class="yiyi-st" id="yiyi-117">有关详细信息，请参阅<a class="reference internal" href="io.html#io"><span class="std std-ref">IO documentation</span></a>。</span></p>
+</div>
+<div class="section" id="exporting-data">
+<h3><span class="yiyi-st" id="yiyi-118">Exporting Data</span></h3>
+<p><span class="yiyi-st" id="yiyi-119">SAS中<code class="docutils literal"><span class="pre">PROC</span> <span class="pre">IMPORT</span></code>的逆是<code class="docutils literal"><span class="pre">PROC</span> <span class="pre">EXPORT</span> t3&gt;</code></span></p>
+<div class="highlight-none"><div class="highlight"><pre><span></span>proc export data=tips outfile=&apos;tips2.csv&apos; dbms=csv;
+run;
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-120">类似地，在pandas中，与<code class="docutils literal"><span class="pre">read_csv</span></code>相反的是<a class="reference internal" href="generated/pandas.DataFrame.to_csv.html#pandas.DataFrame.to_csv" title="pandas.DataFrame.to_csv"><code class="xref py py-meth docutils literal"><span class="pre">to_csv()</span></code></a>，其他数据格式遵循类似的api。</span></p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">tips</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="s1">&apos;tips2.csv&apos;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="data-operations">
+<h2><span class="yiyi-st" id="yiyi-121">Data Operations</span></h2>
+<div class="section" id="operations-on-columns">
+<h3><span class="yiyi-st" id="yiyi-122">Operations on Columns</span></h3>
+<p><span class="yiyi-st" id="yiyi-123">在<code class="docutils literal"><span class="pre">DATA</span></code>步骤中，可以对新列或现有列使用任意数学表达式。</span></p>
+<div class="highlight-none"><div class="highlight"><pre><span></span>data tips;
+    set tips;
+    total_bill = total_bill - 2;
+    new_bill = total_bill / 2;
+run;
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-124">pandas通过指定<code class="docutils literal"><span class="pre">DataFrame</span></code>中的个别<code class="docutils literal"><span class="pre">Series</span></code>来提供类似的向量化操作。</span><span class="yiyi-st" id="yiyi-125">新列可以以相同的方式分配。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [8]: </span><span class="n">tips</span><span class="p">[</span><span class="s1">&apos;total_bill&apos;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tips</span><span class="p">[</span><span class="s1">&apos;total_bill&apos;</span><span class="p">]</span> <span class="o">-</span> <span class="mi">2</span>
+
+<span class="gp">In [9]: </span><span class="n">tips</span><span class="p">[</span><span class="s1">&apos;new_bill&apos;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tips</span><span class="p">[</span><span class="s1">&apos;total_bill&apos;</span><span class="p">]</span> <span class="o">/</span> <span class="mf">2.0</span>
+
+<span class="gp">In [10]: </span><span class="n">tips</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
+<span class="gr">Out[10]: </span>
+<span class="go">   total_bill   tip     sex smoker  day    time  size  new_bill</span>
+<span class="go">0       14.99  1.01  Female     No  Sun  Dinner     2     7.495</span>
+<span class="go">1        8.34  1.66    Male     No  Sun  Dinner     3     4.170</span>
+<span class="go">2       19.01  3.50    Male     No  Sun  Dinner     3     9.505</span>
+<span class="go">3       21.68  3.31    Male     No  Sun  Dinner     2    10.840</span>
+<span class="go">4       22.59  3.61  Female     No  Sun  Dinner     4    11.295</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="filtering">
+<h3><span class="yiyi-st" id="yiyi-126">Filtering</span></h3>
+<p><span class="yiyi-st" id="yiyi-127">在SAS中，在一个或多个列上使用<code class="docutils literal"><span class="pre">if</span></code>或<code class="docutils literal"><span class="pre">where</span></code>语句进行过滤。</span></p>
+<div class="highlight-none"><div class="highlight"><pre><span></span>data tips;
+    set tips;
+    if total_bill &gt; 10;
+run;
+
+data tips;
+    set tips;
+    where total_bill &gt; 10;
+    /* equivalent in this case - where happens before the
+       DATA step begins and can also be used in PROC statements */
+run;
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-128">DataFrames可以以多种方式进行过滤；其中最直观的是使用<a class="reference internal" href="indexing.html#indexing-boolean"><span class="std std-ref">boolean indexing</span></a></span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [11]: </span><span class="n">tips</span><span class="p">[</span><span class="n">tips</span><span class="p">[</span><span class="s1">&apos;total_bill&apos;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">10</span><span class="p">]</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
+<span class="gr">Out[11]: </span>
+<span class="go">   total_bill   tip     sex smoker  day    time  size</span>
+<span class="go">0       14.99  1.01  Female     No  Sun  Dinner     2</span>
+<span class="go">2       19.01  3.50    Male     No  Sun  Dinner     3</span>
+<span class="go">3       21.68  3.31    Male     No  Sun  Dinner     2</span>
+<span class="go">4       22.59  3.61  Female     No  Sun  Dinner     4</span>
+<span class="go">5       23.29  4.71    Male     No  Sun  Dinner     4</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="if-then-logic">
+<h3><span class="yiyi-st" id="yiyi-129">If/Then Logic</span></h3>
+<p><span class="yiyi-st" id="yiyi-130">在SAS中，如果/然后逻辑可以用于创建新列。</span></p>
+<div class="highlight-none"><div class="highlight"><pre><span></span>data tips;
+    set tips;
+    format bucket $4.;
+
+    if total_bill &lt; 10 then bucket = &apos;low&apos;;
+    else bucket = &apos;high&apos;;
+run;
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-131">使用<code class="docutils literal"><span class="pre">numpy</span></code>的<code class="docutils literal"><span class="pre">where</span></code>方法可以实现在pandas中的相同操作。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [12]: </span><span class="n">tips</span><span class="p">[</span><span class="s1">&apos;bucket&apos;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">tips</span><span class="p">[</span><span class="s1">&apos;total_bill&apos;</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">10</span><span class="p">,</span> <span class="s1">&apos;low&apos;</span><span class="p">,</span> <span class="s1">&apos;high&apos;</span><span class="p">)</span>
+
+<span class="gp">In [13]: </span><span class="n">tips</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
+<span class="gr">Out[13]: </span>
+<span class="go">   total_bill   tip     sex smoker  day    time  size bucket</span>
+<span class="go">0       14.99  1.01  Female     No  Sun  Dinner     2   high</span>
+<span class="go">1        8.34  1.66    Male     No  Sun  Dinner     3    low</span>
+<span class="go">2       19.01  3.50    Male     No  Sun  Dinner     3   high</span>
+<span class="go">3       21.68  3.31    Male     No  Sun  Dinner     2   high</span>
+<span class="go">4       22.59  3.61  Female     No  Sun  Dinner     4   high</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="date-functionality">
+<h3><span class="yiyi-st" id="yiyi-132">Date Functionality</span></h3>
+<p><span class="yiyi-st" id="yiyi-133">SAS提供了各种函数来对日期/日期时间列执行操作。</span></p>
+<div class="highlight-none"><div class="highlight"><pre><span></span>data tips;
+    set tips;
+    format date1 date2 date1_plusmonth mmddyy10.;
+    date1 = mdy(1, 15, 2013);
+    date2 = mdy(2, 15, 2015);
+    date1_year = year(date1);
+    date2_month = month(date2);
+    * shift date to beginning of next interval;
+    date1_next = intnx(&apos;MONTH&apos;, date1, 1);
+    * count intervals between dates;
+    months_between = intck(&apos;MONTH&apos;, date1, date2);
+run;
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-134">等效熊猫操作如下所示。</span><span class="yiyi-st" id="yiyi-135">除了这些功能之外，pandas支持Base SAS中不提供的其他时间序列特性（例如重采样和自定义偏移） - 有关详细信息，请参阅<a class="reference internal" href="timeseries.html#timeseries"><span class="std std-ref">timeseries documentation</span></a>。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [14]: </span><span class="n">tips</span><span class="p">[</span><span class="s1">&apos;date1&apos;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Timestamp</span><span class="p">(</span><span class="s1">&apos;2013-01-15&apos;</span><span class="p">)</span>
+
+<span class="gp">In [15]: </span><span class="n">tips</span><span class="p">[</span><span class="s1">&apos;date2&apos;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Timestamp</span><span class="p">(</span><span class="s1">&apos;2015-02-15&apos;</span><span class="p">)</span>
+
+<span class="gp">In [16]: </span><span class="n">tips</span><span class="p">[</span><span class="s1">&apos;date1_year&apos;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tips</span><span class="p">[</span><span class="s1">&apos;date1&apos;</span><span class="p">]</span><span class="o">.</span><span class="n">dt</span><span class="o">.</span><span class="n">year</span>
+
+<span class="gp">In [17]: </span><span class="n">tips</span><span class="p">[</span><span class="s1">&apos;date2_month&apos;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tips</span><span class="p">[</span><span class="s1">&apos;date2&apos;</span><span class="p">]</span><span class="o">.</span><span class="n">dt</span><span class="o">.</span><span class="n">month</span>
+
+<span class="gp">In [18]: </span><span class="n">tips</span><span class="p">[</span><span class="s1">&apos;date1_next&apos;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tips</span><span class="p">[</span><span class="s1">&apos;date1&apos;</span><span class="p">]</span> <span class="o">+</span> <span class="n">pd</span><span class="o">.</span><span class="n">offsets</span><span class="o">.</span><span class="n">MonthBegin</span><span class="p">()</span>
+
+<span class="gp">In [19]: </span><span class="n">tips</span><span class="p">[</span><span class="s1">&apos;months_between&apos;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">tips</span><span class="p">[</span><span class="s1">&apos;date2&apos;</span><span class="p">]</span><span class="o">.</span><span class="n">dt</span><span class="o">.</span><span class="n">to_period</span><span class="p">(</span><span class="s1">&apos;M&apos;</span><span class="p">)</span> <span class="o">-</span>
+<span class="gp">   ....:</span>                           <span class="n">tips</span><span class="p">[</span><span class="s1">&apos;date1&apos;</span><span class="p">]</span><span class="o">.</span><span class="n">dt</span><span class="o">.</span><span class="n">to_period</span><span class="p">(</span><span class="s1">&apos;M&apos;</span><span class="p">))</span>
+<span class="gp">   ....:</span> 
+
+<span class="gp">In [20]: </span><span class="n">tips</span><span class="p">[[</span><span class="s1">&apos;date1&apos;</span><span class="p">,</span><span class="s1">&apos;date2&apos;</span><span class="p">,</span><span class="s1">&apos;date1_year&apos;</span><span class="p">,</span><span class="s1">&apos;date2_month&apos;</span><span class="p">,</span>
+<span class="gp">   ....:</span>       <span class="s1">&apos;date1_next&apos;</span><span class="p">,</span><span class="s1">&apos;months_between&apos;</span><span class="p">]]</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
+<span class="gp">   ....:</span> 
+<span class="gr">Out[20]: </span>
+<span class="go">       date1      date2  date1_year  date2_month date1_next months_between</span>
+<span class="go">0 2013-01-15 2015-02-15        2013            2 2013-02-01             25</span>
+<span class="go">1 2013-01-15 2015-02-15        2013            2 2013-02-01             25</span>
+<span class="go">2 2013-01-15 2015-02-15        2013            2 2013-02-01             25</span>
+<span class="go">3 2013-01-15 2015-02-15        2013            2 2013-02-01             25</span>
+<span class="go">4 2013-01-15 2015-02-15        2013            2 2013-02-01             25</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="selection-of-columns">
+<h3><span class="yiyi-st" id="yiyi-136">Selection of Columns</span></h3>
+<p><span class="yiyi-st" id="yiyi-137">SAS在<code class="docutils literal"><span class="pre">DATA</span></code>步骤中提供关键字来选择，删除和重命名列。</span></p>
+<div class="highlight-none"><div class="highlight"><pre><span></span>data tips;
+    set tips;
+    keep sex total_bill tip;
+run;
+
+data tips;
+    set tips;
+    drop sex;
+run;
+
+data tips;
+    set tips;
+    rename total_bill=total_bill_2;
+run;
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-138">相同的操作在下面的pandas中表示。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="c"># keep</span>
+<span class="gp">In [21]: </span><span class="n">tips</span><span class="p">[[</span><span class="s1">&apos;sex&apos;</span><span class="p">,</span> <span class="s1">&apos;total_bill&apos;</span><span class="p">,</span> <span class="s1">&apos;tip&apos;</span><span class="p">]]</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
+<span class="gr">Out[21]: </span>
+<span class="go">      sex  total_bill   tip</span>
+<span class="go">0  Female       14.99  1.01</span>
+<span class="go">1    Male        8.34  1.66</span>
+<span class="go">2    Male       19.01  3.50</span>
+<span class="go">3    Male       21.68  3.31</span>
+<span class="go">4  Female       22.59  3.61</span>
+
+<span class="c"># drop</span>
+<span class="gp">In [22]: </span><span class="n">tips</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="s1">&apos;sex&apos;</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
+<span class="gr">Out[22]: </span>
+<span class="go">   total_bill   tip smoker  day    time  size</span>
+<span class="go">0       14.99  1.01     No  Sun  Dinner     2</span>
+<span class="go">1        8.34  1.66     No  Sun  Dinner     3</span>
+<span class="go">2       19.01  3.50     No  Sun  Dinner     3</span>
+<span class="go">3       21.68  3.31     No  Sun  Dinner     2</span>
+<span class="go">4       22.59  3.61     No  Sun  Dinner     4</span>
+
+<span class="c"># rename</span>
+<span class="gp">In [23]: </span><span class="n">tips</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="s1">&apos;total_bill&apos;</span><span class="p">:</span><span class="s1">&apos;total_bill_2&apos;</span><span class="p">})</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
+<span class="gr">Out[23]: </span>
+<span class="go">   total_bill_2   tip     sex smoker  day    time  size</span>
+<span class="go">0         14.99  1.01  Female     No  Sun  Dinner     2</span>
+<span class="go">1          8.34  1.66    Male     No  Sun  Dinner     3</span>
+<span class="go">2         19.01  3.50    Male     No  Sun  Dinner     3</span>
+<span class="go">3         21.68  3.31    Male     No  Sun  Dinner     2</span>
+<span class="go">4         22.59  3.61  Female     No  Sun  Dinner     4</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="sorting-by-values">
+<h3><span class="yiyi-st" id="yiyi-139">Sorting by Values</span></h3>
+<p><span class="yiyi-st" id="yiyi-140">SAS中的排序是通过<code class="docutils literal"><span class="pre">PROC</span> <span class="pre">SORT</span></code></span></p>
+<div class="highlight-none"><div class="highlight"><pre><span></span>proc sort data=tips;
+    by sex total_bill;
+run;
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-141">pandas对象有一个<a class="reference internal" href="generated/pandas.DataFrame.sort_values.html#pandas.DataFrame.sort_values" title="pandas.DataFrame.sort_values"><code class="xref py py-meth docutils literal"><span class="pre">sort_values()</span></code></a>方法，它接受要排序的列的列表。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [24]: </span><span class="n">tips</span> <span class="o">=</span> <span class="n">tips</span><span class="o">.</span><span class="n">sort_values</span><span class="p">([</span><span class="s1">&apos;sex&apos;</span><span class="p">,</span> <span class="s1">&apos;total_bill&apos;</span><span class="p">])</span>
+
+<span class="gp">In [25]: </span><span class="n">tips</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
+<span class="gr">Out[25]: </span>
+<span class="go">     total_bill   tip     sex smoker   day    time  size</span>
+<span class="go">67         1.07  1.00  Female    Yes   Sat  Dinner     1</span>
+<span class="go">92         3.75  1.00  Female    Yes   Fri  Dinner     2</span>
+<span class="go">111        5.25  1.00  Female     No   Sat  Dinner     1</span>
+<span class="go">145        6.35  1.50  Female     No  Thur   Lunch     2</span>
+<span class="go">135        6.51  1.25  Female     No  Thur   Lunch     2</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="merging">
+<h2><span class="yiyi-st" id="yiyi-142">Merging</span></h2>
+<p><span class="yiyi-st" id="yiyi-143">下面的表将用于合并示例</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [26]: </span><span class="n">df1</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s1">&apos;key&apos;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&apos;A&apos;</span><span class="p">,</span> <span class="s1">&apos;B&apos;</span><span class="p">,</span> <span class="s1">&apos;C&apos;</span><span class="p">,</span> <span class="s1">&apos;D&apos;</span><span class="p">],</span>
+<span class="gp">   ....:</span>                     <span class="s1">&apos;value&apos;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">4</span><span class="p">)})</span>
+<span class="gp">   ....:</span> 
+
+<span class="gp">In [27]: </span><span class="n">df1</span>
+<span class="gr">Out[27]: </span>
+<span class="go">  key     value</span>
+<span class="go">0   A -0.857326</span>
+<span class="go">1   B  1.075416</span>
+<span class="go">2   C  0.371727</span>
+<span class="go">3   D  1.065735</span>
+
+<span class="gp">In [28]: </span><span class="n">df2</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s1">&apos;key&apos;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&apos;B&apos;</span><span class="p">,</span> <span class="s1">&apos;D&apos;</span><span class="p">,</span> <span class="s1">&apos;D&apos;</span><span class="p">,</span> <span class="s1">&apos;E&apos;</span><span class="p">],</span>
+<span class="gp">   ....:</span>                      <span class="s1">&apos;value&apos;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">4</span><span class="p">)})</span>
+<span class="gp">   ....:</span> 
+
+<span class="gp">In [29]: </span><span class="n">df2</span>
+<span class="gr">Out[29]: </span>
+<span class="go">  key     value</span>
+<span class="go">0   B -0.227314</span>
+<span class="go">1   D  2.102726</span>
+<span class="go">2   D -0.092796</span>
+<span class="go">3   E  0.094694</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-144">在SAS中，数据必须在合并之前进行显式排序。</span><span class="yiyi-st" id="yiyi-145">使用<code class="docutils literal"><span class="pre">in=</span></code>虚拟变量来完成不同类型的连接，以跟踪在一个或两个输入帧中是否找到匹配。</span></p>
+<div class="highlight-none"><div class="highlight"><pre><span></span>proc sort data=df1;
+    by key;
+run;
+
+proc sort data=df2;
+    by key;
+run;
+
+data left_join inner_join right_join outer_join;
+    merge df1(in=a) df2(in=b);
+
+    if a and b then output inner_join;
+    if a then output left_join;
+    if b then output right_join;
+    if a or b then output outer_join;
+run;
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-146">pandas DataFrames有一个<a class="reference internal" href="generated/pandas.DataFrame.merge.html#pandas.DataFrame.merge" title="pandas.DataFrame.merge"><code class="xref py py-meth docutils literal"><span class="pre">merge()</span></code></a>方法，它提供类似的功能。</span><span class="yiyi-st" id="yiyi-147">请注意，数据不必提前排序，并且通过<code class="docutils literal"><span class="pre">how</span></code>关键字完成不同的连接类型。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [30]: </span><span class="n">inner_join</span> <span class="o">=</span> <span class="n">df1</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">df2</span><span class="p">,</span> <span class="n">on</span><span class="o">=</span><span class="p">[</span><span class="s1">&apos;key&apos;</span><span class="p">],</span> <span class="n">how</span><span class="o">=</span><span class="s1">&apos;inner&apos;</span><span class="p">)</span>
+
+<span class="gp">In [31]: </span><span class="n">inner_join</span>
+<span class="gr">Out[31]: </span>
+<span class="go">  key   value_x   value_y</span>
+<span class="go">0   B  1.075416 -0.227314</span>
+<span class="go">1   D  1.065735  2.102726</span>
+<span class="go">2   D  1.065735 -0.092796</span>
+
+<span class="gp">In [32]: </span><span class="n">left_join</span> <span class="o">=</span> <span class="n">df1</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">df2</span><span class="p">,</span> <span class="n">on</span><span class="o">=</span><span class="p">[</span><span class="s1">&apos;key&apos;</span><span class="p">],</span> <span class="n">how</span><span class="o">=</span><span class="s1">&apos;left&apos;</span><span class="p">)</span>
+
+<span class="gp">In [33]: </span><span class="n">left_join</span>
+<span class="gr">Out[33]: </span>
+<span class="go">  key   value_x   value_y</span>
+<span class="go">0   A -0.857326       NaN</span>
+<span class="go">1   B  1.075416 -0.227314</span>
+<span class="go">2   C  0.371727       NaN</span>
+<span class="go">3   D  1.065735  2.102726</span>
+<span class="go">4   D  1.065735 -0.092796</span>
+
+<span class="gp">In [34]: </span><span class="n">right_join</span> <span class="o">=</span> <span class="n">df1</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">df2</span><span class="p">,</span> <span class="n">on</span><span class="o">=</span><span class="p">[</span><span class="s1">&apos;key&apos;</span><span class="p">],</span> <span class="n">how</span><span class="o">=</span><span class="s1">&apos;right&apos;</span><span class="p">)</span>
+
+<span class="gp">In [35]: </span><span class="n">right_join</span>
+<span class="gr">Out[35]: </span>
+<span class="go">  key   value_x   value_y</span>
+<span class="go">0   B  1.075416 -0.227314</span>
+<span class="go">1   D  1.065735  2.102726</span>
+<span class="go">2   D  1.065735 -0.092796</span>
+<span class="go">3   E       NaN  0.094694</span>
+
+<span class="gp">In [36]: </span><span class="n">outer_join</span> <span class="o">=</span> <span class="n">df1</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">df2</span><span class="p">,</span> <span class="n">on</span><span class="o">=</span><span class="p">[</span><span class="s1">&apos;key&apos;</span><span class="p">],</span> <span class="n">how</span><span class="o">=</span><span class="s1">&apos;outer&apos;</span><span class="p">)</span>
+
+<span class="gp">In [37]: </span><span class="n">outer_join</span>
+<span class="gr">Out[37]: </span>
+<span class="go">  key   value_x   value_y</span>
+<span class="go">0   A -0.857326       NaN</span>
+<span class="go">1   B  1.075416 -0.227314</span>
+<span class="go">2   C  0.371727       NaN</span>
+<span class="go">3   D  1.065735  2.102726</span>
+<span class="go">4   D  1.065735 -0.092796</span>
+<span class="go">5   E       NaN  0.094694</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="missing-data">
+<h2><span class="yiyi-st" id="yiyi-148">Missing Data</span></h2>
+<p><span class="yiyi-st" id="yiyi-149">像SAS一样，pandas有一个缺失数据的表示 - 这是特殊的浮动值<code class="docutils literal"><span class="pre">NaN</span></code>（不是数字）。</span><span class="yiyi-st" id="yiyi-150">许多语义是相同的，例如缺少的数据通过数值操作传播，并且对于聚合默认被忽略。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [38]: </span><span class="n">outer_join</span>
+<span class="gr">Out[38]: </span>
+<span class="go">  key   value_x   value_y</span>
+<span class="go">0   A -0.857326       NaN</span>
+<span class="go">1   B  1.075416 -0.227314</span>
+<span class="go">2   C  0.371727       NaN</span>
+<span class="go">3   D  1.065735  2.102726</span>
+<span class="go">4   D  1.065735 -0.092796</span>
+<span class="go">5   E       NaN  0.094694</span>
+
+<span class="gp">In [39]: </span><span class="n">outer_join</span><span class="p">[</span><span class="s1">&apos;value_x&apos;</span><span class="p">]</span> <span class="o">+</span> <span class="n">outer_join</span><span class="p">[</span><span class="s1">&apos;value_y&apos;</span><span class="p">]</span>
+<span class="gr">Out[39]: </span>
+<span class="go">0         NaN</span>
+<span class="go">1    0.848102</span>
+<span class="go">2         NaN</span>
+<span class="go">3    3.168461</span>
+<span class="go">4    0.972939</span>
+<span class="go">5         NaN</span>
+<span class="go">dtype: float64</span>
+
+<span class="gp">In [40]: </span><span class="n">outer_join</span><span class="p">[</span><span class="s1">&apos;value_x&apos;</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+<span class="gr">Out[40]: </span><span class="mf">2.72128653544262</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-151">一个区别是，缺少的数据不能与其哨兵值进行比较。</span><span class="yiyi-st" id="yiyi-152">例如，在SAS中，您可以执行此操作来过滤缺失值。</span></p>
+<div class="highlight-none"><div class="highlight"><pre><span></span>data outer_join_nulls;
+    set outer_join;
+    if value_x = .;
+run;
+
+data outer_join_no_nulls;
+    set outer_join;
+    if value_x ^= .;
+run;
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-153">这在pandas中不起作用。</span><span class="yiyi-st" id="yiyi-154">而应该使用<code class="docutils literal"><span class="pre">pd.isnull</span></code>或<code class="docutils literal"><span class="pre">pd.notnull</span></code>函数进行比较。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [41]: </span><span class="n">outer_join</span><span class="p">[</span><span class="n">pd</span><span class="o">.</span><span class="n">isnull</span><span class="p">(</span><span class="n">outer_join</span><span class="p">[</span><span class="s1">&apos;value_x&apos;</span><span class="p">])]</span>
+<span class="gr">Out[41]: </span>
+<span class="go">  key  value_x   value_y</span>
+<span class="go">5   E      NaN  0.094694</span>
+
+<span class="gp">In [42]: </span><span class="n">outer_join</span><span class="p">[</span><span class="n">pd</span><span class="o">.</span><span class="n">notnull</span><span class="p">(</span><span class="n">outer_join</span><span class="p">[</span><span class="s1">&apos;value_x&apos;</span><span class="p">])]</span>
+<span class="gr">Out[42]: </span>
+<span class="go">  key   value_x   value_y</span>
+<span class="go">0   A -0.857326       NaN</span>
+<span class="go">1   B  1.075416 -0.227314</span>
+<span class="go">2   C  0.371727       NaN</span>
+<span class="go">3   D  1.065735  2.102726</span>
+<span class="go">4   D  1.065735 -0.092796</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-155">pandas还提供了多种方法来处理缺失的数据 - 其中一些在SAS中表达是有挑战性的。</span><span class="yiyi-st" id="yiyi-156">例如，有一些方法删除具有任何缺失值的所有行，将缺失值替换为指定值（如平均值）或从前一行的向前填充。</span><span class="yiyi-st" id="yiyi-157">有关详情，请参阅<a class="reference internal" href="missing_data.html#missing-data"><span class="std std-ref">missing data documentation</span></a>。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [43]: </span><span class="n">outer_join</span><span class="o">.</span><span class="n">dropna</span><span class="p">()</span>
+<span class="gr">Out[43]: </span>
+<span class="go">  key   value_x   value_y</span>
+<span class="go">1   B  1.075416 -0.227314</span>
+<span class="go">3   D  1.065735  2.102726</span>
+<span class="go">4   D  1.065735 -0.092796</span>
+
+<span class="gp">In [44]: </span><span class="n">outer_join</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="n">method</span><span class="o">=</span><span class="s1">&apos;ffill&apos;</span><span class="p">)</span>
+<span class="gr">Out[44]: </span>
+<span class="go">  key   value_x   value_y</span>
+<span class="go">0   A -0.857326       NaN</span>
+<span class="go">1   B  1.075416 -0.227314</span>
+<span class="go">2   C  0.371727 -0.227314</span>
+<span class="go">3   D  1.065735  2.102726</span>
+<span class="go">4   D  1.065735 -0.092796</span>
+<span class="go">5   E  1.065735  0.094694</span>
+
+<span class="gp">In [45]: </span><span class="n">outer_join</span><span class="p">[</span><span class="s1">&apos;value_x&apos;</span><span class="p">]</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="n">outer_join</span><span class="p">[</span><span class="s1">&apos;value_x&apos;</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">())</span>
+<span class="gr">Out[45]: </span>
+<span class="go">0   -0.857326</span>
+<span class="go">1    1.075416</span>
+<span class="go">2    0.371727</span>
+<span class="go">3    1.065735</span>
+<span class="go">4    1.065735</span>
+<span class="go">5    0.544257</span>
+<span class="go">Name: value_x, dtype: float64</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="groupby">
+<h2><span class="yiyi-st" id="yiyi-158">GroupBy</span></h2>
+<div class="section" id="aggregation">
+<h3><span class="yiyi-st" id="yiyi-159">Aggregation</span></h3>
+<p><span class="yiyi-st" id="yiyi-160">SAS的PROC SUMMARY可用于按一个或多个关键变量分组，并计算数字列上的聚合。</span></p>
+<div class="highlight-none"><div class="highlight"><pre><span></span>proc summary data=tips nway;
+    class sex smoker;
+    var total_bill tip;
+    output out=tips_summed sum=;
+run;
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-161">pandas提供了一种灵活的<code class="docutils literal"><span class="pre">groupby</span></code>机制，允许类似的聚合。</span><span class="yiyi-st" id="yiyi-162">有关更多详细信息和示例，请参阅<a class="reference internal" href="groupby.html#groupby"><span class="std std-ref">groupby documentation</span></a>。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [46]: </span><span class="n">tips_summed</span> <span class="o">=</span> <span class="n">tips</span><span class="o">.</span><span class="n">groupby</span><span class="p">([</span><span class="s1">&apos;sex&apos;</span><span class="p">,</span> <span class="s1">&apos;smoker&apos;</span><span class="p">])[</span><span class="s1">&apos;total_bill&apos;</span><span class="p">,</span> <span class="s1">&apos;tip&apos;</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+
+<span class="gp">In [47]: </span><span class="n">tips_summed</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
+<span class="gr">Out[47]: </span>
+<span class="go">               total_bill     tip</span>
+<span class="go">sex    smoker                    </span>
+<span class="go">Female No          869.68  149.77</span>
+<span class="go">       Yes         527.27   96.74</span>
+<span class="go">Male   No         1725.75  302.00</span>
+<span class="go">       Yes        1217.07  183.07</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="transformation">
+<h3><span class="yiyi-st" id="yiyi-163">Transformation</span></h3>
+<p><span class="yiyi-st" id="yiyi-164">在SAS中，如果组聚合需要与原始帧一起使用，则必须将它们合并在一起。</span><span class="yiyi-st" id="yiyi-165">例如，减去吸烟者组每次观察的平均值。</span></p>
+<div class="highlight-none"><div class="highlight"><pre><span></span>proc summary data=tips missing nway;
+    class smoker;
+    var total_bill;
+    output out=smoker_means mean(total_bill)=group_bill;
+run;
+
+proc sort data=tips;
+    by smoker;
+run;
+
+data tips;
+    merge tips(in=a) smoker_means(in=b);
+    by smoker;
+    adj_total_bill = total_bill - group_bill;
+    if a and b;
+run;
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-166">pandas <code class="docutils literal"><span class="pre">groubpy</span></code>提供了一种<code class="docutils literal"><span class="pre">transform</span></code>机制，允许在一个操作中简洁地表达这些类型的操作。</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [48]: </span><span class="n">gb</span> <span class="o">=</span> <span class="n">tips</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s1">&apos;smoker&apos;</span><span class="p">)[</span><span class="s1">&apos;total_bill&apos;</span><span class="p">]</span>
+
+<span class="gp">In [49]: </span><span class="n">tips</span><span class="p">[</span><span class="s1">&apos;adj_total_bill&apos;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tips</span><span class="p">[</span><span class="s1">&apos;total_bill&apos;</span><span class="p">]</span> <span class="o">-</span> <span class="n">gb</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="s1">&apos;mean&apos;</span><span class="p">)</span>
+
+<span class="gp">In [50]: </span><span class="n">tips</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
+<span class="gr">Out[50]: </span>
+<span class="go">     total_bill   tip     sex smoker   day    time  size  adj_total_bill</span>
+<span class="go">67         1.07  1.00  Female    Yes   Sat  Dinner     1      -17.686344</span>
+<span class="go">92         3.75  1.00  Female    Yes   Fri  Dinner     2      -15.006344</span>
+<span class="go">111        5.25  1.00  Female     No   Sat  Dinner     1      -11.938278</span>
+<span class="go">145        6.35  1.50  Female     No  Thur   Lunch     2      -10.838278</span>
+<span class="go">135        6.51  1.25  Female     No  Thur   Lunch     2      -10.678278</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="by-group-processing">
+<h3><span class="yiyi-st" id="yiyi-167">By Group Processing</span></h3>
+<p><span class="yiyi-st" id="yiyi-168">除了聚合之外，pandas <code class="docutils literal"><span class="pre">groupby</span></code>可以用于通过来自SAS的组处理复制大多数其他的。</span><span class="yiyi-st" id="yiyi-169">例如，此<code class="docutils literal"><span class="pre">DATA</span></code>步骤按性别/吸烟者组读取数据，并过滤到每个条目的第一个条目。</span></p>
+<div class="highlight-none"><div class="highlight"><pre><span></span>proc sort data=tips;
+   by sex smoker;
+run;
+
+data tips_first;
+    set tips;
+    by sex smoker;
+    if FIRST.sex or FIRST.smoker then output;
+run;
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-170">在大熊猫这将写成：</span></p>
+<div class="highlight-ipython"><div class="highlight"><pre><span></span><span class="gp">In [51]: </span><span class="n">tips</span><span class="o">.</span><span class="n">groupby</span><span class="p">([</span><span class="s1">&apos;sex&apos;</span><span class="p">,</span><span class="s1">&apos;smoker&apos;</span><span class="p">])</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+<span class="gr">Out[51]: </span>
+<span class="go">               total_bill   tip   day    time  size  adj_total_bill</span>
+<span class="go">sex    smoker                                                      </span>
+<span class="go">Female No            5.25  1.00   Sat  Dinner     1      -11.938278</span>
+<span class="go">       Yes           1.07  1.00   Sat  Dinner     1      -17.686344</span>
+<span class="go">Male   No            5.51  2.00  Thur   Lunch     2      -11.678278</span>
+<span class="go">       Yes           5.25  5.15   Sun  Dinner     2      -13.506344</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="other-considerations">
+<h2><span class="yiyi-st" id="yiyi-171">Other Considerations</span></h2>
+<div class="section" id="disk-vs-memory">
+<h3><span class="yiyi-st" id="yiyi-172">Disk vs Memory</span></h3>
+<p><span class="yiyi-st" id="yiyi-173">pandas仅在内存中运行，其中SAS数据集存在于磁盘上。</span><span class="yiyi-st" id="yiyi-174">这意味着能够在pandas中加载的数据的大小受到机器内存的限制，而且对该数据的操作可能更快。</span></p>
+<p><span class="yiyi-st" id="yiyi-175">如果需要核心处理，一种可能性是<a class="reference external" href="http://dask.pydata.org/en/latest/dataframe.html">dask.dataframe</a>库（当前正在开发中），它为磁盘上的<code class="docutils literal"><span class="pre">DataFrame</span></code>提供了一个pandas功能的子集，</span></p>
+</div>
+<div class="section" id="data-interop">
+<h3><span class="yiyi-st" id="yiyi-176">Data Interop</span></h3>
+<p><span class="yiyi-st" id="yiyi-177">pandas提供了一个可以读取以XPORT格式保存的SAS数据的<a class="reference internal" href="generated/pandas.read_sas.html#pandas.read_sas" title="pandas.read_sas"><code class="xref py py-func docutils literal"><span class="pre">read_sas()</span></code></a>方法。</span><span class="yiyi-st" id="yiyi-178">计划在将来的版本中读取SAS的二进制格式的能力。</span></p>
+<div class="highlight-none"><div class="highlight"><pre><span></span>libname xportout xport &apos;transport-file.xpt&apos;;
+data xportout.tips;
+    set tips(rename=(total_bill=tbill));
+    * xport variable names limited to 6 characters;
+run;
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_sas</span><span class="p">(</span><span class="s1">&apos;transport-file.xpt&apos;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><span class="yiyi-st" id="yiyi-179">XPORT是一种相对有限的格式，它的解析不像其他一些Pandas读者那样优化。</span><span class="yiyi-st" id="yiyi-180">在SAS和pandas之间交互数据的另一种方法是序列化为csv。</span></p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="c1"># version 0.17, 10M rows</span>
+
+<span class="n">In</span> <span class="p">[</span><span class="mi">8</span><span class="p">]:</span> <span class="o">%</span><span class="n">time</span> <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_sas</span><span class="p">(</span><span class="s1">&apos;big.xpt&apos;</span><span class="p">)</span>
+<span class="n">Wall</span> <span class="n">time</span><span class="p">:</span> <span class="mf">14.6</span> <span class="n">s</span>
+
+<span class="n">In</span> <span class="p">[</span><span class="mi">9</span><span class="p">]:</span> <span class="o">%</span><span class="n">time</span> <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s1">&apos;big.csv&apos;</span><span class="p">)</span>
+<span class="n">Wall</span> <span class="n">time</span><span class="p">:</span> <span class="mf">4.86</span> <span class="n">s</span>
+</pre></div>
+</div>
+</div>
+</div>
